@@ -41,6 +41,15 @@
             }
             
         }
+        ,{
+            "path" : "pages/RegisterPage/RegisterPage",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "注册",
+                "enablePullDownRefresh": false
+            }
+            
+        }
     ],
 	"tabBar": {
 	    "color": "#333333",

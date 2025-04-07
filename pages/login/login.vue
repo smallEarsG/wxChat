@@ -15,7 +15,10 @@
         @blur="validatePhone"
       />
       <input class="input" type="password" placeholder="请输入密码" v-model="password" />
-      <button class="btn" @click="login">登录</button>
+      <view class="btnBox">
+      	<button class="btn" @click="login">登录</button>
+      	<button class="btn btn_right" @click="register">注册</button>
+      </view>
     </view>
   </view>
 </template>
@@ -43,7 +46,13 @@ export default {
       }
       return true;
     },
-
+	register(){
+		console.log("===");
+		uni.navigateTo({
+			url:"/pages/RegisterPage/RegisterPage"
+		})
+	
+	},
     // 登录逻辑
     async login() {
       if (!this.phone || !this.password) {
@@ -133,10 +142,22 @@ export default {
   height: 100rpx;
 }
 .btn {
-  width: 100%;
+  width: 40%;
   padding: 12px;
   background-color: #007AFF;
   color: #fff;
   border-radius: 5px;
+  /* margin-right: 20rpx; */
+  box-sizing: border-box;
+}
+.btn_right{
+	/* margin-top: 20rpx; */
+	color: #333;
+	background-color: #f5f5f5;
+}
+.btnBox{
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 </style>

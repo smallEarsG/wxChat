@@ -23,6 +23,15 @@
         <text class="label">剩余免费使用次数：</text>
         <text class="value">{{ userInfo.freeUsage }} 次</text>
       </view>
+      <view class="row">
+        <text class="label">邀请码：</text>
+        <text class="value">{{ userInfo.invitationCode }}</text>
+      </view>
+      <view class="row">
+        <text class="label">积分：</text>
+        <text class="value">{{ userInfo.points }}</text>
+        <button class="btn-withdraw" @click="withdrawPoints">提现</button>
+      </view>
     </view>
 
     <!-- 退出登录按钮 -->
@@ -39,7 +48,9 @@ export default {
         nickname: '小主',
         level: 'VIP1',
         expireDate: '2025-12-31', // 默认会员到期时间
-        freeUsage: 5 // 默认免费使用次数
+        freeUsage: 5, // 默认免费使用次数
+        invitationCode: 'ABC123', // 邀请码
+        points: 100 // 积分
       }
     };
   },
@@ -60,7 +71,9 @@ export default {
             nickname: 'VIP用户',
             level: 'VIP3',
             expireDate: '2025-12-31',
-            freeUsage: 8
+            freeUsage: 8,
+            invitationCode: 'ABC123',
+            points: 200
           }
         };
 
@@ -115,6 +128,28 @@ export default {
       });
     },
 
+    // 积分提现
+    withdrawPoints() {
+      uni.showModal({
+        title: '积分提现',
+        content: `您当前有 ${this.userInfo.points} 积分，确定要全部提现吗？`,
+        success: (res) => {
+          if (res.confirm) {
+            // 模拟提现操作
+            uni.showLoading({ title: '提现中...' });
+            setTimeout(() => {
+              this.userInfo.points = 0;
+              uni.hideLoading();
+              uni.showToast({
+                title: '提现成功',
+                icon: 'success'
+              });
+            }, 1000);
+          }
+        }
+      });
+    },
+
     // 退出登录
     logout() {
       uni.showModal({
@@ -143,7 +178,11 @@ export default {
   align-items: center;
   padding-top: 50px;
   background-color: #f5f5f5;
-  height: 100vh;
+ position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
 }
 
 /* 头像区域 */
@@ -185,6 +224,15 @@ export default {
   color: #007AFF;
 }
 
+/* 提现按钮 */
+.btn-withdraw {
+  background-color: #007AFF;
+  color: #fff;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-size: 14px;
+}
+
 /* 退出登录按钮 */
 .btn-logout {
   width: 80%;
@@ -195,4 +243,4 @@ export default {
   border-radius: 5px;
   text-align: center;
 }
-</style>
+</style>    
