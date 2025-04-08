@@ -18,7 +18,10 @@
         <text class="label">手机号</text>
         <input v-model="phone" class="input" placeholder="请输入手机号" type="number" />
       </view>
-
+	<view class="form-item">
+        <text class="label">密码</text>
+        <input v-model="passwordHash" class="input" placeholder="请输入手机号"  />
+      </view>
       <!-- 邀请码 -->
       <view class="form-item">
         <text class="label">邀请码（选填）</text>
@@ -32,13 +35,17 @@
 </template>
 
 <script>
+import { register } from '@/api/index.js'
+import {BASE_URL}  from '@/utils/request.js'
+
 export default {
   name: 'RegisterPage',
   data() {
     return {
       avatar: '',
-      nickname: '',
-      phone: '',
+      nickname: 'tt',
+      phone: '123345',
+	  passwordHash:"123456",
       inviteCode: ''
     }
   },
@@ -51,7 +58,7 @@ export default {
         }
       });
     },
-    submit() {
+   async  submit() {
       if (!this.nickname.trim()) {
         return uni.showToast({ title: '请填写昵称', icon: 'none' });
       }
@@ -59,14 +66,42 @@ export default {
         return uni.showToast({ title: '请填写手机号', icon: 'none' });
       }
       // 模拟提交
-      console.log('注册信息：', {
-        avatar: this.avatar,
-        nickname: this.nickname,
+	   
+	  const userInfo =  {
+       
+        username: this.nickname,
         phone: this.phone,
+		passwordHash:this.passwordHash,
         inviteCode: this.inviteCode
-      });
-      uni.showToast({ title: '注册成功', icon: 'success' });
-    }
+      }
+      console.log('注册信息：',userInfo);
+	  this.uploadWithAvatar(userInfo,this.avatar,)
+    },
+	uploadWithAvatar(data,filePath) {
+	  uni.uploadFile({
+	    url: BASE_URL + '/user/register', // 后端接口地址
+	    filePath, // 本地临时文件路径
+	    name: 'avatar', // 👈 与后端 MultipartFile 参数名一致
+	    formData: {
+			...data
+	    },
+	    success: (res) => {
+	      const data = JSON.parse(res.data)
+	      if (data.code === 200 || data.code === 0) {
+	        uni.showToast({ title: '注册成功', icon: 'none'  })
+			uni.navigateTo({
+				url:"/pages/login/login"
+			})
+	      } else {
+	        uni.showToast({ title: data.message || '失败', icon: 'none' })
+	      }
+	    },
+	    fail: (err) => {
+	      uni.showToast({ title: '网络错误', icon: 'none' })
+	      console.error(err)
+	    }
+	  })
+	}
   }
 }
 </script>

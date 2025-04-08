@@ -9,23 +9,23 @@
     <view class="info-box">
       <view class="row">
         <text class="label">昵称：</text>
-        <text class="value" @click="editNickname">{{ userInfo.nickname }}</text>
+        <text class="value" @click="editNickname">{{ userInfo.username }}</text>
       </view>
       <view class="row">
         <text class="label">会员等级：</text>
-        <text class="value">{{ userInfo.level }}</text>
+        <text class="value">{{ userInfo.isMember?"会员":"普通" }}<button class="btn-withdraw" @click="Recharge">充值</button></text>
       </view>
       <view class="row">
         <text class="label">会员过期时间：</text>
-        <text class="value">{{ userInfo.expireDate }}</text>
+        <text class="value">{{ userInfo.memberExpireAt }}</text>
       </view>
       <view class="row">
         <text class="label">剩余免费使用次数：</text>
-        <text class="value">{{ userInfo.freeUsage }} 次</text>
+        <text class="value">{{ userInfo.tryCount }} 次</text>
       </view>
       <view class="row">
         <text class="label">邀请码：</text>
-        <text class="value">{{ userInfo.invitationCode }}</text>
+        <text class="value">{{ userInfo.inviteCode }}</text>
       </view>
       <view class="row">
         <text class="label">积分：</text>
@@ -40,6 +40,7 @@
 </template>
 
 <script>
+	import { getUserInfo,updateUserInfo ,logout,withdraw,getPayMember,activateMember} from '@/api/index.js'
 export default {
   data() {
     return {
@@ -54,35 +55,30 @@ export default {
       }
     };
   },
-  onLoad() {
-    this.getUserInfo(); // 页面加载时获取用户信息
-  },
-  methods: {
+   onLoad(){
+ 	  const userId = uni.getStorageSync('userId')
+ 	    this.getUserInfo(userId)  
+   },
+   methods: {
+	 async  Recharge(){
+		 const srt =  await  getPayMember(this.userInfo.id)
+		 console.log(srt);
+		 const res = await activateMember(this.userInfo.id)
+		 console.log(res);
+	  },
     // 从后端获取用户信息
-    async getUserInfo() {
-      uni.showLoading({ title: '加载中...' });
-      // 模拟从后端获取数据
-      setTimeout(() => {
-        // 这里可以替换成你的 API 地址
-        const res = {
-          success: true,
-          data: {
-            avatar: '/static/avatar-default.png',
-            nickname: 'VIP用户',
-            level: 'VIP3',
-            expireDate: '2025-12-31',
-            freeUsage: 8,
-            invitationCode: 'ABC123',
-            points: 200
-          }
-        };
-
-        if (res.success) {
-          this.userInfo = res.data;
-        }
-        uni.hideLoading();
-      }, 1000);
-    },
+	async getUserInfo(userId){
+		  const res = await getUserInfo(userId)
+		
+		  console.log(res);
+		   let  avatar 
+		   if (res.data.avatar) {
+		   	 avatar = 'http://106.15.137.235/'+res.data.avatar
+		   }
+		  this.userInfo = res.data
+		 this.userInfo.avatar = avatar
+		},
+  
 
     // 更改头像
     changeAvatar() {
@@ -133,18 +129,20 @@ export default {
       uni.showModal({
         title: '积分提现',
         content: `您当前有 ${this.userInfo.points} 积分，确定要全部提现吗？`,
-        success: (res) => {
+        success: async (res) => {
           if (res.confirm) {
+			uni.showLoading({ title: '提现中...' });
             // 模拟提现操作
-            uni.showLoading({ title: '提现中...' });
-            setTimeout(() => {
-              this.userInfo.points = 0;
-              uni.hideLoading();
-              uni.showToast({
-                title: '提现成功',
-                icon: 'success'
-              });
-            }, 1000);
+			const form = {
+				points:this.userInfo.points,
+				userId :this.userInfo.id,
+				alipayAccount:"vdoecw6799@sandbox.com",
+				realName:"vdoecw6799"
+			}
+			 const svl =  await withdraw(form)
+			 console.log(svl);
+			  uni.hideLoading();
+
           }
         }
       });
@@ -159,6 +157,7 @@ export default {
           if (res.confirm) {
             // 清除 token
             uni.removeStorageSync('token');
+			logout(this.userInfo.id)
             uni.reLaunch({
               url: '/pages/login/login'
             });

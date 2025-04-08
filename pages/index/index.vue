@@ -11,30 +11,79 @@
 
 <script>
 import ProfileEditPopup from "../../components/ProfileEditPopup/ProfileEditPopup.vue"
+
+import { getUserInfo,updateUseFeature } from '@/api/index.js'
 export default {
   components:{
 	  ProfileEditPopup
   },
   data(){
 	  return {
-		  guestInfo:{}
+		  guestInfo:{},
+		  
 	  }
   },
+  onLoad(){
+	  const userId = uni.getStorageSync('userId')
+	  // 查询用户使用次数 以及是否是VIP
+	  
+	    this.getUserInfo(userId)
+  },
   methods: {
-    // 跳转到聊天页面
+ 
+	async getUserInfo(userId){
+	  const res = await getUserInfo(userId)
+	  this.guestInfo = res.data
+	  console.log(res);
+	},
+	
     goToChat() {
+	 if(this.guestInfo.tryCount == 0){
+		 if(!this.guestInfo.isMember){
+			 // 试用次数用完后开始需要充值会员
+			  uni.showToast({
+			    title: '使用次数已用完请充值会员',
+			    icon: 'none'
+			  });
+			  return
+		 }
+	 }
 	  this.$refs.filePopup.open()
      
     },
 	onSubmit(data){
-	
-	
+	updateUseFeature(this.guestInfo.id)
 		uni.navigateTo({
 		  url: '/pages/chat/chat?guestInfo=' + encodeURIComponent(JSON.stringify(data))
 		});
 	},
     // 跳转到转账记录页面
     goToRecords() {
+	// 试用次数用完后开始需要充值会员
+	// uni.requestPayment({
+	//   provider: 'alipay',
+	//   orderInfo: orderStr, // 来自后端接口返回的字符串
+	//   success: function (res) {
+	//     uni.showToast({ title: '支付成功' });
+	//     // 你可以在这里刷新用户会员状态
+	//   },
+	//   fail: function (err) {
+	//     console.log('支付失败', err);
+	//     uni.showToast({ title: '支付失败', icon: 'none' });
+	//   }
+	// });
+	if(this.guestInfo.tryCount == 0){
+			 if(!this.guestInfo.isMember){
+				 // 试用次数用完后开始需要充值会员
+				  uni.showToast({
+				    title: '使用次数已用完请充值会员',
+				    icon: 'none'
+				  });
+				  return
+			 }
+	  }
+	  // 减少使用次数
+	  updateUseFeature(this.guestInfo.id)
       uni.navigateTo({
         url: '/pages/records/records'
       });

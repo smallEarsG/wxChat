@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import api from '@/utils/api';
+import { login } from '@/api/index.js'
 
 export default {
   data() {
@@ -47,7 +47,6 @@ export default {
       return true;
     },
 	register(){
-		console.log("===");
 		uni.navigateTo({
 			url:"/pages/RegisterPage/RegisterPage"
 		})
@@ -64,15 +63,18 @@ export default {
       }
 
       // 校验手机号格式
-      if (!this.validatePhone()) {
-        return;
-      }
+      // if (!this.validatePhone()) {
+      //   return;
+      // }
 
       try {
-        const res = await api.login(this.phone, this.password);
-        if (res.success) {
+		const userInfo = {phone: this.phone, passwordHash:this.password}
+        const res = await login(userInfo);
+		console.log(res);
+        if (res.code === 200) {
           // 保存 token
-          uni.setStorageSync('token', res.token);
+          uni.setStorageSync('token', res.data.currentToken);
+		  uni.setStorageSync('userId', res.data.id)
           uni.showToast({
             title: '登录成功',
             icon: 'success'
