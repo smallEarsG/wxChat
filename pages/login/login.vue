@@ -63,9 +63,9 @@ export default {
       }
 
       // 校验手机号格式
-      // if (!this.validatePhone()) {
-      //   return;
-      // }
+      if (!this.validatePhone()) {
+        return;
+      }
 
       try {
 		const userInfo = {phone: this.phone, passwordHash:this.password}

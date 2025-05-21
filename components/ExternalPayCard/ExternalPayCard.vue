@@ -76,8 +76,20 @@
 		width: 500rpx;
 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 		font-size: 28rpx;
+		position: relative;
+		margin-right: 14rpx;
 	}
-
+.payment-card::after {
+	  content: "";
+	  position: absolute;
+	  top: 28rpx;
+	  right: -10rpx;
+	  width: 0;
+	  height: 0;
+	  border-top: 6px solid transparent;
+	  border-bottom: 6px solid transparent;
+	  border-left: 6px solid #ffffff;
+	}
 	.header {
 		display: flex;
 		align-items: center;

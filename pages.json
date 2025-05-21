@@ -49,6 +49,27 @@
                 "enablePullDownRefresh": false
             }
             
+        },
+        {
+        	"path" : "pages/wxChat/wxChat",
+        	"style" : 
+        	{
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false,
+        		"navigationBarTitleText" : "微信聊天",
+				// "adjustPan":true,
+				"adjustResize": false, // 页面不整体上移
+				"softinputMode": "adjustPan" // 仅安卓有效，键盘覆盖页面
+        	}
+        },
+        {
+        	"path" : "pages/weChatPay/weChatPay",
+        	"style" : 
+        	{
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false,
+        		"navigationBarTitleText" : ""
+        	}
         }
     ],
 	"tabBar": {
@@ -56,18 +77,19 @@
 	    "selectedColor": "#007AFF",
 	    "borderStyle": "black",
 	    "backgroundColor": "#FFFFFF",
+		"fontSize": "28rpx",
 	    "list": [
 	      {
 	        "pagePath": "pages/index/index",
-	        "text": "功能"
-	        // "iconPath": "/static/icon-home.png",
-	        // "selectedIconPath": "/static/icon-home-active.png"
+	        "text": "功能",
+	        "iconPath": "/static/icon-home.png",
+	        "selectedIconPath": "/static/icon-home-active.png"
 	      },
 	      {
 	        "pagePath": "pages/mine/mine",
-	        "text": "我的"
-	        // "iconPath": "/static/icon-mine.png",
-	        // "selectedIconPath": "/static/icon-mine-active.png"
+	        "text": "我的",
+	        "iconPath": "/static/icon-mine.png",
+	        "selectedIconPath": "/static/icon-mine-active.png"
 	      }
 	    ]
 	  },
@@ -81,7 +103,8 @@
 	"easycom": {
 	  "autoscan": true,
 	  "custom": {
-	    "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+	    "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue",
+		 "^van-(.*)": "@vant/weapp/$1/index"
 	  }
 	}
 }

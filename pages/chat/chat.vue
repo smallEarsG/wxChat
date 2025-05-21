@@ -1,7 +1,8 @@
 <template>
-	<view class="chat-page">
+	<!--  :style="{height:keyboardHeight?' 100vh':'calc(100vh - 514rpx) '}" -->
+	<view class="chat-page" >
 		<!-- 顶部栏 -->
-		<view class="nav-bar">
+		<view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="back" @click="goBack">
 				<image class="backimg" src="../../static/left.png"></image>
 			</view>
@@ -19,51 +20,89 @@
 		</view>
 
 		<view class="chat-content">
+		
+		
 			<!-- 聊天内容区域 -->
-			<scroll-view class="chat-body" scroll-y  :show-scrollbar="false">
-				<block v-for="(item ,i ) in massageList "  :key="i">
+			<scroll-view class="chat-body" scroll-y :show-scrollbar="false">
+				<view v-for="(item ,i ) in massageList " :key="i">
+
 					<!-- 时间 -->
 					<view v-if="item.type == 'tips'" class="msg-time">{{item.content}}</view>
 					<view class="orderBox" v-else-if="item.contentType == 'order'">
-						<view class="msg right" >
-							<image class="avatar" src="/static/avatar-me.png" />
-							<ExternalPayCard  :orderInfo="item.content"  />
+						<view class="msg right">
+							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<ExternalPayCard :orderInfo="item.content" />
+						</view>
+
+					</view>
+				<!-- 转账 -->
+					<view  v-else-if="item.contentType == 'transfer'">
+					
+						<view class="msg left" >
+						<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<TransferCard :name="item.content.name"  :amount="item.content.amount"></TransferCard>
+						</view>
+					</view>
+				
+					<!-- 图片photo -->
+					
+					<view  v-else-if="item.contentType == 'photo'">
+						<view class="msg left" v-if="item.location == 0">
+							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<image  :src="item.content.avatar"class="phote leftp"  />
 						</view>
 						
+						<view class="msg right" v-else>
+							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<image :src="item.content.avatar" class="phote rightp" ></image>
+						</view>
 					</view>
-					<block v-else>
+						<!-- 名片 -->
+					<view  v-else-if="item.contentType == 'crad'">
+						<view class="msg left" >
+							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<WxCard :nickname="item.content.nickname" :avatar="item.content.avatar"></WxCard>
+						</view>
+					</view>
+					<!-- l、聊天 -->
+					<view  v-else-if="item.contentType == 'chat'">
+						
+						
 						<!-- 聊天内容 -->
 						<view class="msg left" v-if="item.location == 0">
 							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
 							<view class="bubble">
-								<view v-if="item.contentType == 'chat'">
+								<view >
 									{{item.content}}
 								</view>
-								
+
 							</view>
 						</view>
+				
 						<view class="msg right" v-else>
-							<image class="avatar" src="/static/avatar-me.png" />
+							
+							
+							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view class="bubble">
-								<view v-if="item.contentType == 'chat'">
+								<view >
 									{{item.content}}
 								</view>
 							</view>
 						</view>
-					</block>
-				</block>
+					</view>
+				</view>
 				
 			</scroll-view>
 
-
+  <!-- :style="{paddingBottom:!keyboardHeight?' 300rpx':'0 '}" -->
 			<!-- 底部输入栏 -->
-			<view class="fun_box">
+			<view class="fun_box" >
 				<ChatToolBar />
 				<view class="chat-input">
 					<image class="icon" src="/static/icon-voice.png"></image>
 					<view class="input—box"><input class="input" placeholder="请输入" v-model="inputValue"
 							@confirm="onEnterKey" /></view>
-					<image class="icon" src="/static/icon-face.png"></image>
+					<image class="icon_face" src="/static/icon-face.png"></image>
 					<image class="icon_plus" src="/static/icon-plus.png" @click="togglePopupBox"></image>
 				</view>
 				<!-- 抽屉 -->
@@ -90,8 +129,16 @@
 					</swiper>
 				</view>
 				<!-- 定义弹出层 -->
-				<EditableFormPopup  ref="orderPopup" :value="orderInfo" :fieldLabels="orderKey" @submit="onOrderSubmit" />
-				<EditableFormPopup  ref="timePopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onTimeSubmit" />
+				<EditableFormPopup ref="orderPopup" :value="orderInfo" :fieldLabels="orderKey"
+					@submit="onOrderSubmit" />
+				<EditableFormPopup ref="timePopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onTimeSubmit" />
+				<!-- 转账 -->
+				<EditableFormPopup ref="transferPopup" :value="transfer" :fieldLabels="transferKey" @submit="onTransferSubmit" />
+				<!-- 名片 -->
+				<ProfileEditPopup ref="cradPopup"  @submit="onCradSubmitz"></ProfileEditPopup>
+				<!-- <EditableFormPopup ref="cradPopup" :value="crad" :fieldLabels="cradKey" @submit="onCradSubmitz" /> -->
+				<!-- 图片 -->
+				<UploadImage ref="photoPopup"  @submit="onPhotoSubmit"></UploadImage>
 			</view>
 		</view>
 	</view>
@@ -101,25 +148,51 @@
 	import ExternalPayCard from '../../components/ExternalPayCard/ExternalPayCard.vue'; // 路径根据你存放的位置调整
 	import EditableFormPopup from '../../components/EditableFormPopup/EditableFormPopup.vue';
 	import ChatToolBar from '../../components/ChatToolBar/ChatToolBar.vue'
+	import TransferCardVue from '../../components/TransferCard/TransferCard.vue';
+	import UploadImage from '../../components/UploadImage/UploadImage.vue';
+	import WxCard from '../../components/WxCard/WxCard.vue';
+	import { getUserInfo, login } from '@/api/index.js'
 	export default {
 		components: {
 			ExternalPayCard,
 			EditableFormPopup,
-			ChatToolBar
+			ChatToolBar,
+			TransferCardVue,
+			WxCard
 		},
 		onLoad(options) {
-			console.log(options);
-		  if (options.guestInfo) {
-		    try {
-		      this.guestInfo = JSON.parse(decodeURIComponent(options.guestInfo));
-		    } catch (e) {
-		      console.error('guestInfo 参数解析失败', e);
-		    }
-		  }
+
+			if (options.guestInfo) {
+				try {
+					this.guestInfo = JSON.parse(decodeURIComponent(options.guestInfo));
+					console.log(this.guestInfo);
+				} catch (e) {
+					console.error('guestInfo 参数解析失败', e);
+				}
+			}
+			// 获取账号信息
+			const userId = uni.getStorageSync('userId')
+			console.log(userId);
+			this.getUserInfo(userId)
+			
+			  uni.onKeyboardHeightChange(res => {
+					if( res.height == 0)
+			           {
+						    this.keyboardHeight = true;
+					   }
+			          else
+					    {
+							this.keyboardHeight = false;
+						}
+			        });
+					this.$forceUpdate()
 		},
 		data() {
 			return {
-				guestInfo:{},
+				keyboardHeight:true,
+				userInfo:{},
+				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
+				guestInfo: {},
 				isMe: false,
 				openPopup: false,
 				inputValue: "",
@@ -129,9 +202,9 @@
 						icon: '/static/icon-order.png'
 					},
 					{
-							name: 'time',
-							label: '时间插入',
-							icon: '/static/icon-time.png'
+						name: 'time',
+						label: '时间插入',
+						icon: '/static/icon-time.png'
 					},
 					{
 						name: 'photo',
@@ -139,9 +212,9 @@
 						icon: '/static/icon-photo.png'
 					},
 					{
-						name: 'camera',
-						label: '拍摄',
-						icon: '/static/icon-camera.png'
+						name: 'transfer',
+						label: '转账',
+						icon: '/static/icon-transfer_black.png'
 					},
 					{
 						name: 'file',
@@ -184,7 +257,8 @@
 					// 	icon: '/static/icon-calendar.png'
 					// }
 				],
-				massageList: [{
+				massageList: [
+					{
 						type: "tips", // tips, content
 						contentType: "chat", //order , chat ,link
 						location: 0, // 1 表示我方
@@ -211,32 +285,48 @@
 						location: 0, // 1 表示我方
 						content: "2024年12月24日 14:10",
 
+											
 					},
 					{
 						type: "content", // tips, content
-						contentType: "chat", //order , chat ,link
+						contentType: "crad", //order , chat ,link
 						location: 1, // 1 表示我方
-						content: "你好，欢迎来到企业微信工坊,这里有订单,对外汇款等功能"
-
+						content: {
+							name:"G",
+							
+						}
 					}
 				],
-				orderInfo:{
-					shopName:"",
-					gusetName:"",
-					price:""
+				orderInfo: {
+					shopName: "",
+					gusetName: "",
+					price: ""
 				},
-				orderKey:{
-					shopName:"收款名称",
-					gusetName:"付款人名称",
-					price:"价格"
+				orderKey: {
+					shopName: "收款名称",
+					gusetName: "付款人名称",
+					price: "价格"
 				},
-				timeInfo:{
-					time:""
+				timeInfo: {
+					time: ""
 				},
-				timeKey:{
-					time:"时间"
+				timeKey: {
+					time: "时间"
+				},
+				transfer:{
+					name:"",
+					amount:""
+				},
+				transferKey:{
+					name:"用户名",
+					amount:"转账金额"
+				},
+				crad:{
+					name:"",
+				},
+				cradKey:{
+					name:"用户名",
 				}
-				
 			};
 		},
 		computed: {
@@ -250,21 +340,75 @@
 			}
 		},
 		methods: {
-			onOrderSubmit(data){
+			async getUserInfo(userId) {
+				console.log("执行用户信息获取",userId);
+				const res = await getUserInfo(userId)
+				console.log(res);
+				this.userInfo = res.data
+
+			},
+			onCradSubmitz(data){
+				console.log(11);
+				const location = this.isMe ? 1 : 0
+				const transferInfo = {
+					type: "content", // tips, content
+					contentType: "crad", //order , chat ,link
+					location, // 1 表示我方
+					content: data
+				}
+				console.log(data)
+				this.massageList.push(transferInfo)
+			},
+			onPhotoSubmit(data){
+				console.log(data);
+				const location = this.isMe ? 1 : 0
+				const transferInfo = {
+					type: "content", // tips, content
+					contentType: "photo", //order , chat ,link
+					location, // 1 表示我方
+					content: data
+				}
+				console.log(transferInfo);
+				this.massageList.push(transferInfo)
+			},
+			onTransferSubmit(data){
+				const location = this.isMe ? 1 : 0
+				const transferInfo = {
+					type: "content", // tips, content
+					contentType: "transfer", //order , chat ,link
+					location, // 1 表示我方
+					content: data
+				}
+		
+				this.massageList.push(transferInfo)
+			},
+			onCradSubmit(data){
+				const location = this.isMe ? 1 : 0
+				const cradInfo = {
+					type: "content", // tips, content
+					contentType: "Crad", //order , chat ,link
+					location, // 1 表示我方
+					content: data
+				}
+				this.massageList.push(cradInfo)
+			},
+			onOrderSubmit(data) {
+				
 				const location = this.isMe ? 1 : 0
 				console.log(data);
-				const orderInfo =  {
+				const orderInfo = {
 					type: "content", // tips, content
 					contentType: "order", //order , chat ,link
 					location, // 1 表示我方
 					content: data
 				}
+			
 				this.massageList.push(orderInfo)
 			},
-			onTimeSubmit(data){
+			onTimeSubmit(data) {
 				const location = this.isMe ? 1 : 0
 				console.log(data);
-				const timeInfo =  {
+				const timeInfo = {
 					type: "tips", // tips, content
 					contentType: "chat", //order , chat ,link
 					location, // 1 表示我方
@@ -288,24 +432,32 @@
 				// 处理选择事件
 				console.log('Selected:', type);
 				// const key = type
-				switch (type){
+				switch (type) {
 					case "order":
 						this.$refs.orderPopup.open()
 						break;
 					case "time":
 						this.$refs.timePopup.open()
 						break;
+					case "transfer":
+						this.$refs.transferPopup.open()
+						break;
+					case "photo":	
+						this.$refs.photoPopup.open()
+						break;
+					case "contact":
+						this.$refs.cradPopup.open()
+						break;
 					default:
-					 uni.showToast({
-					 	title: '功能开发中...',
-						icon:'none'
-					 })
+						uni.showToast({
+							title: '请联系管理员开通',
+							icon: 'none'
+						})
 						break;
 				}
-				
+
 			},
 			onEnterKey() {
-
 				console.log(this.inputValue);
 				if (this.inputValue.trim()) {
 					console.log('用户输入内容:', this.inputValue);
@@ -329,14 +481,20 @@
 	.chat-page {
 		display: flex;
 		flex-direction: column;
+		/* height: calc(100vh - 514rpx); */
 		height: 100vh;
 		background-color: #eaeaea;
+		overflow: hidden;
+		/* position: absolute;
+		width: 100%; */
+		/* bottom: ; */
 		/* padding-top: 80rpx; */
 	}
 
-.chat-body ::-webkit-scrollbar {
-  display: none;
-}
+	.chat-body ::-webkit-scrollbar {
+		display: none;
+	}
+
 	.chat-content {
 		display: flex;
 		flex-direction: column;
@@ -352,14 +510,19 @@
 
 	/* 顶部栏 */
 	.nav-bar {
+		/* padding-top: var(--status-bar-height); */
 		height: 80rpx;
-		background-color: #3086ff;
+		background-color: #4475C9;
 		color: white;
 		display: flex;
 		align-items: center;
 		padding: 10rpx 20rpx;
 		justify-content: space-between;
 		box-sizing: content-box;
+		
+		/* position: fixed; */
+		/* width: 100%; */
+		/* box-sizing: border-box; */
 	}
 
 	.title {
@@ -375,11 +538,12 @@
 
 	.nikeName {
 		font-size: 34rpx;
-		font-weight: bold;
+		font-weight: 600;
 	}
 
 	.back {
 		font-size: 32rpx;
+		margin-right: 60rpx;
 	}
 
 	.icons {
@@ -391,6 +555,7 @@
 	.nav-icon_more {
 		width: 40rpx;
 		height: 8rpx;
+		margin-left: 20rpx;
 	}
 
 	.nav-icon_phone {
@@ -413,12 +578,12 @@
 		text-align: center;
 		color: #999;
 		font-size: 24rpx;
-		margin: 20rpx 0;
+		margin: 30rpx 0;
 	}
 
 	.msg {
 		display: flex;
-		margin-bottom: 20rpx;
+		margin-top: 34rpx;
 	}
 
 	.msg.left {
@@ -430,23 +595,54 @@
 	}
 
 	.avatar {
-		width: 70rpx;
-		height: 70rpx;
+		width: 80rpx;
+		height: 80rpx;
 		border-radius: 10rpx;
 		margin: 0 10rpx;
 	}
 
 	.bubble {
 		max-width: 480rpx;
-		padding: 20rpx;
+		padding: 20rpx 20rpx;
 		font-size: 28rpx;
 		border-radius: 16rpx;
 		background-color: #ffffff;
 		line-height: 1.5;
+		position: relative;
+		box-sizing: border-box;
 	}
 
 	.msg.right .bubble {
-		background-color: #9ed1ff;
+		background-color: #CDE5FD;
+		margin-right: 14rpx;
+	}
+
+	.msg.left .bubble {
+		margin-left: 14rpx;
+	}
+
+	.msg.right .bubble::after {
+		content: "";
+		position: absolute;
+		top: 28rpx;
+		right: -10rpx;
+		width: 0;
+		height: 0;
+		border-top: 6px solid transparent;
+		border-bottom: 6px solid transparent;
+		border-left: 6px solid #CDE5FD;
+	}
+
+	.msg.left .bubble::after {
+		content: "";
+		position: absolute;
+		top: 28rpx;
+		left: -10rpx;
+		width: 0;
+		height: 0;
+		border-top: 6px solid transparent;
+		border-bottom: 6px solid transparent;
+		border-right: 6px solid white;
 	}
 
 	/* 链接样式 */
@@ -493,13 +689,33 @@
 	.icon {
 		width: 50rpx;
 		height: 50rpx;
+		margin-right: 20rpx;
+	}
+
+	.icon_face {
+		width: 50rpx;
+		height: 50rpx;
+		margin-left: 20rpx;
 	}
 
 	.icon_plus {
 		width: 58rpx;
 		height: 58rpx;
+		margin-left: 10rpx;
 	}
-
+	.phote{
+		width: 200rpx;
+		height: 200rpx;
+		/* margin-left: 10rpx; */
+		/* border-radius: 16rpx; */
+		background-color: #3086ff;
+	}
+	.rightp{
+		margin-right: 14rpx;
+	}
+	.leftp{
+			margin-left: 14rpx;
+		}
 	.drawer {
 		background-color: #fff;
 

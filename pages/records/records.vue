@@ -1,13 +1,13 @@
 <template>
 	<view class="container">
 		<!-- 自定义顶部栏 -->
-		<view class="custom-header">
+		<view class="custom-header" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="left" @click="goBack">
 				<image class="backimg" src="../../static/left.png" />
 			</view>
 			<view class="title">对外收款</view>
 			<view class="right" @click="toggleMenu">
-				<image class="nav-icon_more" src="/static/icon-more.png"></image>
+				<uni-icons type="more-filled" size="25"  style="color: aliceblue;"/>
 			</view>
 		</view>
 
@@ -25,7 +25,7 @@
 						<view class="card">
 							<view class="card-header">
 								<view class="card-title"> 收款通知</view>
-								<view class="more">⋯</view>
+								<view class="more">	<uni-icons type="more-filled" size="16"></uni-icons></view>
 							</view>
 							<view class="amountBox">
 								<view class="status">已收款至企业账户</view>
@@ -33,7 +33,7 @@
 							</view>
 							<view class="info-row">
 								<text class="label">付款客户：</text>
-								<view class="value">客户<text style="color: lightgreen;">@{{ infrom.customer }}</text>
+								<view class="value">客户<text style="color: #AFE2B7;">@{{ infrom.customer }}</text>
 								</view>
 							</view>
 							<view class="info-row">
@@ -48,7 +48,7 @@
 								<text class="label">收款成员：</text>
 								<view class="value">{{ infrom.member }}</view>
 							</view>
-							<view class="info-row">
+							<view class="info-row" v-if="infrom.desc">
 								<text class="label">收款说明：</text>
 								<view class="value">{{ infrom.desc }}</view>
 							</view>
@@ -181,6 +181,7 @@
 
 		data() {
 			return {
+				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				showMenu: false,
 				selectedTypeIndex: 0,
 				typeOptions: ['收款通知', '提现通知'],
@@ -198,13 +199,13 @@
 						amount: '398.00',
 						customer: '微信',
 						member: "开发者团队@小七",
-						desc: "这里是汇款说明",
+						desc: "点击汇款记录删除消息 ",
 						account: "建设银行（尾号**25）",
 						receiveTime: '2025-03-25 22:46'
 					},
 					{
 						typeIndex: 1,
-						time: "自定义时间",
+						time: "点击顶部三个点进行编辑(提示)",
 						state: "提现成功",
 						shopId: "33084273482349",
 						amount: '398.00',
@@ -218,6 +219,7 @@
 			};
 		},
 		methods: {
+		
 			// 返回上一页
 			goBack() {
 				uni.navigateBack();
@@ -317,7 +319,7 @@
 	.container {
 		display: flex;
 		flex-direction: column;
-		background-color: #f5f5f5;
+		background-color: #ededed;
 		overflow: hidden;
 		height: 100vh;
 
@@ -335,13 +337,13 @@
 
 	/* 自定义顶部栏 */
 	.custom-header {
-		padding-top: var(--status-bar-height);
+		
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
 		height: 100rpx;
 		padding: 0 30rpx;
-		background-color: #3086ff;
+		background-color: #4475C9;
 		border-bottom: 2rpx solid #e0e0e0;
 	}
 
@@ -352,8 +354,8 @@
 	}
 
 	.title {
-		font-size: 36rpx;
-		font-weight: bold;
+		font-size: 32rpx;
+		font-weight: 600;
 		color: white;
 	}
 
@@ -418,7 +420,7 @@
 		border-bottom-left-radius: 0;
 		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
 		box-sizing: border-box;
-		width: 700rpx;
+		width: 680rpx;
 
 	}
 
@@ -431,7 +433,7 @@
 	}
 
 	.card-title {
-		font-size: 34rpx;
+		font-size: 32rpx;
 		font-weight: 600;
 	}
 
@@ -448,7 +450,7 @@
 
 	.amount {
 		font-size: 70rpx;
-		font-weight: bold;
+		/* font-weight: bold; */
 		color: #000;
 		/* margin: 10rpx; */
 		margin-bottom: 30rpx;
@@ -462,7 +464,7 @@
 	}
 
 	.label {
-
+		/* width:200rpx; */
 		color: #969696;
 	}
 

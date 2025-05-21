@@ -33,7 +33,7 @@ export default {
     return {
       avatar: '',
       nickname: '',
-      description: ''
+      description: '@微信'
     };
   },
   methods: {

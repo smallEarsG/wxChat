@@ -68,9 +68,13 @@ export default {
   padding: 20rpx;
   border-radius: 12rpx;
   width: 600rpx;
+  position:relative;
+  box-sizing: border-box;
 }
+
 .form-item {
   margin-bottom: 20rpx;
+  overflow: hidden;
 }
 .form-label {
   display: block;
@@ -82,6 +86,6 @@ export default {
   border: 1px solid #ccc;
   border-radius: 8rpx;
   padding: 10rpx;
-  width: 100%;
+  width: 520rpx;
 }
 </style>

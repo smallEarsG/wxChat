@@ -1,6 +1,7 @@
 // utils/api.js
-// const BASE_URL = 'https://106.15.137.235/api';
-export let BASE_URL  = "/pawlapi";
+export const BASE_URL = 'http://106.15.137.235:8080/api';
+// const BASE_URL = 'https://192.168.0.35:8080/api';
+// export let BASE_URL  = "/pawlapi";
 
 // utils/request.js
 export function request({ url, method = 'GET', data = {} }) {
@@ -10,6 +11,7 @@ export function request({ url, method = 'GET', data = {} }) {
     uni.request({
       url: BASE_URL + url,
       method,
+	  sslVerify:false,
       data: isForm ? formatFormData(data) : data,
       header: {
         'Content-Type': isForm
@@ -21,6 +23,7 @@ export function request({ url, method = 'GET', data = {} }) {
         if (res.statusCode === 200) {
           resolve(res.data)
         } else {
+		console.log(res);
           uni.showToast({ title: res.data.message || '接口异常', icon: 'none' })
           reject(res)
         }
@@ -39,3 +42,4 @@ function formatFormData(data) {
     .map(([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`)
     .join('&')
 }
+

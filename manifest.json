@@ -2,11 +2,12 @@
     "name" : "企业微信聊天工坊",
     "appid" : "__UNI__F0A0757",
     "description" : "",
-    "versionName" : "1.0.0",
-    "versionCode" : "100",
+    "versionName" : "1.0.5",
+    "versionCode" : 105,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
+        "softinputMode" : "adjustResize",
         "usingComponents" : true,
         "nvueStyleCompiler" : "uni-app",
         "compilerVersion" : 3,
@@ -17,7 +18,10 @@
             "delay" : 0
         },
         /* 模块配置 */
-        "modules" : {},
+        "modules" : {
+            "Payment" : {},
+            "Camera" : {}
+        },
         /* 应用发布信息 */
         "distribute" : {
             /* android打包配置 */
@@ -37,7 +41,8 @@
                     "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
                     "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
                     "<uses-feature android:name=\"android.hardware.camera\"/>",
-                    "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
+                    "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>",
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>"
                 ]
             },
             /* ios打包配置 */
@@ -46,10 +51,21 @@
             },
             /* SDK配置 */
             "sdkConfigs" : {
-                "ad" : {}
+                "ad" : {
+                    "gdt" : {},
+                    "ks" : {},
+                    "ks-content" : {}
+                },
+                "payment" : {
+                    "alipay" : {
+                        "__platform__" : [ "ios", "android" ]
+                    }
+                },
+                "push" : {}
             },
             "splashscreen" : {
-                "androidStyle" : "common"
+                "androidStyle" : "common",
+                "useOriginalMsgbox" : true
             }
         },
         "uniStatistics" : {
@@ -90,15 +106,15 @@
     "h5" : {
         "devServer" : {
             "https" : false,
-			"proxy": {
-			    "/pawlapi": {
-			        "target": "http://106.15.137.235:8080/api",
-			        "changeOrigin": true,
-			        "pathRewrite": {
-			            "^/pawlapi": ""
-			        }
-			    }
-			}
+            "proxy" : {
+                "/pawlapi" : {
+                    "target" : "http://106.15.137.235:8080/api",
+                    "changeOrigin" : true,
+                    "pathRewrite" : {
+                        "^/pawlapi" : ""
+                    }
+                }
+            }
         }
     }
 }

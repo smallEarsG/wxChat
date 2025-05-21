@@ -18,9 +18,9 @@
         <text class="label">手机号</text>
         <input v-model="phone" class="input" placeholder="请输入手机号" type="number" />
       </view>
-	<view class="form-item">
+      <view class="form-item">
         <text class="label">密码</text>
-        <input v-model="passwordHash" class="input" placeholder="请输入手机号"  />
+        <input v-model="passwordHash" class="input" placeholder="请输入密码"  />
       </view>
       <!-- 邀请码 -->
       <view class="form-item">
@@ -36,72 +36,114 @@
 
 <script>
 import { register } from '@/api/index.js'
-import {BASE_URL}  from '@/utils/request.js'
+import { BASE_URL } from '@/utils/request.js'
+
+const REGISTER_API_URL = BASE_URL + '/user/register'
+const PHONE_REGEX = /^1[3-9]\d{9}$/
+const ERROR_MESSAGES = {
+  nickname: '请填写昵称',
+  phone: '请填写手机号',
+  phoneFormat: '手机号格式不正确',
+  avatar: '请选择头像',
+  network: '网络错误',
+  registerSuccess: '注册成功',
+  registerFail: '失败'
+}
 
 export default {
   name: 'RegisterPage',
   data() {
     return {
       avatar: '',
-      nickname: 'tt',
-      phone: '123345',
-	  passwordHash:"123456",
+      nickname: '',
+      phone: '',
+      passwordHash: "",
       inviteCode: ''
     }
   },
   methods: {
+    // 手机号校验逻辑
+    validatePhone() {
+      if (!PHONE_REGEX.test(this.phone)) {
+        this.showToast(ERROR_MESSAGES.phoneFormat)
+        return false
+      }
+      return true
+    },
     chooseAvatar() {
       uni.chooseImage({
         count: 1,
         success: (res) => {
-          this.avatar = res.tempFilePaths[0];
+          this.avatar = res.tempFilePaths[0]
         }
-      });
+      })
     },
-   async  submit() {
+    async submit() {
       if (!this.nickname.trim()) {
-        return uni.showToast({ title: '请填写昵称', icon: 'none' });
+        return this.showToast(ERROR_MESSAGES.nickname)
       }
       if (!this.phone.trim()) {
-        return uni.showToast({ title: '请填写手机号', icon: 'none' });
+        return this.showToast(ERROR_MESSAGES.phone)
       }
-      // 模拟提交
-	   
-	  const userInfo =  {
-       
+      if (!this.validatePhone()) {
+        return
+      }
+      const userInfo = {
         username: this.nickname,
         phone: this.phone,
-		passwordHash:this.passwordHash,
-        inviteCode: this.inviteCode
+        passwordHash: this.passwordHash,
+        inviteCode: this.inviteCode,
+		tryCount:5
       }
-      console.log('注册信息：',userInfo);
-	  this.uploadWithAvatar(userInfo,this.avatar,)
+      console.log('注册信息：', userInfo)
+      this.uploadWithAvatar(userInfo, this.avatar)
     },
-	uploadWithAvatar(data,filePath) {
-	  uni.uploadFile({
-	    url: BASE_URL + '/user/register', // 后端接口地址
-	    filePath, // 本地临时文件路径
-	    name: 'avatar', // 👈 与后端 MultipartFile 参数名一致
-	    formData: {
-			...data
-	    },
-	    success: (res) => {
-	      const data = JSON.parse(res.data)
-	      if (data.code === 200 || data.code === 0) {
-	        uni.showToast({ title: '注册成功', icon: 'none'  })
-			uni.navigateTo({
-				url:"/pages/login/login"
-			})
-	      } else {
-	        uni.showToast({ title: data.message || '失败', icon: 'none' })
-	      }
-	    },
-	    fail: (err) => {
-	      uni.showToast({ title: '网络错误', icon: 'none' })
-	      console.error(err)
-	    }
-	  })
-	}
+    uploadWithAvatar(data, filePath) {
+      if (!filePath) {
+        return this.showToast(ERROR_MESSAGES.avatar)
+      }
+      uni.uploadFile({
+        url: REGISTER_API_URL,
+        filePath,
+        name: 'avatar',
+        formData: {
+          ...data
+        },
+        success: (res) => {
+          try {
+			
+            const data =JSON.parse(res.data)
+		  
+			console.log(res.data);
+            if (data.code === 200 || data.code === 0) {
+              this.showToast(ERROR_MESSAGES.registerSuccess)
+              uni.navigateTo({
+                url: "/pages/login/login"
+              })
+            } else {
+              this.showToast(data.message || ERROR_MESSAGES.registerFail)
+            }
+          } catch (error) {
+            this.showToast(ERROR_MESSAGES.registerFail)
+            console.error('解析响应数据失败：', error)
+          }
+        },
+        fail: (err) => {
+		   console.error('上传文件失败：', err);
+		    console.log('请求地址：', REGISTER_API_URL);
+		    console.log('文件路径：', filePath);
+		    console.log('表单数据：', data);
+          this.showToast(ERROR_MESSAGES.network)
+          console.error('上传文件失败：', err)
+        }
+      })
+    },
+    showToast(message) {
+      uni.showToast({
+        title: message,
+        icon: 'none'
+      })
+    }
   }
 }
 </script>
