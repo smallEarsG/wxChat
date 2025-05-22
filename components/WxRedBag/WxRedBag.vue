@@ -36,9 +36,9 @@ export default {
 		margin: 0 auto;
 		background-color: #fff;
 	}
-	.f3bg{
-		background-color:#fce1c3
-	}
+.f3bg{
+	background-color:#fce1c3
+}
 .f9bg{
 	  background-color: #f99d3b;
 }

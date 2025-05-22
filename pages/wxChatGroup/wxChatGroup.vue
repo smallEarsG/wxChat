@@ -125,15 +125,16 @@
 									<image style="margin-right: 16rpx;" class="yuyinIcon" src="/static/images/wechat-voice-icon1.png"></image>
 									{{item.content.time}}"
 								</view>
-					
 							</view>
 						</view>
 						<view class="msg right" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<view class="bubble" style="padding-top: 10rpx;display: flex;align-items: center;padding-bottom: 10rpx;">
-								<view  class="yuyinBox" :style="{ width: (114 + Math.floor((item.content.time - 1) / 2) * 10) + 'rpx' }" style="justify-content: flex-end;">
-									{{item.content.time}}"
-									<image style="margin-left: 16rpx;text-align: right;" class="yuyinIcon" src="/static/images/wechat-voice-icon2.png"></image>
+							<view class="msgContent">
+								<view class="bubble" style="padding-top: 10rpx;display: flex;align-items: center;padding-bottom: 10rpx;">
+									<view  class="yuyinBox" :style="{ width: (114 + Math.floor((item.content.time - 1) / 2) * 10) + 'rpx' }" style="justify-content: flex-end;">
+										{{item.content.time}}"
+										<image style="margin-left: 16rpx;text-align: right;" class="yuyinIcon" src="/static/images/wechat-voice-icon2.png"></image>
+									</view>
 								</view>
 							</view>
 						</view>
@@ -143,21 +144,27 @@
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
 						<!-- 聊天内容 -->
-						<view class="msg left " @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
-							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
-							<view class="bubble">
-								<view v-if="item.contentType == 'chat'">
-									{{item.content}}
-								</view>
-							</view>
+						=={{item.location}}==
+						<view class="msg left " @longpress="showPopupMenu($event, i)" v-if="item.location !== 0">
+							<image class="avatar" :src="gusetList[item.location].url" />
+							
+							 <view class="msgContent">
+							 	<view class="bubble">
+							 		<view v-if="item.contentType == 'chat'">
+							 			{{item.content}}
+							 		</view>
+							 	</view>
+							 </view>
 						</view>
 						<view class="msg right" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<view class="bubble">
-								<view v-if="item.contentType == 'chat'" @longpress="showPopupMenu($event, i)">
-									{{item.content}}
-								</view>
-							</view>
+							 <view class="msgContent">
+							 	<view class="bubble">
+							 		<view v-if="item.contentType == 'chat'" @longpress="showPopupMenu($event, i)">
+							 			{{item.content}}
+							 		</view>
+							 	</view>
+							 </view>
 						</view>
 					</view>
 					
@@ -180,9 +187,13 @@
 				<swiper class="drawer-swiper" indicator-dots circular>
 					<swiper-item>
 						<view class="feature-grid">
-							<view>
-								<switch :checked="isMe" @change="onSwitchChange" />{{isMe?"我":"客户"}}
-								<view style="margin-top: 20rpx;">角色切换</view>
+							<view class="feature-item" v-for="(item,index) in gusetList" @click="changeRule(index)">
+								<image class="feature-icon"  :class="index == isMe?'boxsh':''" :src="item.url" />
+								<text class="feature-text">{{item.text}} </text>
+							</view>
+							<view class="feature-item" @click="addGuset">
+								<image class="feature-icon" src="/static/icon-plus.png" />
+								<text class="feature-text">添加角色 </text>
 							</view>
 						</view>
 					</swiper-item>
@@ -209,6 +220,7 @@
 		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
 		<!-- yuyin -->
 		<EditableFormPopup ref="yuyinPopup" :value="yuyinInfo" :fieldLabels="yuyinKey" @submit="onYuyinSubmit" />
+		<ProfileEditPopup ref="wxChatAdd" @submit="addGusetInfo"></ProfileEditPopup> 
 	</view>
 </template>
 
@@ -240,9 +252,11 @@
 			console.log(userId);
 			this.getUserInfo(userId);
 			this.$forceUpdate();
+			
 		},
 		data() {
 			return {
+				gusetList:[],
 				activeMsgIndex: -1, // 当前激活的消息索引
 				popupTop: 0,
 				popupLeft: 0,
@@ -250,7 +264,7 @@
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				chatInputBottom: 0,
 				guestInfo: {},
-				isMe: false,
+				isMe: 0, // 1 表示为己方
 				openPopup: false,
 				inputValue: "",
 				featureList: [{
@@ -299,36 +313,37 @@
 						icon: '/static/redBag.png'
 					}
 				],
-				massageList: [{
-						type: "tips", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 0, // 1 表示我方
-						content: "2024年12月24日 14:10"
-					},
-					{
-						type: "content", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 0, // 1 表示我方
-						content: "你好，欢迎来到企业微信工坊"
-					},
-					{
-						type: "content", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 1, // 1 表示我方
-						content: "你好，欢迎来到企业微信工坊"
-					},
-					{
-						type: "tips", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 0, // 1 表示我方
-						content: "2024年12月24日 14:10"
-					},
-					{
-						type: "content", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 1, // 1 表示我方
-						content: "你好，欢迎来到企业微信工坊,这里有订单,对外汇款等功能"
-					},
+				massageList: [
+					//{
+				// 		type: "tips", // tips, content
+				// 		contentType: "chat", //order , chat ,link
+				// 		location: 0, // 1 表示我方
+				// 		content: "2024年12月24日 14:10"
+				// 	},
+				// 	{
+				// 		type: "content", // tips, content
+				// 		contentType: "chat", //order , chat ,link
+				// 		location: 0, // 1 表示我方
+				// 		content: "你好，欢迎来到企业微信工坊"
+				// 	},
+				// 	{
+				// 		type: "content", // tips, content
+				// 		contentType: "chat", //order , chat ,link
+				// 		location: 1, // 1 表示我方
+				// 		content: "你好，欢迎来到企业微信工坊"
+				// 	},
+				// 	{
+				// 		type: "tips", // tips, content
+				// 		contentType: "chat", //order , chat ,link
+				// 		location: 0, // 1 表示我方
+				// 		content: "2024年12月24日 14:10"
+				// 	},
+				// 	{
+				// 		type: "content", // tips, content
+				// 		contentType: "chat", //order , chat ,link
+				// 		location: 1, // 1 表示我方
+				// 		content: "你好，欢迎来到企业微信工坊,这里有订单,对外汇款等功能"
+				// 	},
 					// {
 					// 	type: "content", // tips, content
 					// 	contentType: "crad", //order , chat ,link
@@ -344,20 +359,20 @@
 					// 		name: "G"
 					// 	}
 					// },
-					{
-						type: "content", // tips, content
-						contentType: "redBag", //order , chat ,link
-						location: 0, // 1 表示我方
-						content:false
-					},
-					{
-						type: "content", // tips, content
-						contentType: "wxtf", //order , chat ,link
-						location: 1, // 1 表示我方
-						content:{
-							amount:"100",
-						}
-					}
+					// {
+					// 	type: "content", // tips, content
+					// 	contentType: "redBag", //order , chat ,link
+					// 	location: 0, // 1 表示我方
+					// 	content:false
+					// },
+					// {
+					// 	type: "content", // tips, content
+					// 	contentType: "wxtf", //order , chat ,link
+					// 	location: 1, // 1 表示我方
+					// 	content:{
+					// 		amount:"100",
+					// 	}
+					// }
 				],
 				orderInfo: {
 					shopName: "",
@@ -418,6 +433,19 @@
 			});
 		},
 		methods: {
+			changeRule(i){
+				this.isMe = i
+			},
+			addGusetInfo(data){
+				console.log(data);
+				this.gusetList.push({
+					url:data.avatar,
+					text:data.nickname
+				})
+			},
+			addGuset(){
+				this.$refs.wxChatAdd.open();
+			},
 			getRB(i){
 				console.log(this.massageList[i]);
 				this.massageList[i].content = !this.massageList[i].content
@@ -453,7 +481,7 @@
 				this.activeMsgIndex = -1; // 清除激活状态
 			},
 			onYuyinSubmit(data){
-				const location = this.isMe ? 1 : 0;
+				const location = this.isMe ;
 				const transferInfo = {
 					type: "content", // tips, content
 					contentType: "yuyin", //order , chat ,link
@@ -507,6 +535,10 @@
 				const res = await getUserInfo(userId);
 				console.log(res);
 				this.userInfo = res.data;
+				this.gusetList.push({
+					url:'http://106.15.137.235:8080/upload/'+res.data.avatar,
+					text:'我'
+				})
 			},
 			onOrderSubmit(data) {
 				const location = this.isMe ? 1 : 0;
@@ -589,7 +621,7 @@
 				if (this.inputValue.trim()) {
 					console.log('用户输入内容:', this.inputValue);
 					// 这里可以添加发送消息的逻辑
-					const location = this.isMe ? 1 : 0;
+					const location = this.isMe ;
 					this.massageList.push({
 						type: "content",
 						contentType: "chat",
@@ -605,6 +637,9 @@
 </script>
 
 <style scoped>
+	.boxsh{
+		box-shadow: #3086ff 0rpx 0  10rpx 10rpx;
+	}
 	.cell{
 		position: relative;
 	}
@@ -870,16 +905,16 @@
 		position: relative;
 	}
 
-	.msg.right .bubble {
+	.msg.right .msgContent .bubble {
 		background-color: #95ec69;
 		margin-right: 14rpx;
 	}
 
-	.msg.left .bubble {
+	.msg.left .msgContent  .bubble {
 		margin-left: 14rpx;
 	}
 
-	.msg.right .bubble::after {
+	.msg.right .msgContent .bubble::after {
 		content: "";
 		position: absolute;
 		top: 28rpx;
@@ -891,7 +926,7 @@
 		border-left: 6px solid #95ec69;
 	}
 
-	.msg.left .bubble::after {
+	.msg.left .msgContent .bubble::after {
 		content: "";
 		position: absolute;
 		top: 28rpx;

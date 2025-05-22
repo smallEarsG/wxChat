@@ -70,6 +70,15 @@
 				"enablePullDownRefresh": false,
         		"navigationBarTitleText" : ""
         	}
+        },
+        {
+        	"path" : "pages/wxChatGroup/wxChatGroup",
+        	"style" : 
+        	{
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false,
+        		"navigationBarTitleText" : ""
+        	}
         }
     ],
 	"tabBar": {

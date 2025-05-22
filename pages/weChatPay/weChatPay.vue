@@ -147,6 +147,7 @@
 
 <script>
 	import UploadImage from '../../components/UploadImage/UploadImage.vue';
+
 	export default {
 	components: {
 			UploadImage

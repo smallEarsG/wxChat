@@ -24,7 +24,7 @@ export default {
   name: 'TransferCard',
   props: {
 	  
-    name: { type: String, required: true },
+    name: { type: String,},
     amount: { type: [Number, String], required: true }
   }
 }

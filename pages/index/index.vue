@@ -4,12 +4,13 @@
 		<view class="btn-box">
 			<button class="btn" @click="goToChat">企业聊天</button>
 			<button class="btn" @click="goToWxChat">微信聊天</button>
-			<button class="btn" @click="goToChat">微信群聊</button>
+			<button class="btn" @click="goToWxChatGroup">微信群聊</button>
 			<button class="btn" @click="goToRecords">企业转账记录</button>
 			<button class="btn" @click="goToWxChatPay">微信支付记录</button>
 		</view>
 		<ProfileEditPopup ref="filePopup" @submit="onSubmit"></ProfileEditPopup>
-		<ProfileEditPopup ref="wxChatPopup" @submit="onSubmitWx"></ProfileEditPopup>
+		<ProfileEditPopup ref="wxChatPopup" @submit="onSubmitWx"></ProfileEditPopup> 
+		<ProfileEditPopup ref="wxChatGroupPopup" @submit="onSubmitWxGroup"></ProfileEditPopup>
 	</view>
 </template>
 
@@ -78,6 +79,25 @@
 				}
 				this.$refs.wxChatPopup.open()
 			},
+			goToWxChatGroup(){
+				if (this.guestInfo.tryCount == 0) {
+					if (isMemberExpired(this.guestInfo)) {
+						// 试用次数用完后开始需要充值会员
+						uni.showToast({
+							title: '使用次数已用完请充值会员',
+							icon: 'none'
+						});
+						return
+					}
+				}
+				this.$refs.wxChatGroupPopup.open()
+			},
+			onSubmitWxGroup(data){
+				updateUseFeature(this.guestInfo.id)
+				uni.navigateTo({
+					url: '/pages/wxChatGroup/wxChatGroup?guestInfo=' + encodeURIComponent(JSON.stringify(data))
+				});
+			},
 			onSubmitWx(data) {
 				updateUseFeature(this.guestInfo.id)
 				uni.navigateTo({
@@ -92,7 +112,6 @@
 			},
 			// 跳转到转账记录页面
 			goToRecords() {
-
 				if (this.guestInfo.tryCount == 0) {
 					console.log(isMemberExpired(this.guestInfo));
 					if (isMemberExpired(this.guestInfo)) {
