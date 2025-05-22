@@ -70,5 +70,8 @@
 	uni-tabbar .uni-tabbar__label {
 		font-size: 24rpx !important;
 	}
+	page {
+	  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", "Roboto", "Noto Sans CJK SC", sans-serif;
+	}
 	
 </style>

@@ -60,7 +60,7 @@ export default {
 .left-icon{
 	border-radius: 50%;
 	border: #fff 5rpx solid ;
-	margin-right: 20rpx;
+	margin-right: 10rpx;
 	padding: 14rpx;
 	box-sizing: border-box;
 	/* height: 100%; */
@@ -78,7 +78,7 @@ export default {
   flex: 1;
 }
 .title {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: bold;
   /* margin-bottom: 10rpx; */
 }

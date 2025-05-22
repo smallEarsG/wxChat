@@ -37,15 +37,15 @@
 						<view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
-						<view class="msg left" v-if="item.location == 0">
+						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
 							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
 							<WxWxCard class="cardLeft"  :nickname="item.content.nickname" :avatar="item.content.avatar"
-								@longpress="showPopupMenu($event, i)"></WxWxCard>
+								></WxWxCard>
 						</view>
-						<view class="msg right" v-else>
+						<view class="msg right"  @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<WxWxCard  class="cardRight" :nickname="item.content.nickname" :avatar="item.content.avatar"
-								@longpress="showPopupMenu($event, i)"></WxWxCard>
+							></WxWxCard>
 						</view>
 					</view>
 					<!-- 图片photo -->
@@ -53,15 +53,15 @@
 						<view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
-						<view class="msg left" v-if="item.location == 0">
+						<view class="msg left"  @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
 							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
 							<image :src="item.content.avatar" class="phote leftp"
-								@longpress="showPopupMenu($event, i)" />
+								 />
 						</view>
-						<view class="msg right" v-else>
+						<view class="msg right"  @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<image :src="item.content.avatar" class="phote rightp"
-								@longpress="showPopupMenu($event, i)"></image>
+								></image>
 						</view>
 					</view>
 					<!-- 转账 -->
@@ -69,12 +69,12 @@
 					<view v-if="activeMsgIndex === i" class="popup-menu">
 						<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 					</view>
-						<view class="msg left" @click="resTransfer(i)" v-if="item.location == 0">
+						<view class="msg left"  @longpress="showPopupMenu($event, i)"  @click="resTransfer(i)" v-if="item.location == 0">
 							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
 							<WxTransferCard  :class="!item.content.st?'tfCardLeft':'tfCardLeftBg'" :state="item.content.st" :name="item.content.tip" :amount="item.content.amount"
 								></WxTransferCard>
 						</view>
-						<view class="msg right" 	@click="resTransfer(i)" v-else>
+						<view class="msg right"  @longpress="showPopupMenu($event, i)"	@click="resTransfer(i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<WxTransferCard :class="!item.content.st?'tfCardRight':'tfCardRightBg'" :state="item.content.st" :name="item.content.tip" :amount="item.content.amount"
 							></WxTransferCard>
@@ -85,12 +85,12 @@
 						<view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
-						<view class="msg left" v-if="item.location == 0">
+						<view class="msg left"  @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
 							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
 							<WxTf class="tfCardLeftBg" :name="item.content.tip" :amount="item.content.amount"
 								></WxTf>
 						</view>
-						<view class="msg right" v-else>
+						<view class="msg right"  @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<WxTf class="tfCardRightBg" :name="item.content.tip" :amount="item.content.amount"
 								></WxTf>
@@ -101,12 +101,12 @@
 						<view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
-						<view class="msg left" v-if="item.location == 0"  >
+						<view class="msg left"  @longpress="showPopupMenu($event, i)"  v-if="item.location == 0"  >
 							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
 								<WxRedBag  :class="item.content?'tfCardLeft':'tfCardLeftBg'"  :state="item.content"></WxRedBag>
 							
 						</view>
-						<view class="msg right" v-else>
+						<view class="msg right"   @longpress="showPopupMenu($event, i)"  v-else>
 							
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 								<WxRedBag  :class="item.content?'tfCardRight':'tfCardRightBg'" :state="item.content"></WxRedBag>
@@ -299,36 +299,37 @@
 						icon: '/static/redBag.png'
 					}
 				],
-				massageList: [{
-						type: "tips", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 0, // 1 表示我方
-						content: "2024年12月24日 14:10"
-					},
-					{
-						type: "content", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 0, // 1 表示我方
-						content: "你好，欢迎来到企业微信工坊"
-					},
-					{
-						type: "content", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 1, // 1 表示我方
-						content: "你好，欢迎来到企业微信工坊"
-					},
-					{
-						type: "tips", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 0, // 1 表示我方
-						content: "2024年12月24日 14:10"
-					},
-					{
-						type: "content", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 1, // 1 表示我方
-						content: "你好，欢迎来到企业微信工坊,这里有订单,对外汇款等功能"
-					},
+				massageList: [
+					// {
+					// 	type: "tips", // tips, content
+					// 	contentType: "chat", //order , chat ,link
+					// 	location: 0, // 1 表示我方
+					// 	content: "2024年12月24日 14:10"
+					// },
+					// {
+					// 	type: "content", // tips, content
+					// 	contentType: "chat", //order , chat ,link
+					// 	location: 0, // 1 表示我方
+					// 	content: "你好，欢迎来到企业微信工坊"
+					// },
+					// {
+					// 	type: "content", // tips, content
+					// 	contentType: "chat", //order , chat ,link
+					// 	location: 1, // 1 表示我方
+					// 	content: "你好，欢迎来到企业微信工坊"
+					// },
+					// {
+					// 	type: "tips", // tips, content
+					// 	contentType: "chat", //order , chat ,link
+					// 	location: 0, // 1 表示我方
+					// 	content: "2024年12月24日 14:10"
+					// },
+					// {
+					// 	type: "content", // tips, content
+					// 	contentType: "chat", //order , chat ,link
+					// 	location: 1, // 1 表示我方
+					// 	content: "你好，欢迎来到企业微信工坊,这里有订单,对外汇款等功能"
+					// },
 					// {
 					// 	type: "content", // tips, content
 					// 	contentType: "crad", //order , chat ,link
@@ -344,20 +345,20 @@
 					// 		name: "G"
 					// 	}
 					// },
-					{
-						type: "content", // tips, content
-						contentType: "redBag", //order , chat ,link
-						location: 0, // 1 表示我方
-						content:false
-					},
-					{
-						type: "content", // tips, content
-						contentType: "wxtf", //order , chat ,link
-						location: 1, // 1 表示我方
-						content:{
-							amount:"100",
-						}
-					}
+					// {
+					// 	type: "content", // tips, content
+					// 	contentType: "redBag", //order , chat ,link
+					// 	location: 0, // 1 表示我方
+					// 	content:false
+					// },
+					// {
+					// 	type: "content", // tips, content
+					// 	contentType: "wxtf", //order , chat ,link
+					// 	location: 1, // 1 表示我方
+					// 	content:{
+					// 		amount:"100",
+					// 	}
+					// }
 				],
 				orderInfo: {
 					shopName: "",
@@ -709,7 +710,7 @@
 		color: white;
 		border-radius: 12rpx;
 		padding: 10rpx 20rpx;
-		z-index: 999;
+		z-index: 999999;
 		display: flex;
 		flex-direction: row;
 		justify-content: space-around;
@@ -863,7 +864,8 @@
 	.bubble {
 		max-width: 480rpx;
 		padding: 25rpx 20rpx;
-		font-size: 28rpx;
+		font-size: 30rpx;
+		
 		border-radius: 16rpx;
 		background-color: #ffffff;
 		line-height: 1.5;

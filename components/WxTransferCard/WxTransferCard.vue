@@ -3,8 +3,8 @@
     <!-- <view class="flag"></view> -->
     <view class="content">
       <view class="left-icon">
-        <image class="icon_" v-if="state" src="/static/images/wechat-trans-icon2.png" />
-		<image class="icon" v-else src="/static/icon_transfer1.png" mode=""></image>
+        <image class="icon"  :src="state?'/static/images/tf_2.png':'/static/images/tf_1.png'" />
+		<!-- <image class="icon" v-else src="" mode=""></image> -->
       </view>
       <view class="info">
         <!-- <view class="title">向{{ name }}转账</view> -->
@@ -65,7 +65,7 @@ export default {
 .left-icon{
 	border-radius: 50%;
 	/* border: #fff 5rpx solid ; */
-	margin-right: 20rpx;
+	margin-right: 10rpx;
 	/* padding: 10rpx; */
 	box-sizing: border-box;
 	/* height: 100%; */
@@ -74,8 +74,8 @@ export default {
 	 align-items: center;
 }
 .left-icon .icon {
-  width: 74rpx;
-  height: 74rpx;
+  width: 70rpx;
+  height: 70rpx;
   /* background-color: red; */
   
 }

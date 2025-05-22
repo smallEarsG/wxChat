@@ -21,14 +21,22 @@
 
 		<view class="chat-content">
 		
-		
+		<view v-if="activeMsgIndex !== -1" class="overlay" @click="closePopupMenu"></view>
 			<!-- 聊天内容区域 -->
 			<scroll-view class="chat-body" scroll-y :show-scrollbar="false">
 				<view v-for="(item ,i ) in massageList " :key="i">
 
 					<!-- 时间 -->
-					<view v-if="item.type == 'tips'" class="msg-time">{{item.content}}</view>
-					<view class="orderBox" v-else-if="item.contentType == 'order'">
+					<view @longpress="showPopupMenu($event, i)" v-if="item.type == 'tips'" class="msg-time cell" >
+						<view v-if="activeMsgIndex === i" class="popup-menu">
+							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+						</view>
+					{{item.content}}
+					</view>
+					<view class="orderBox cell" @longpress="showPopupMenu($event, i)" v-else-if="item.contentType == 'order'" >
+						<view v-if="activeMsgIndex === i" class="popup-menu">
+							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+						</view>
 						<view class="msg right">
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<ExternalPayCard :orderInfo="item.content" />
@@ -36,9 +44,11 @@
 
 					</view>
 				<!-- 转账 -->
-					<view  v-else-if="item.contentType == 'transfer'">
-					
-						<view class="msg left" >
+					<view  v-else-if="item.contentType == 'transfer'"  class="cell">
+						<view v-if="activeMsgIndex === i" class="popup-menu">
+							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+						</view>
+						<view class="msg left"  @longpress="showPopupMenu($event, i)" >
 						<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
 							<TransferCard :name="item.content.name"  :amount="item.content.amount"></TransferCard>
 						</view>
@@ -46,30 +56,38 @@
 				
 					<!-- 图片photo -->
 					
-					<view  v-else-if="item.contentType == 'photo'">
-						<view class="msg left" v-if="item.location == 0">
+					<view  v-else-if="item.contentType == 'photo'" @longpress="showPopupMenu($event, i)"  class="cell">
+						<view v-if="activeMsgIndex === i" class="popup-menu">
+							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+						</view>
+						<view class="msg left" v-if="item.location == 0"  @longpress="showPopupMenu($event, i)">
 							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
 							<image  :src="item.content.avatar"class="phote leftp"  />
 						</view>
 						
-						<view class="msg right" v-else>
+						<view class="msg right"  @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<image :src="item.content.avatar" class="phote rightp" ></image>
 						</view>
 					</view>
 						<!-- 名片 -->
-					<view  v-else-if="item.contentType == 'crad'">
-						<view class="msg left" >
+					<view  v-else-if="item.contentType == 'crad'" @longpress="showPopupMenu($event, i)" class="cell">
+						<view v-if="activeMsgIndex === i" class="popup-menu">
+							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+						</view>
+						<view class="msg left"   @longpress="showPopupMenu($event, i)">
 							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
 							<WxCard :nickname="item.content.nickname" :avatar="item.content.avatar"></WxCard>
 						</view>
 					</view>
 					<!-- l、聊天 -->
-					<view  v-else-if="item.contentType == 'chat'">
+					<view  v-else-if="item.contentType == 'chat'" @longpress="showPopupMenu($event, i)" class="cell">
 						
-						
+						<view v-if="activeMsgIndex === i" class="popup-menu">
+							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+						</view>
 						<!-- 聊天内容 -->
-						<view class="msg left" v-if="item.location == 0">
+						<view class="msg left"  @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
 							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
 							<view class="bubble">
 								<view >
@@ -79,7 +97,7 @@
 							</view>
 						</view>
 				
-						<view class="msg right" v-else>
+						<view class="msg right"   @longpress="showPopupMenu($event, i)" v-else>
 							
 							
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
@@ -189,6 +207,7 @@
 		},
 		data() {
 			return {
+				activeMsgIndex: -1, // 当前激活的消息索引
 				keyboardHeight:true,
 				userInfo:{},
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
@@ -258,44 +277,44 @@
 					// }
 				],
 				massageList: [
-					{
-						type: "tips", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 0, // 1 表示我方
-						content: "2024年12月24日 14:10",
+					// {
+					// 	type: "tips", // tips, content
+					// 	contentType: "chat", //order , chat ,link
+					// 	location: 0, // 1 表示我方
+					// 	content: "2024年12月24日 14:10",
 
-					},
-					{
-						type: "content", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 0, // 1 表示我方
-						content: "你好，欢迎来到企业微信工坊"
+					// },
+					// {
+					// 	type: "content", // tips, content
+					// 	contentType: "chat", //order , chat ,link
+					// 	location: 0, // 1 表示我方
+					// 	content: "你好，欢迎来到企业微信工坊"
 
-					},
-					{
-						type: "content", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 1, // 1 表示我方
-						content: "你好，欢迎来到企业微信工坊"
+					// },
+					// {
+					// 	type: "content", // tips, content
+					// 	contentType: "chat", //order , chat ,link
+					// 	location: 1, // 1 表示我方
+					// 	content: "你好，欢迎来到企业微信工坊"
 
-					},
-					{
-						type: "tips", // tips, content
-						contentType: "chat", //order , chat ,link
-						location: 0, // 1 表示我方
-						content: "2024年12月24日 14:10",
+					// },
+					// {
+					// 	type: "tips", // tips, content
+					// 	contentType: "chat", //order , chat ,link
+					// 	location: 0, // 1 表示我方
+					// 	content: "2024年12月24日 14:10",
 
 											
-					},
-					{
-						type: "content", // tips, content
-						contentType: "crad", //order , chat ,link
-						location: 1, // 1 表示我方
-						content: {
-							name:"G",
+					// },
+					// {
+					// 	type: "content", // tips, content
+					// 	contentType: "crad", //order , chat ,link
+					// 	location: 1, // 1 表示我方
+					// 	content: {
+					// 		name:"G",
 							
-						}
-					}
+					// 	}
+					// }
 				],
 				orderInfo: {
 					shopName: "",
@@ -340,6 +359,23 @@
 			}
 		},
 		methods: {
+			deleteMessage_1(index) {
+				console.log(index);
+				this.massageList.splice(index, 1);
+				this.activeMsgIndex = -1; // 清除激活状态
+			},
+			showPopupMenu(e, index) {
+				// console.log("====",index, e);
+				this.activeMsgIndex = index;
+			
+				// 获取触摸坐标，适配弹出菜单位置
+				const touch = e.touches?.[0] || {};
+				// this.popupTop = 50 // touch.clientY - 100; // 往上偏移
+				// this.popupLeft = 0  //touch.clientX - 50; // 居中偏移
+			},
+			closePopupMenu() {
+				this.activeMsgIndex = -1;
+			},
 			async getUserInfo(userId) {
 				console.log("执行用户信息获取",userId);
 				const res = await getUserInfo(userId)
@@ -478,6 +514,36 @@
 </script>
 
 <style scoped>
+	.cell{
+		position: relative;
+	}
+	.overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1;
+	}
+	.popup-menu {
+		position: absolute;
+		background-color: #333;
+		color: white;
+		border-radius: 12rpx;
+		padding: 10rpx 20rpx;
+		z-index: 999;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-around;
+		top: -60rpx;
+		right: 50%;
+	}
+	
+	.menu-item {
+		padding: 10rpx 20rpx;
+		font-size: 24rpx;
+	}
+	
 	.chat-page {
 		display: flex;
 		flex-direction: column;

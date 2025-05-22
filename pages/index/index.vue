@@ -10,7 +10,7 @@
 		</view>
 		<ProfileEditPopup ref="filePopup" @submit="onSubmit"></ProfileEditPopup>
 		<ProfileEditPopup ref="wxChatPopup" @submit="onSubmitWx"></ProfileEditPopup> 
-		<ProfileEditPopup ref="wxChatGroupPopup" @submit="onSubmitWxGroup"></ProfileEditPopup>
+		<pfePopup ref="wxChatGroupPopup" @submit="onSubmitWxGroup"></pfePopup>
 	</view>
 </template>
 
