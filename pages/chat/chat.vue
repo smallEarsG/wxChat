@@ -120,8 +120,9 @@
 					<image class="icon" src="/static/icon-voice.png"></image>
 					<view class="input—box"><input class="input" placeholder="请输入" v-model="inputValue"
 							@confirm="onEnterKey" /></view>
-					<image class="icon_face" src="/static/icon-face.png"></image>
+					<image class="icon_face"  v-if="keyboardHeight" src="/static/icon-face.png"></image>
 					<image class="icon_plus" src="/static/icon-plus.png" @click="togglePopupBox"></image>
+					<button class="send" @click="onEnterKey" v-if="!keyboardHeight"> 发送 </button>
 				</view>
 				<!-- 抽屉 -->
 				<view class="popup_box" v-show="openPopup">
@@ -514,6 +515,14 @@
 </script>
 
 <style scoped>
+	.send{
+		background-color: blue;
+		color: #fff;
+		height: 60rpx;
+		line-height: 60rpx;
+		font-size: 30rpx;
+		text-align: center;
+	}
 	.cell{
 		position: relative;
 	}

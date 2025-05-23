@@ -172,8 +172,9 @@
 				<image class="icon" src="/static/icon-voice.png" @click="addYuyin"></image>
 				<view class="input—box"><input class="input" placeholder="请输入" v-model="inputValue"
 						@confirm="onEnterKey" /></view>
-				<image class="icon_face" src="/static/icon-face.png"></image>
+				<image class="icon_face" v-if="!keyboard"  src="/static/icon-face.png"></image>
 				<image class="icon_plus" src="/static/icon-plus.png" @click="togglePopupBox"></image>
+				<button class="send" @click="onEnterKey" v-if="keyboard"> 发送 </button>
 			</view>
 			<!-- 抽屉 -->
 			<view class="popup_box" v-show="openPopup">
@@ -243,6 +244,7 @@
 		},
 		data() {
 			return {
+				keyboard:false,
 				activeMsgIndex: -1, // 当前激活的消息索引
 				popupTop: 0,
 				popupLeft: 0,
@@ -310,7 +312,7 @@
 					// 	type: "content", // tips, content
 					// 	contentType: "chat", //order , chat ,link
 					// 	location: 0, // 1 表示我方
-					// 	content: "你好，欢迎来到企业微信工坊"
+					// 	content: "你"
 					// },
 					// {
 					// 	type: "content", // tips, content
@@ -413,8 +415,10 @@
 			uni.onKeyboardHeightChange((res) => {
 				if (res.height > 0) {
 					this.chatInputBottom = res.height;
+					this.keyboard = true
 				} else {
 					this.chatInputBottom = '0';
+					this.keyboard = false
 				}
 			});
 		},
@@ -606,6 +610,14 @@
 </script>
 
 <style scoped>
+	.send{
+		background-color: green;
+		color: #fff;
+		height: 60rpx;
+		line-height: 60rpx;
+		font-size: 30rpx;
+		text-align: center;
+	}
 	.cell{
 		position: relative;
 	}
@@ -786,6 +798,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		font-weight: 500;
 	}
 
 	.desc {
@@ -863,13 +876,13 @@
 
 	.bubble {
 		max-width: 480rpx;
-		padding: 25rpx 20rpx;
-		font-size: 30rpx;
-		
+		padding: 20rpx 20rpx;
+		font-size: 32rpx;
 		border-radius: 16rpx;
 		background-color: #ffffff;
-		line-height: 1.5;
+		line-height: 1.3;
 		position: relative;
+		box-sizing: border-box;
 	}
 
 	.msg.right .bubble {

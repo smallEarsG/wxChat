@@ -77,7 +77,7 @@ export default {
 }
 .title {
   font-size: 30rpx;
-  font-weight: 700;
+  font-weight: 600;
   /* margin-bottom: 10rpx; */
 }
 .amount {
