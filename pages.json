@@ -79,6 +79,13 @@
 				"enablePullDownRefresh": false,
         		"navigationBarTitleText" : ""
         	}
+        },
+        {
+        	"path" : "pages/getGuset/getGuset",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : ""
+        	}
         }
     ],
 	"tabBar": {
