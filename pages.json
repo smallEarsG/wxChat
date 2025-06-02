@@ -84,6 +84,24 @@
         	"path" : "pages/getGuset/getGuset",
         	"style" : 
         	{
+				"navigationStyle": "custom",
+        		"navigationBarTitleText" : ""
+        	}
+        },
+        {
+        	"path" : "pages/codePay/codePay",
+        	"style" : 
+        	{
+				
+        		"navigationBarTitleText" : "图文识别"
+        	}
+        },
+        {
+        	"path" : "pages/codePayChild/codePayChild",
+        	"style" : 
+        	{
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false,
         		"navigationBarTitleText" : ""
         	}
         }

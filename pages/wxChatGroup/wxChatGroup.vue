@@ -975,7 +975,7 @@
 	}
 
 	.msg.right .msgContent .bubble::after {
-		content: "";
+		content: "";  	
 		position: absolute;
 		top: 28rpx;
 		right: -10rpx;

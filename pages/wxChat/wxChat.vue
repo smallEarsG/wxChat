@@ -785,13 +785,7 @@
 		height: 100rpx;
 		padding: 0 30rpx;
 		border-bottom: 2rpx solid #e0e0e0;
-		/*  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-color: #eaeaea;
-  z-index: 100;
-  /* box-sizing: border-box; */
+
 	}
 
 	.title {

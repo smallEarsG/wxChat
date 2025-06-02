@@ -7,6 +7,8 @@
 			<button class="btn" @click="goToWxChatGroup">微信群聊</button>
 			<button class="btn" @click="goToRecords">企业转账记录</button>
 			<button class="btn" @click="goToWxChatPay">微信支付记录</button>
+			<button class="btn" @click="gotoGuset">获客助手</button>
+			<button class="btn" @click="gotoCodePay">获客助手</button>
 		</view>
 		<ProfileEditPopup ref="filePopup" @submit="onSubmit"></ProfileEditPopup>
 		<ProfileEditPopup ref="wxChatPopup" @submit="onSubmitWx"></ProfileEditPopup> 
@@ -149,6 +151,17 @@
 					url: '/pages/weChatPay/weChatPay'
 				});
 			},
+			
+			gotoGuset(){
+				uni.navigateTo({
+					url: '/pages/getGuset/getGuset'
+				});
+			},
+			gotoCodePay(){
+				uni.navigateTo({
+					url: '/pages/codePay/codePay'
+				});
+			}
 		}
 	};
 </script>

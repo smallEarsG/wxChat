@@ -54,7 +54,7 @@
 							</view>
 							<view class="info-row">
 								<text class="label">收款汇总：</text>
-								<view class="value">今日成员收款1笔，供{{ infrom.amount }}元</view>
+								<view class="value">今日成员收款1笔，共{{ infrom.amount }}元</view>
 							</view>
 						</view>
 						<view class="info-box" @click="deleteRecord(i)" >
