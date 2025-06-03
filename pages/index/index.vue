@@ -8,7 +8,7 @@
 			<button class="btn" @click="goToRecords">企业转账记录</button>
 			<button class="btn" @click="goToWxChatPay">微信支付记录</button>
 			<button class="btn" @click="gotoGuset">获客助手</button>
-			<button class="btn" @click="gotoCodePay">获客助手</button>
+			<button class="btn" @click="gotoCodePay">付款记录</button>
 		</view>
 		<ProfileEditPopup ref="filePopup" @submit="onSubmit"></ProfileEditPopup>
 		<ProfileEditPopup ref="wxChatPopup" @submit="onSubmitWx"></ProfileEditPopup> 

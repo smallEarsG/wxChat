@@ -2,13 +2,19 @@
 	<view class="container">
 		<!-- 标题与按钮 -->
 		<view class="header">
-			<text class="title">图片文字识别</text>
+			<text class="title">图片文字识别在线</text>
 			<button class="upload-btn" @click="chooseImage">
-				<text class="iconfont"></text>
+				<!-- <text class="iconfont"></text> -->
 				<text>上传图片识别</text>
 			</button>
 		</view>
-
+		<view class="header">
+			<text class="title">图片文字识别离线</text>
+			<button class="upload-btn" @click="chooseImage"  :disabled="true">
+				<!-- <text class="iconfont"></text> -->
+				<text>上传图片识别</text>
+			</button>
+		</view>
 		<!-- 图片预览区域 -->
 		<view class="image-preview" v-if="imagePath">
 			<image :src="imagePath" mode="widthFix"></image>
@@ -24,13 +30,13 @@
 			</view>
 		</view>
 		<!-- v-if="resultList.length > 0" -->
-		<view > 
-			<button class="upload-btn"   @click="goCodePayChild">
-				<text class="iconfont"></text>
+		<view  class="footer_btn" v-if="resultList.length > 0">
+			<button class="upload-btn" @click="goCodePayChild">
+				<!-- <text class="iconfont"></text> -->
 				<text>转账付款</text>
 			</button>
-			<button class="upload-btn"   @click="goCodePayChild">
-				<text class="iconfont"></text>
+			<button class="upload-btn" @click="goCodePayChild">
+				<!-- <text class="iconfont"></text> -->
 				<text>扫码付款</text>
 			</button>
 		</view>
@@ -42,6 +48,10 @@
 </template>
 
 <script>
+	import {
+		login
+	} from '../../api';
+
 	export default {
 		data() {
 			return {
@@ -58,45 +68,46 @@
 			};
 		},
 		methods: {
-			 extractInfoWithRegex(data) {
-			  console.log(data);
-			  const info = {
-			    time: '',
-			    name: '',
-			    orderNumber: ''
-			  };
-			  
-			  data.forEach((item ,index) => {
-			    const words = item.words;
-			    
-			    // 时间格式匹配（支持年-月-日 或 时分秒）
-			    const timeMatch = words.match(/\d{4}年\d{1,2}月\d{1,2}日\d{1,2}[:：]\d{2}[:：]\d{2}/);
-			    if (timeMatch) info.time = timeMatch[0];
-			    
-			    // 二维码付款名称（提取"扫二维码付款-"后的内容）
-			    const nameMatch = words.match(/扫二维码付款-([^-]+)/);
-			    if (nameMatch) info.name = nameMatch[1];
-			    
-			    // 账单号（匹配纯数字且长度较长的字符串）
-			    const orderMatch = words.match(/\d{16,32}/); // 假设账单号为16-32位数字
-				console.log(orderMatch ,/单号/.test(data[index - 1]?.words),index - 1);
-			    if (orderMatch && /单号/.test(data[index - 1]?.words)) {
-			      info.orderNumber = orderMatch[0];
-			    }
-			  });
-			
-			  return info;
-			},
-			goCodePayChild(){
+			extractInfoWithRegex(data) {
+				console.log(data);
 				const info = {
-				    "time": "2025年6月2日12：06：02",
-				    "name": "给为理想而奋斗",
-				    "orderNumber": "10001071012025060201715277560518"
-				}
+					time: '',
+					name: '',
+					orderNumber: ''
+				};
+
+				data.forEach((item, index) => {
+					const words = item.words;
+
+					// 时间格式匹配（支持年-月-日 或 时分秒）
+					const timeMatch = words.match(/\d{4}年\d{1,2}月\d{1,2}日\d{1,2}[:：]\d{2}[:：]\d{2}/);
+					if (timeMatch) info.time = timeMatch[0];
+
+					// 二维码付款名称（提取"扫二维码付款-"后的内容）
+					const nameMatch = words.match(/扫二维码付款-([^-]+)/);
+					if (nameMatch) info.name = nameMatch[1];
+
+					// 账单号（匹配纯数字且长度较长的字符串）
+					const orderMatch = words.match(/\d{16,32}/); // 假设账单号为16-32位数字
+					console.log(orderMatch, /单号/.test(data[index - 1]?.words), index - 1);
+					if (orderMatch && /单号/.test(data[index - 1]?.words)) {
+						info.orderNumber = orderMatch[0];
+					}
+				});
+
+				return info;
+			},
+			goCodePayChild() {
+				const info = this.extractInfoWithRegex(this.resultList)
+				const formattedDate = info.time.replace(/日(\d)/, '日 $1') // 在"日"字后面添加空格
+					.replace(/：/g, ':'); // 全局替换中文冒号为英文冒号
+				console.log(formattedDate);
+				info.time = formattedDate
+				console.log(info);
 				uni.navigateTo({
-					url:"/pages/codePayChild/codePayChild?info="+encodeURIComponent(JSON.stringify(info))
+					url: "/pages/codePayChild/codePayChild?info=" + encodeURIComponent(JSON.stringify(info))
 				})
-				console.log(this.extractInfoWithRegex(this.resultList));
+				// console.log();
 			},
 			// 选择图片（保持不变）
 			chooseImage() {
@@ -205,80 +216,83 @@
 			// 确保 readImageAsBase64 函数正确处理 Base64 编码
 			// 读取图片为 Base64（Android 专用）
 			async readImageAsBase64(imagePath) {
-			  console.log('开始转换图片为 Base64，路径:', imagePath);
-			  		// #ifdef H5
-			  		// H5 环境保持不变
-			  		return new Promise((resolve, reject) => {
-			  			const xhr = new XMLHttpRequest();
-			  			xhr.open('GET', imagePath, true);
-			  			xhr.responseType = 'blob';
-			  			xhr.onload = () => {
-			  				if (xhr.status === 200) {
-			  					const reader = new FileReader();
-			  					reader.onloadend = () => {
-			  						const base64 = reader.result.split(',')[1];
-			  						resolve(base64);
-			  					};
-			  					reader.readAsDataURL(xhr.response);
-			  				} else {
-			  					reject(new Error(`图片加载失败: ${xhr.status}`));
-			  				}
-			  			};
-			  			xhr.onerror = reject;
-			  			xhr.send();
-			  		});
-			  		// #endif
-			  
-			  // 方案 1：优先使用 uni.readFile（最新 API）
-			  if (typeof uni.readFile === 'function') {
-			    try {
-			      console.log('尝试使用 uni.readFile...');
-			      const { data } = await uni.readFile({
-			        filePath: imagePath,
-			        encoding: 'base64'
-			      });
-			      console.log('uni.readFile 成功，Base64 长度:', data.length);
-			      return data.replace(/^data:image\/\w+;base64,/, '');
-			    } catch (err) {
-			      console.error('uni.readFile 失败:', err);
-			      // 继续尝试其他方案
-			    }
-			  }
+				console.log('开始转换图片为 Base64，路径:', imagePath);
+				// #ifdef H5
+				// H5 环境保持不变
+				return new Promise((resolve, reject) => {
+					const xhr = new XMLHttpRequest();
+					xhr.open('GET', imagePath, true);
+					xhr.responseType = 'blob';
+					xhr.onload = () => {
+						if (xhr.status === 200) {
+							const reader = new FileReader();
+							reader.onloadend = () => {
+								const base64 = reader.result.split(',')[1];
+								resolve(base64);
+							};
+							reader.readAsDataURL(xhr.response);
+						} else {
+							reject(new Error(`图片加载失败: ${xhr.status}`));
+						}
+					};
+					xhr.onerror = reject;
+					xhr.send();
+				});
+				// #endif
 
-			  // 方案 3：使用 plus.io（5+ Runtime API，Android 原生环境）
-			  if (typeof plus !== 'undefined') {
-			    try {
-			      console.log('尝试使用 plus.io...');
-			      return new Promise((resolve, reject) => {
-			        plus.io.resolveLocalFileSystemURL(imagePath, (entry) => {
-			          entry.file((file) => {
-			            const reader = new plus.io.FileReader();
-			            reader.onloadend = (e) => {
-			              console.log('plus.io 成功，Base64 长度:', e.target.result.length);
-			              const base64 = e.target.result.split(',')[1];
-			              resolve(base64);
-			            };
-			            reader.onerror = (err) => {
-			              console.error('plus.io 读取失败:', err);
-			              reject(new Error(`读取文件失败: ${err.message}`));
-			            };
-			            reader.readAsDataURL(file);
-			          }, (err) => {
-			            console.error('plus.io 获取文件失败:', err);
-			            reject(new Error(`获取文件信息失败: ${err.message}`));
-			          });
-			        }, (err) => {
-			          console.error('plus.io 解析路径失败:', err);
-			          reject(new Error(`解析文件路径失败: ${err.message}`));
-			        });
-			      });
-			    } catch (err) {
-			      console.error('plus.io 异常:', err);
-			    }
-			  }
-			  
-			  // 所有方案都失败
-			  throw new Error('无法在当前环境读取文件，请确保使用自定义基座并配置了文件权限');
+				// 方案 1：优先使用 uni.readFile（最新 API）
+				if (typeof uni.readFile === 'function') {
+					try {
+						console.log('尝试使用 uni.readFile...');
+						const {
+							data
+						} = await uni.readFile({
+							filePath: imagePath,
+							encoding: 'base64'
+						});
+						console.log('uni.readFile 成功，Base64 长度:', data.length);
+						return data.replace(/^data:image\/\w+;base64,/, '');
+					} catch (err) {
+						console.error('uni.readFile 失败:', err);
+						// 继续尝试其他方案
+					}
+				}
+
+				// 方案 3：使用 plus.io（5+ Runtime API，Android 原生环境）
+				if (typeof plus !== 'undefined') {
+					try {
+						console.log('尝试使用 plus.io...');
+						return new Promise((resolve, reject) => {
+							plus.io.resolveLocalFileSystemURL(imagePath, (entry) => {
+								entry.file((file) => {
+									const reader = new plus.io.FileReader();
+									reader.onloadend = (e) => {
+										console.log('plus.io 成功，Base64 长度:', e.target
+											.result.length);
+										const base64 = e.target.result.split(',')[1];
+										resolve(base64);
+									};
+									reader.onerror = (err) => {
+										console.error('plus.io 读取失败:', err);
+										reject(new Error(`读取文件失败: ${err.message}`));
+									};
+									reader.readAsDataURL(file);
+								}, (err) => {
+									console.error('plus.io 获取文件失败:', err);
+									reject(new Error(`获取文件信息失败: ${err.message}`));
+								});
+							}, (err) => {
+								console.error('plus.io 解析路径失败:', err);
+								reject(new Error(`解析文件路径失败: ${err.message}`));
+							});
+						});
+					} catch (err) {
+						console.error('plus.io 异常:', err);
+					}
+				}
+
+				// 所有方案都失败
+				throw new Error('无法在当前环境读取文件，请确保使用自定义基座并配置了文件权限');
 			},
 			// 读取图片为 Base64（使用新 API）
 			// async readImageAsBase64(imagePath) {
@@ -338,6 +352,10 @@
 </script>
 
 <style scoped>
+	.footer_btn{
+		display: flex;
+		align-items: center;
+	}
 	.container {
 		padding: 30rpx;
 		background-color: #f5f5f5;

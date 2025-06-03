@@ -104,6 +104,15 @@
 				"enablePullDownRefresh": false,
         		"navigationBarTitleText" : ""
         	}
+        },
+        {
+        	"path" : "pages/transfer/transfer",
+        	"style" : 
+        	{
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false,
+        		"navigationBarTitleText" : ""
+        	}
         }
     ],
 	"tabBar": {
