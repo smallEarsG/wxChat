@@ -43,8 +43,8 @@
 						<view class="left">
 							收款方式
 						</view>
-						<view class="right">
-							零钱
+						<view class="right rightIcon">
+							零钱通 <image class="gthIcon" src="/static/gthIcon.png"></image>
 						</view>
 					</view>
 					<view class="item">
@@ -114,10 +114,6 @@
 </template>
 
 <script>
-	import {
-		login
-	} from '../../api';
-
 	export default {
 		data() {
 			return {
@@ -161,15 +157,26 @@
 </script>
 
 <style scoped>
+	.gthIcon{
+		width: 30rpx;
+		height: 30rpx;
+		margin-left: 20rpx;
+	}
+	.rightIcon{
+		display: flex;
+		align-items: center;
+	}
 	.footer {
 		width: 100%;
 		flex: 1;
 		font-size: 24rpx;
 		display: flex;
 		align-items: center;
-		justify-content: center;
+		justify-content: flex-end;
+		flex-direction: column;
 		color: #a2a2a2;
 		min-height: 170rpx;
+		padding-bottom: 60rpx;
 		/* position: absolute;
 	bottom: 0rpx; */
 	}
@@ -199,7 +206,7 @@
 
 	.se_item {
 		font-size: 26rpx;
-		color: #7e869b;
+		color: #5c6e96;
 		flex: 1;
 		display: flex;
 		align-items: center;

@@ -12,7 +12,7 @@
 						<image src="/static/paySe.png"></image>
 					</view>
 					<view class="name">
-						扫二维码付款-{{info.name}}
+						扫二维码付款-{{info.transferName}}
 					</view>
 					<view class="num" @click="exitInfo">
 						<view class="sub" />
@@ -33,18 +33,10 @@
 					</view>
 					<view class="item">
 						<view class="left">
-							收款方备注
+							转账说明
 						</view>
 						<view class="right">
-							二维码收款
-						</view>
-					</view>
-					<view class="item">
-						<view class="left">
-							收款方式
-						</view>
-						<view class="right">
-							零钱
+							微信转账
 						</view>
 					</view>
 					<view class="item">
@@ -55,6 +47,23 @@
 							{{info.time}}
 						</view>
 					</view>
+					<view class="item">
+						<view class="left">
+							收款时间
+						</view>
+						<view class="right">
+							{{info.otherTime}}
+						</view>
+					</view>
+					<view class="item">
+						<view class="left">
+							收款方式
+						</view>
+						<view class="right rightIcon">
+							零钱通 <image class="gthIcon" src="/static/gthIcon.png"></image>
+						</view>
+					</view>
+					
 					<view class="item">
 						<view class="left">
 							转账单号
@@ -73,6 +82,20 @@
 					账单服务
 				</view>
 
+				<view class="serivce_bx">
+					<view class="se_item">
+						<view class="se_icon ">
+							<image class="wticon" src="/static/wticon.png" mode=""></image>
+						</view>
+						对订单有疑惑
+					</view>
+					<view class="se_item">
+						<view class="se_icon ">
+							<image class="skIcon" src="/static/skIcon.png" mode=""></image>
+						</view>
+						发起群收款
+					</view>
+				</view>
 				<view class="serivce_bx">
 					<view class="se_item">
 						<view class="se_icon ">
@@ -114,24 +137,22 @@
 </template>
 
 <script>
-	import {
-		login
-	} from '../../api';
-
 	export default {
 		data() {
 			return {
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				info: {
-					"time": "2025年6月2日12：06：02",
-					"name": "给为理想而奋斗",
-					"orderNumber": "10001071012025060201715277560518",
+					"time": "2025年6月3日 21:23:40",
+					"orderNumber": "1000050001202506030822269810799",
+					"otherTime": "2025年6月3日 21:42:26",
+					"transferName": "转给莴笋批发223档口",
 					"num": '88.00'
 				},
 				infoKey:{
-					"time": "时间",
-					"name": "名字",
-					"orderNumber": "单号",
+					"time": "转账时间",
+					"orderNumber": '订单编号',
+					"otherTime":'收款时间',
+					"transferName":'用户名',
 					"num": '金额'
 				}
 			}
@@ -161,15 +182,26 @@
 </script>
 
 <style scoped>
+	.gthIcon{
+		width: 30rpx;
+		height: 30rpx;
+		margin-left: 20rpx;
+	}
+	.rightIcon{
+		display: flex;
+		align-items: center;
+	}
 	.footer {
 		width: 100%;
 		flex: 1;
 		font-size: 24rpx;
 		display: flex;
 		align-items: center;
-		justify-content: center;
+		justify-content: flex-end;
+		flex-direction: column;
 		color: #a2a2a2;
 		min-height: 170rpx;
+		padding-bottom: 60rpx;
 		/* position: absolute;
 	bottom: 0rpx; */
 	}
@@ -199,7 +231,7 @@
 
 	.se_item {
 		font-size: 26rpx;
-		color: #7e869b;
+		color: #5c6e96;
 		flex: 1;
 		display: flex;
 		align-items: center;

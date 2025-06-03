@@ -10,7 +10,7 @@
 		</view>
 		<view class="header">
 			<text class="title">图片文字识别离线</text>
-			<button class="upload-btn" @click="chooseImage"  :disabled="true">
+			<button class="upload-btn" @click="chooseImage" :disabled="true">
 				<!-- <text class="iconfont"></text> -->
 				<text>上传图片识别</text>
 			</button>
@@ -30,12 +30,12 @@
 			</view>
 		</view>
 		<!-- v-if="resultList.length > 0" -->
-		<view  class="footer_btn" v-if="resultList.length > 0">
-			<button class="upload-btn" @click="goCodePayChild">
+		<view class="footer_btn" v-if="resultList.length > 0">
+			<button class="upload-btn" @click="goCodePayChild(0)">
 				<!-- <text class="iconfont"></text> -->
 				<text>转账付款</text>
 			</button>
-			<button class="upload-btn" @click="goCodePayChild">
+			<button class="upload-btn" @click="goCodePayChild(1)">
 				<!-- <text class="iconfont"></text> -->
 				<text>扫码付款</text>
 			</button>
@@ -73,7 +73,9 @@
 				const info = {
 					time: '',
 					name: '',
-					orderNumber: ''
+					orderNumber: '',
+					otherTime:'',
+					transferName:'',
 				};
 
 				data.forEach((item, index) => {
@@ -81,32 +83,66 @@
 
 					// 时间格式匹配（支持年-月-日 或 时分秒）
 					const timeMatch = words.match(/\d{4}年\d{1,2}月\d{1,2}日\d{1,2}[:：]\d{2}[:：]\d{2}/);
-					if (timeMatch) info.time = timeMatch[0];
+					const temp = words.match(/\d{4}年\d{1,2}月\d{1,2}日/);
+					if (timeMatch || temp) {
+						let tempTime = ''
+						if (timeMatch) {
+							tempTime = timeMatch[0];
+						} else {
+							tempTime = temp + ' ' + data[index + 1]?.words
+						}
+						if(info.time!=''){
+							info.otherTime = tempTime
+						}else{
+							info.time = tempTime
+						}
+						
+					}
+
 
 					// 二维码付款名称（提取"扫二维码付款-"后的内容）
 					const nameMatch = words.match(/扫二维码付款-([^-]+)/);
 					if (nameMatch) info.name = nameMatch[1];
-
+                    // 转账付款名称
+					const transferNameMatch = words.match(/转账-([^-]+)/);
+					if (transferNameMatch) info.transferName = transferNameMatch[1];
 					// 账单号（匹配纯数字且长度较长的字符串）
 					const orderMatch = words.match(/\d{16,32}/); // 假设账单号为16-32位数字
 					console.log(orderMatch, /单号/.test(data[index - 1]?.words), index - 1);
 					if (orderMatch && /单号/.test(data[index - 1]?.words)) {
-						info.orderNumber = orderMatch[0];
+
+						if (orderMatch[0].length < 32) {
+							info.orderNumber = orderMatch[0] + data[index + 1]?.words;
+						} else
+							info.orderNumber = orderMatch[0];
 					}
+					
 				});
 
 				return info;
 			},
-			goCodePayChild() {
+			goCodePayChild(i) {
 				const info = this.extractInfoWithRegex(this.resultList)
 				const formattedDate = info.time.replace(/日(\d)/, '日 $1') // 在"日"字后面添加空格
 					.replace(/：/g, ':'); // 全局替换中文冒号为英文冒号
 				console.log(formattedDate);
 				info.time = formattedDate
+				if(info.otherTime != ''){
+					const formattedDate_other = info.otherTime.replace(/日(\d)/, '日 $1') // 在"日"字后面添加空格
+						.replace(/：/g, ':'); // 全局替换中文冒号为英文冒号
+					info.otherTime =formattedDate_other
+				}
 				console.log(info);
-				uni.navigateTo({
-					url: "/pages/codePayChild/codePayChild?info=" + encodeURIComponent(JSON.stringify(info))
-				})
+				if(i === 1){
+					uni.navigateTo({
+						url: "/pages/codePayChild/codePayChild?info=" + encodeURIComponent(JSON.stringify(info))
+					})
+				}else{
+					uni.navigateTo({
+						url: "/pages/transfer/transfer?info=" + encodeURIComponent(JSON.stringify(info))
+					})
+				}
+				
 				// console.log();
 			},
 			// 选择图片（保持不变）
@@ -352,10 +388,11 @@
 </script>
 
 <style scoped>
-	.footer_btn{
+	.footer_btn {
 		display: flex;
 		align-items: center;
 	}
+
 	.container {
 		padding: 30rpx;
 		background-color: #f5f5f5;
