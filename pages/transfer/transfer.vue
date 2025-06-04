@@ -8,7 +8,7 @@
 
 			<view class="order">
 				<view class="order_top">
-					<view class="avatar">
+					<view class="avatar" @click="changeRole">
 						<image :src="info.url||'/static/paySe.png'"></image>
 					</view>
 					<view class="name">
@@ -22,7 +22,6 @@
 				</view>
 
 				<view class="order_info">
-
 					<view class="item">
 						<view class="left">
 							当前状态
@@ -63,7 +62,7 @@
 							零钱通 <image class="gthIcon" src="/static/gthIcon.png"></image>
 						</view>
 					</view>
-					
+
 					<view class="item">
 						<view class="left">
 							转账单号
@@ -111,15 +110,34 @@
 						</view>
 					</view>
 				</view>
-				
+
 			</view>
-		 
+
 
 			<view class="footer">
 				本服务由财付通提供
 			</view>
 		</view>
-	<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
+		<uni-popup ref="popup" type="bottom" background-color="#fff" border-radius="10px">
+			<view class="roleList">
+				<!-- <view class=""  v-for="itme in roleList" >
+				<uni-list-chat :avatar-circle="true" :title="itme.nickname" :avatar="itme.avatar"
+												:note="itme.description"></uni-list-chat>
+				</view> -->
+				<uni-swipe-action v-if="roleList.length>0">
+					<uni-swipe-action-item v-for="item in roleList" :right-options="options2"
+						:auto-close="false" @click="bindClick">
+						
+						<view class="content-box">
+							<uni-list-chat :avatar-circle="true" :title="item.nickname" :avatar="item.avatar"
+								:note="item.description"></uni-list-chat>
+						</view>
+					</uni-swipe-action-item>
+				</uni-swipe-action>
+			</view>
+		</uni-popup>
+		<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
+		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
 	</view>
 </template>
 
@@ -127,20 +145,29 @@
 	export default {
 		data() {
 			return {
+				options2: [{
+						text: '取消',
+						style: {
+							backgroundColor: '#F56C6C'
+						}
+					}
+
+				],
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
+				roleList: [],
 				info: {
-					"url":"",
+					"url": "",
 					"time": "2025年6月3日 21:23:40",
 					"orderNumber": "1000050001202506030822269810799",
 					"otherTime": "2025年6月3日 21:42:26",
 					"transferName": "转给莴笋批发223档口",
 					"num": '88.00'
 				},
-				infoKey:{
+				infoKey: {
 					"time": "转账时间",
 					"orderNumber": '订单编号',
-					"otherTime":'收款时间',
-					"transferName":'用户名',
+					"otherTime": '收款时间',
+					"transferName": '用户名',
 					"num": '金额'
 				}
 			}
@@ -154,12 +181,77 @@
 				...temp
 			}
 			console.log(this.info.name);
+			// 读取本地角色
 		},
 		methods: {
-			onOrderSubmit(data){
-				this.info = {...data}
+			eadLocalFileToBase64(filePath) {
+			  return new Promise((resolve, reject) => {
+			    // 检查是否在5+环境中
+			    if (window.plus) {
+			      // 解析本地文件URL
+			      plus.io.resolveLocalFileSystemURL(filePath, function(entry) {
+			        // 获取文件对象
+			        entry.file(function(file) {
+			          // 创建文件读取器
+			          var reader = new plus.io.FileReader();
+			          
+			          // 读取成功回调
+			          reader.onloadend = function(e) {
+			            // 获取Base64编码结果
+			            var base64Data = e.target.result;
+			            resolve(base64Data);
+			          };
+			          
+			          // 读取失败回调
+			          reader.onerror = function(err) {
+			            reject(new Error('文件读取失败: ' + err.message));
+			          };
+			          
+			          // 以DataURL方式读取文件（自动转换为Base64）
+			          reader.readAsDataURL(file);
+			        }, function(err) {
+			          reject(new Error('获取文件对象失败: ' + err.message));
+			        });
+			      }, function(err) {
+			        reject(new Error('解析文件路径失败: ' + err.message));
+			      });
+			    } else {
+			      reject(new Error('当前环境不支持plus.io'));
+			    }
+			  });
 			},
-			exitInfo(){
+			bindClick(con) {
+				console.log(con.index);
+				this.roleList.splice(con.index, 1)
+				uni.showToast({
+					title: '删除成功',
+					icon: 'none'
+				})
+			},
+			changeRole() {
+				if (this.roleList.length > 0) {
+					this.$refs.popup.open('center')
+				} else {
+					this.$refs.cradPopup.open()
+				}
+			},
+		  async onCradSubmitz(data) {
+				console.log(data);
+			 	const baseImg = await this.eadLocalFileToBase64(data.avatar)
+			   
+				this.roleList.push({...data,avatar:baseImg})
+				uni.setStorage({
+					key: 'roleList',
+					data: this.roleList
+				})
+				this.info.url = baseImg
+			},
+			onOrderSubmit(data) {
+				this.info = {
+					...data
+				}
+			},
+			exitInfo() {
 				this.$refs.orderPopup.open()
 			},
 			goBack() {
@@ -170,15 +262,22 @@
 </script>
 
 <style scoped>
-	.gthIcon{
+	.roleList {
+		width: 600rpx;
+		height: 800rpx;
+	}
+
+	.gthIcon {
 		width: 30rpx;
 		height: 30rpx;
 		margin-left: 20rpx;
 	}
-	.rightIcon{
+
+	.rightIcon {
 		display: flex;
 		align-items: center;
 	}
+
 	.footer {
 		width: 100%;
 		flex: 1;
@@ -200,9 +299,11 @@
 		padding: 0 40rpx;
 		box-sizing: border-box;
 	}
-	.serivce_line{
+
+	.serivce_line {
 		border-top: 1px solid #eaeaea;
 	}
+
 	.serivce_bx {
 		display: flex;
 		align-items: center;
@@ -252,27 +353,31 @@
 		position: relative;
 		top: 6rpx;
 	}
-	.startIcon{
+
+	.startIcon {
+		width: 32rpx;
+		height: 32rpx;
+		margin-right: 12rpx;
+		position: relative;
+		top: 6rpx;
+	}
+
+	.chatIcon {
 		width: 32rpx;
 		height: 32rpx;
 		margin-right: 14rpx;
 		position: relative;
 		top: 6rpx;
 	}
-	.chatIcon{
-		width: 32rpx;
-		height: 32rpx;
+
+	.transferIcon {
+		width: 34rpx;
+		height: 34rpx;
 		margin-right: 14rpx;
 		position: relative;
 		top: 6rpx;
 	}
-	.transferIcon{
-		width: 32rpx;
-		height: 32rpx;
-		margin-right: 14rpx;
-		position: relative;
-		top: 6rpx;
-	}
+
 	.order_info {
 		margin-top: 40rpx;
 		padding-bottom: 60rpx;
@@ -327,6 +432,7 @@
 		height: 92rpx;
 		overflow: hidden;
 		margin-top: 90rpx;
+		border-radius: 50%;
 	}
 
 	.avatar image {
