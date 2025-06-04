@@ -9,7 +9,7 @@
 			<view class="order">
 				<view class="order_top">
 					<view class="avatar">
-						<image src="/static/paySe.png"></image>
+						<image :src="info.url||'/static/paySe.png'"></image>
 					</view>
 					<view class="name">
 						扫二维码付款-{{info.transferName}}
@@ -81,52 +81,39 @@
 				<view class="se_title">
 					账单服务
 				</view>
-
-				<view class="serivce_bx">
-					<view class="se_item">
-						<view class="se_icon ">
-							<image class="wticon" src="/static/wticon.png" mode=""></image>
+				<view class="serivce_line">
+					<view class="serivce_bx">
+						<view class="se_item">
+							<view class="se_icon ">
+								<image class="wticon" src="/static/wticon.png" mode=""></image>
+							</view>
+							对订单有疑惑
 						</view>
-						对订单有疑惑
+						<view class="se_item">
+							<view class="se_icon ">
+								<image class="chatIcon" src="/static/chatIcon.png" mode=""></image>
+							</view>
+							定位到聊天位置
+						</view>
 					</view>
-					<view class="se_item">
-						<view class="se_icon ">
-							<image class="skIcon" src="/static/skIcon.png" mode=""></image>
+					<view class="serivce_bx">
+						<view class="se_item">
+							<view class="se_icon ">
+								<image class="startIcon" src="/static/startIcon.png" mode=""></image>
+							</view>
+							申请转账电子凭证
 						</view>
-						发起群收款
+						<view class="se_item">
+							<view class="se_icon ">
+								<image class="transferIcon" src="/static/transferIcon.png" mode=""></image>
+							</view>
+							查看往来转账
+						</view>
 					</view>
 				</view>
-				<view class="serivce_bx">
-					<view class="se_item">
-						<view class="se_icon ">
-							<image class="wticon" src="/static/wticon.png" mode=""></image>
-						</view>
-						对订单有疑惑
-					</view>
-					<view class="se_item">
-						<view class="se_icon ">
-							<image class="skIcon" src="/static/skIcon.png" mode=""></image>
-						</view>
-						发起群收款
-					</view>
-				</view>
+				
 			</view>
-			<view class="serivce">
-				<view class="se_title">
-					账单服务
-				</view>
-				<view class="serivce_bx">
-					<view class="se_item">
-						<view class="se_icon ">
-							<image class="cordIcon" src="/static/cordIcon.png" mode=""></image>
-						</view>
-						收款方名片
-					</view>
-					<view class="se_item">
-
-					</view>
-				</view>
-			</view>
+		 
 
 			<view class="footer">
 				本服务由财付通提供
@@ -142,6 +129,7 @@
 			return {
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				info: {
+					"url":"",
 					"time": "2025年6月3日 21:23:40",
 					"orderNumber": "1000050001202506030822269810799",
 					"otherTime": "2025年6月3日 21:42:26",
@@ -212,12 +200,13 @@
 		padding: 0 40rpx;
 		box-sizing: border-box;
 	}
-
-	.serivce_bx {
+	.serivce_line{
 		border-top: 1px solid #eaeaea;
+	}
+	.serivce_bx {
 		display: flex;
 		align-items: center;
-		padding: 35rpx 0;
+		margin: 35rpx 0;
 		box-sizing: border-box;
 	}
 
@@ -263,7 +252,27 @@
 		position: relative;
 		top: 6rpx;
 	}
-
+	.startIcon{
+		width: 32rpx;
+		height: 32rpx;
+		margin-right: 14rpx;
+		position: relative;
+		top: 6rpx;
+	}
+	.chatIcon{
+		width: 32rpx;
+		height: 32rpx;
+		margin-right: 14rpx;
+		position: relative;
+		top: 6rpx;
+	}
+	.transferIcon{
+		width: 32rpx;
+		height: 32rpx;
+		margin-right: 14rpx;
+		position: relative;
+		top: 6rpx;
+	}
 	.order_info {
 		margin-top: 40rpx;
 		padding-bottom: 60rpx;
