@@ -4,8 +4,6 @@
 			<uni-icons class="close" type="closeempty" color="#000" size="22"></uni-icons>
 		</view>
 		<view class="content">
-
-
 			<view class="order">
 				<view class="order_top">
 					<view class="avatar" @click="changeRole">
@@ -124,16 +122,22 @@
 				<uni-list-chat :avatar-circle="true" :title="itme.nickname" :avatar="itme.avatar"
 												:note="itme.description"></uni-list-chat>
 				</view> -->
-				<uni-swipe-action v-if="roleList.length>0">
-					<uni-swipe-action-item v-for="item in roleList" :right-options="options2"
-						:auto-close="false" @click="bindClick">
+				<view class="list_rl" >
+					<uni-swipe-action v-if="roleList.length>0">
+						<uni-swipe-action-item v-for="item in roleList" :right-options="options2"
+							:auto-close="false" @click="bindClick">
+							
+							<view class="content-box" @click="changeRl(item.avatar)">
+								<uni-list-chat :avatar-circle="true" :title="item.nickname" :avatar="item.avatar"
+									:note="item.description" :clickable="true" @click="changeRl(item.avatar)"></uni-list-chat>
+							</view>
+						</uni-swipe-action-item>
 						
-						<view class="content-box">
-							<uni-list-chat :avatar-circle="true" :title="item.nickname" :avatar="item.avatar"
-								:note="item.description"></uni-list-chat>
-						</view>
-					</uni-swipe-action-item>
-				</uni-swipe-action>
+					</uni-swipe-action>
+				</view>
+				<view class="">
+					<button class="btn" @click="openAddPopup">添加角色</button>
+				</view>
 			</view>
 		</uni-popup>
 		<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
@@ -146,7 +150,7 @@
 		data() {
 			return {
 				options2: [{
-						text: '取消',
+						text: '删除',
 						style: {
 							backgroundColor: '#F56C6C'
 						}
@@ -182,43 +186,83 @@
 			}
 			console.log(this.info.name);
 			// 读取本地角色
+			const list =  uni.getStorageSync('roleList')
+			if(list) this.roleList = list
 		},
 		methods: {
-			eadLocalFileToBase64(filePath) {
-			  return new Promise((resolve, reject) => {
-			    // 检查是否在5+环境中
-			    if (window.plus) {
-			      // 解析本地文件URL
-			      plus.io.resolveLocalFileSystemURL(filePath, function(entry) {
-			        // 获取文件对象
-			        entry.file(function(file) {
-			          // 创建文件读取器
-			          var reader = new plus.io.FileReader();
-			          
-			          // 读取成功回调
-			          reader.onloadend = function(e) {
-			            // 获取Base64编码结果
-			            var base64Data = e.target.result;
-			            resolve(base64Data);
-			          };
-			          
-			          // 读取失败回调
-			          reader.onerror = function(err) {
-			            reject(new Error('文件读取失败: ' + err.message));
-			          };
-			          
-			          // 以DataURL方式读取文件（自动转换为Base64）
-			          reader.readAsDataURL(file);
-			        }, function(err) {
-			          reject(new Error('获取文件对象失败: ' + err.message));
-			        });
-			      }, function(err) {
-			        reject(new Error('解析文件路径失败: ' + err.message));
-			      });
-			    } else {
-			      reject(new Error('当前环境不支持plus.io'));
-			    }
+			saveRoleList(){
+				uni.setStorage({
+					key: 'roleList',
+					data: this.roleList
+				})
+			},
+			saveTflist() {
+			  // 获取现有列表
+			  let list = uni.getStorageSync('tfList') || [];
+			  
+			  // 查找订单号匹配的元素
+			  const index = list.findIndex(item => {
+			    return item.info.orderNumber === this.info.orderNumber;
 			  });
+			  
+			  // 如果不存在，添加新元素
+			  if (index < 0) {
+			    list.push({
+			      type: 0,
+			      info: this.info
+			    });
+			  } 
+			  // 如果存在，更新原有元素的info部分
+			  else {
+			    list[index].info = this.info;
+			  }
+			  
+			  // 保存更新后的列表（修正参数传递方式）
+			  uni.setStorageSync('tfList', list);
+			},
+			changeRl(url){
+				// console.log(url);
+				this.info.url = url
+				this.saveTflist()
+			},
+			openAddPopup(){
+				this.$refs.cradPopup.open()
+			},
+			eadLocalFileToBase64(filePath) {
+			 return new Promise((resolve, reject) => {
+			     // 检查是否在5+环境中（修改此处）
+			     if (typeof plus !== 'undefined') {
+			       // 解析本地文件URL
+			       plus.io.resolveLocalFileSystemURL(filePath, function(entry) {
+			         // 获取文件对象
+			         entry.file(function(file) {
+			           // 创建文件读取器
+			           var reader = new plus.io.FileReader();
+			           
+			           // 读取成功回调
+			           reader.onloadend = function(e) {
+			             // 获取Base64编码结果
+			             var base64Data = e.target.result;
+			             resolve(base64Data);
+			           };
+			           
+			           // 读取失败回调
+			           reader.onerror = function(err) {
+			             reject(new Error('文件读取失败: ' + err.message));
+			           };
+			           
+			           // 以DataURL方式读取文件（自动转换为Base64）
+			           reader.readAsDataURL(file);
+			         }, function(err) {
+			           reject(new Error('获取文件对象失败: ' + err.message));
+			         });
+			       }, function(err) {
+			         reject(new Error('解析文件路径失败: ' + err.message));
+			       });
+			     } else {
+			       reject(new Error('当前环境不支持plus.io'));
+			     }
+			   });
 			},
 			bindClick(con) {
 				console.log(con.index);
@@ -240,16 +284,19 @@
 			 	const baseImg = await this.eadLocalFileToBase64(data.avatar)
 			   
 				this.roleList.push({...data,avatar:baseImg})
-				uni.setStorage({
-					key: 'roleList',
-					data: this.roleList
-				})
+				this.saveRoleList()
 				this.info.url = baseImg
+				this.saveTflist()
 			},
 			onOrderSubmit(data) {
+				console.log(data);
+				const baseImg = this.info.url 
 				this.info = {
+					...this.info,
 					...data
 				}
+				this.info.url = baseImg
+				this.saveTflist()
 			},
 			exitInfo() {
 				this.$refs.orderPopup.open()
@@ -262,7 +309,13 @@
 </script>
 
 <style scoped>
+	.list_rl{
+		flex: 1;
+		overflow: auto;
+	}
 	.roleList {
+		display: flex;
+		flex-direction: column;
 		width: 600rpx;
 		height: 800rpx;
 	}
@@ -393,7 +446,7 @@
 		display: flex;
 		align-items: center;
 		margin-top: 40rpx;
-		font-weight: 600;
+		font-weight: 500;
 		font-size: 56rpx;
 
 	}

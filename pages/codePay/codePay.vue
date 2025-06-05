@@ -40,6 +40,10 @@
 				<text>扫码付款</text>
 			</button>
 		</view>
+		<button type="primary" @click="goMsg" >
+			<!-- <text class="iconfont"></text> -->
+			修改记录
+		</button>
 		<!-- 加载状态 -->
 		<view class="loading" v-if="isLoading">
 			<text>识别中...</text>
@@ -68,6 +72,11 @@
 			};
 		},
 		methods: {
+			goMsg(){
+				uni.navigateTo({
+					url:'/pages/msgList/msgList'
+				})
+			},
 			extractInfoWithRegex(data) {
 				console.log(data);
 				const info = {
@@ -389,6 +398,7 @@
 
 <style scoped>
 	.footer_btn {
+		margin: 30rpx 0 ;
 		display: flex;
 		align-items: center;
 	}

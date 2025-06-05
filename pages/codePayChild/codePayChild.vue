@@ -2,11 +2,14 @@
 	<view class="container">
 		<view class="nav" @click="goBack" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<uni-icons class="close" type="closeempty" color="#000" size="22"></uni-icons>
+			
 		</view>
+		
 		<view class="content">
-
+			<!-- <view class="line_b" /> -->
 
 			<view class="order">
+				
 				<view class="order_top">
 					<view class="avatar">
 						<image src="/static/paySe.png"></image>
@@ -143,8 +146,33 @@
 			console.log(this.info.name);
 		},
 		methods: {
+			saveTflist() {
+			  // 获取现有列表
+			  let list = uni.getStorageSync('tfList') || [];
+			  
+			  // 查找订单号匹配的元素
+			  const index = list.findIndex(item => {
+			    return item.info.orderNumber === this.info.orderNumber;
+			  });
+			  
+			  // 如果不存在，添加新元素
+			  if (index < 0) {
+			    list.push({
+			      type: 1,
+			      info: this.info
+			    });
+			  } 
+			  // 如果存在，更新原有元素的info部分
+			  else {
+			    list[index].info = this.info;
+			  }
+			  
+			  // 保存更新后的列表（修正参数传递方式）
+			  uni.setStorageSync('tfList', list);
+			},
 			onOrderSubmit(data){
 				this.info = {...data}
+				this.saveTflist()
 			},
 			exitInfo(){
 				this.$refs.orderPopup.open()
@@ -254,7 +282,7 @@
 		display: flex;
 		align-items: center;
 		margin-top: 40rpx;
-		font-weight: 600;
+		font-weight: 500;
 		font-size: 56rpx;
 
 	}
@@ -280,12 +308,18 @@
 		display: flex;
 		flex-direction: column;
 	}
-
+	.line_b{
+		width: 100%;
+		height: 1px;
+		background-color: #fafafa;
+		transform: scaleY(0.01);
+	}
 	.line {
 		margin-top: 92rpx;
 		width: 100%;
 		height: 1px;
-		background-color: #eaeaea;
+		background-color: #efefef;
+		transform: scaleY(0.6);
 	}
 
 	.avatar {
@@ -318,6 +352,7 @@
 	.close {
 		/* background-color: aqua; */
 		/* padding-top: 160px; */
+		
 		padding-left: 20rpx;
 		position: relative;
 		top: 30rpx;
@@ -325,7 +360,11 @@
 	}
 
 	.nav {
+		height: 86rpx;
+		/* background-color: #5c6e96; */
 		background-color: #fff;
+		/* overflow: hidden; */
+		
 	}
 
 	.container {
@@ -339,6 +378,7 @@
 		flex: 1;
 		display: flex;
 		flex-direction: column;
+		
 		/* position: relative; */
 	}
 </style>
