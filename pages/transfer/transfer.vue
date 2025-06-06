@@ -10,7 +10,7 @@
 						<image :src="info.url||'/static/paySe.png'"></image>
 					</view>
 					<view class="name">
-						扫二维码付款-{{info.transferName}}
+						转账-{{info.transferName}}
 					</view>
 					<view class="num" @click="exitInfo">
 						<view class="sub" />
@@ -323,7 +323,9 @@
 	.gthIcon {
 		width: 30rpx;
 		height: 30rpx;
-		margin-left: 20rpx;
+		margin-left: 16rpx;
+		position: relative;
+		top:-4rpx ;
 	}
 
 	.rightIcon {
@@ -491,7 +493,7 @@
 	.avatar image {
 		width: 100%;
 		height: 100%;
-		object-fit: cover;
+		object-fit:cover;
 	}
 
 	.order_top {
