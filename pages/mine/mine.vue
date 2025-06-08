@@ -33,7 +33,7 @@
 			</view>
 			<view class="row">
 				<text class="label">管理员（微信同号）：</text>
-				<text class="value">17363607357</text>
+				<text class="value">18216263971</text>
 			</view>
 			<view class="row tixian">
 				<view class="">

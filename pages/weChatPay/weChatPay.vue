@@ -8,11 +8,11 @@
 			</view>
 			<view class="title">微信支付</view>
 			<view class="right" @click="toggleMenu">
-				<view style="padding: 2rpx;">
+				<view style="padding: 2rpx;overflow: hidden;box-sizing: border-box;">
 					<image class="nav-icon_more" src="/static/search.png"></image>
 				</view>
 				<!-- <uni-icons type="left" size="25"></uni-icons> -->
-				<uni-icons type="gear" size="27"></uni-icons>
+				<uni-icons type="gear" size="24"></uni-icons>
 			</view>
 		</view>
 
@@ -424,10 +424,13 @@
 	}
 
 	.nav-icon_more {
-		width: 42rpx;
-		height: 42rpx;
+		width: 44rpx;
+		height: 44rpx;
 		margin-right: 30rpx;
 		/* margin-top: 4rpx; */
+		position: relative;
+		top: 4rpx;
+		left: 4rpx;
 	}
 	.nav-icon_cicle{
 		width: 70rpx;

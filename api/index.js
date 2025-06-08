@@ -10,6 +10,10 @@ export const withdraw = (data) => request({ url: '/user/withdraw', method: 'POST
 export const getWithdrawRecords = (userId) => request({ url: '/user/info/'+userId, method: 'GET' })
 export const getPayMember = (userId,price) => request({ url: '/user/pay/member?userId='+userId+"&priceOne="+price, method: 'GET' })
 export const logout = (userId) => request({ url: '/user/logout/'+userId, method: 'POST' })
- 
 export const activateMember = (userId,time) => request({ url: '/user/activate-member/'+userId+"/"+time, method: 'POST' })
+
+
+
+
+
 

@@ -120,6 +120,24 @@
         	{
         		"navigationBarTitleText" : "修改记录"
         	}
+        },
+        {
+        	"path" : "pages/wxChatList/wxChatList",
+        	"style" : 
+        	{
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false,
+        		"navigationBarTitleText" : "微信聊天列表"
+        	}
+        },
+        {
+        	"path" : "pages/wxQueryMsg/wxQueryMsg",
+        	"style" : 
+        	{
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false,
+        		"navigationBarTitleText" : ""
+        	}
         }
     ],
 	"tabBar": {

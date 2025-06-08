@@ -26,19 +26,19 @@
 						</view>
 						{{item.content}}
 					</view>
-					<view class="orderBox" v-else-if="item.contentType == 'order'">
+					<!-- <view class="orderBox" v-else-if="item.contentType == 'order'">
 						<view class="msg right">
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<ExternalPayCard :orderInfo="item.content" @longpress="showPopupMenu($event, i)" />
 						</view>
-					</view>
+					</view> -->
 					<!-- 名片 -->
 					<view v-else-if="item.contentType == 'crad'" class="cell">
 						<view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
 						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
-							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<WxWxCard class="cardLeft"  :nickname="item.content.nickname" :avatar="item.content.avatar"
 								></WxWxCard>
 						</view>
@@ -54,7 +54,7 @@
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
 						<view class="msg left"  @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
-							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<image :src="item.content.avatar" class="phote leftp"
 								 />
 						</view>
@@ -70,7 +70,7 @@
 						<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 					</view>
 						<view class="msg left"  @longpress="showPopupMenu($event, i)"  @click="resTransfer(i)" v-if="item.location == 0">
-							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<WxTransferCard  :class="!item.content.st?'tfCardLeft':'tfCardLeftBg'" :state="item.content.st" :name="item.content.tip" :amount="item.content.amount"
 								></WxTransferCard>
 						</view>
@@ -86,7 +86,7 @@
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
 						<view class="msg left"  @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
-							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<WxTf class="tfCardLeftBg" :name="item.content.tip" :amount="item.content.amount"
 								></WxTf>
 						</view>
@@ -102,7 +102,7 @@
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
 						<view class="msg left"  @longpress="showPopupMenu($event, i)"  v-if="item.location == 0"  >
-							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 								<WxRedBag  :class="item.content?'tfCardLeft':'tfCardLeftBg'"  :state="item.content"></WxRedBag>
 							
 						</view>
@@ -119,7 +119,7 @@
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
 						<view class="msg left " @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
-							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<view class="bubble" style="padding-top: 10rpx;display: flex;align-items: center;padding-bottom: 10rpx;">
 								<view class="yuyinBox" :style="{ width: (114 + Math.floor((item.content.time - 1) / 2) * 10) + 'rpx' }">
 									<image style="margin-right: 16rpx;" class="yuyinIcon" src="/static/images/wechat-voice-icon1.png"></image>
@@ -144,7 +144,7 @@
 						</view>
 						<!-- 聊天内容 -->
 						<view class="msg left " @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
-							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<view class="bubble">
 								<view v-if="item.contentType == 'chat'">
 									{{item.content}}
@@ -232,6 +232,7 @@
 			if (options.guestInfo) {
 				try {
 					this.guestInfo = JSON.parse(decodeURIComponent(options.guestInfo));
+					console.log("guestInfo:",options.guestInfo);
 				} catch (e) {
 					console.error('guestInfo 参数解析失败', e);
 				}
