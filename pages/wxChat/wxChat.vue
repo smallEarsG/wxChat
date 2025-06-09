@@ -218,10 +218,12 @@
 	import EditableFormPopup from '../../components/EditableFormPopup/EditableFormPopup.vue';
 	import WxTransferCard from '../../components/WxTransferCard/WxTransferCard.vue';
 	import {
-		getUserInfo,
-		login
+		getUserInfo
 	} from '@/api/index.js';
-
+		import {
+			uploadImage,
+			updateConversation
+		} from '@/api/conversations.js'
 	export default {
 		components: {
 			ExternalPayCard,
@@ -233,6 +235,7 @@
 				try {
 					this.guestInfo = JSON.parse(decodeURIComponent(options.guestInfo));
 					console.log("guestInfo:",options.guestInfo);
+					// 更新
 				} catch (e) {
 					console.error('guestInfo 参数解析失败', e);
 				}
