@@ -270,7 +270,9 @@
 	.gthIcon {
 		width: 30rpx;
 		height: 30rpx;
-		margin-left: 20rpx;
+		margin-left: 16rpx;
+		position: relative;
+		top:-4rpx ;
 	}
 
 	.rightIcon {
@@ -438,7 +440,7 @@
 	.avatar image {
 		width: 100%;
 		height: 100%;
-		object-fit: cover;
+		object-fit:cover;
 	}
 
 	.order_top {
