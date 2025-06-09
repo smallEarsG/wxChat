@@ -94,6 +94,9 @@
 					avatar: '',
 					name: '',
 					createdAt: '8:16',
+					type:'chat',
+					chatIndex:0,
+					description:''
 				},
 				userId: uni.getStorageSync('userId'),
 				options: [{
@@ -143,7 +146,7 @@
 			},
 			async getMessageList() {
 
-				const res = await getConversationsByUser(this.userId)
+				const res = await getConversationsByUser(this.userId,'chat')
 				this.msgList = res.data
 			},
 			goQuery() {
@@ -163,6 +166,9 @@
 					avatarUrl: '',
 					name: '',
 					createdAt: '8:15',
+					type:'chat',
+					chatIndex:0,
+					description:'@微信'
 				})
 			},
 			hasHttp(str) {

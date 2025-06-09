@@ -8,16 +8,16 @@ export const createConversation = (data) =>
  * @param {string} userId - 用户ID
  * @returns {Promise}
  */
-export const getConversationsByUser = (userId) => 
-  request({ url: `/conversations/user/${userId}`, method: 'GET' })
+export const getConversationsByUser = (userId,type) => 
+  request({ url: `/conversations/user/${userId}?type=${type}`, method: 'GET' })
 
 /**
  * 根据名称模糊搜索对话
  * @param {string} name - 对话名称关键词
  * @returns {Promise}
  */
-export const searchConversationsByName = ( name) => 
-  request({ url: `/conversations/search?name=`+name, method: 'GET'})
+export const searchConversationsByName = ( userId,name,type) => 
+  request({ url: `/conversations/search?name=${name}&userId=${userId}&type=${type}`, method: 'GET'})
 
 /**
  * 根据ID删除对话

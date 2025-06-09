@@ -140,9 +140,9 @@
             "https" : false,
             "proxy" : {
                 "/pawlapi" : {
-					"target" : "http://106.15.137.235:8080/api",
+					// "target" : "http://106.15.137.235:8080/api",
                     // "target" : "http://localhost:8081/api",
-					// "target" : "http://localhost:8081/api",
+					"target" : "http://localhost:8081/api",
                     "changeOrigin" : true,
                     "pathRewrite" : {
                         "^/pawlapi" : ""

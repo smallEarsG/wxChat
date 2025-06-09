@@ -41,8 +41,8 @@
 					this.msgList = []
 					return
 				}
-				
-				const res = await searchConversationsByName(v)
+				const userId = uni.getStorageSync('userId')
+				const res = await searchConversationsByName(userId,v,'chat')
 				this.msgList = res.data
 			},
 			cancel(){
@@ -51,7 +51,7 @@
 			goChat(item) {
 				console.log(item);
 				uni.navigateTo({
-					url: '/pages/wxChat/wxChat?guestInfo=' + encodeURIComponent(JSON.stringify(item))
+					url: '/pages/chat/chat?guestInfo=' + encodeURIComponent(JSON.stringify(item))
 				});
 			},
 			

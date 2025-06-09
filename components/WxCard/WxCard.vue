@@ -37,14 +37,14 @@ export default {
   display: flex;
   border-radius: 16rpx;
   box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.05);
-  width: 500rpx;
+  width: 480rpx;
   box-sizing: border-box;
   position: relative;
   justify-content:space-between;
   margin-left: 14rpx;
   
 }
-.wx-card::after {
+/* .wx-card::after {
 		content: "";
 		position: absolute;
 		top: 28rpx;
@@ -54,7 +54,7 @@ export default {
 		border-top: 6px solid transparent;
 		border-bottom: 6px solid transparent;
 		border-right: 6px solid #fff;
-	}
+	} */
 .header {
   display: flex;
   justify-content: space-between;

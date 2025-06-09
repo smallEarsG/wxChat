@@ -18,9 +18,18 @@
 				<view class="form-item">
 					<text class="label">时间</text>
 					<input v-model="info.createdAt" class="input" placeholder="请输入时间" />
-					<!-- <textarea v-model="description" class="textarea" placeholder="请输入简介"></textarea> -->
+					
 				</view>
-
+				<view class="form-item">
+					<text class="label">未读消息条数</text>
+					<input v-model="info.chatIndex" class="input"  type="number" placeholder="请输入时间" />
+					
+				</view>
+				<view class="form-item">
+					<text class="label">备注</text>
+					<input v-model="info.description" class="input" placeholder="请输入时间" />
+					
+				</view>
 				<button class="btn" @click="submit">提交</button>
 			</view>
 		</uni-popup>
