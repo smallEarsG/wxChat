@@ -138,6 +138,26 @@
 				"enablePullDownRefresh": false,
         		"navigationBarTitleText" : ""
         	}
+        },
+        {
+        	"path" : "pages/chatList/chatList",
+        	"style" : 
+        	{
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false,
+        		"navigationBarTitleText" : "",
+				"statusBarStyle":"light"
+				
+        	}
+        },
+        {
+        	"path" : "pages/queryMsg/queryMsg",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : "",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+        	}
         }
     ],
 	"tabBar": {

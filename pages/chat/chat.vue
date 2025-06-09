@@ -9,9 +9,10 @@
 			<view class="title">
 				<view class="nikeName">
 					<!-- {{guestInfo}} -->
-					{{guestInfo.nickname || "企业微信工坊"}}
+					{{guestInfo.name || "企业微信工坊"}}
 				</view>
-				<view class="desc">{{guestInfo.description}}</view>
+				<!-- <view class="desc">{{guestInfo.description}}</view> -->
+				<view class="desc">@微信</view>
 			</view>
 			<view class="icons">
 				<image class="nav-icon_phone" src="/static/icon-phone.png"></image>
@@ -49,7 +50,7 @@
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
 						<view class="msg left"  @longpress="showPopupMenu($event, i)" >
-						<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+						<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<TransferCard :name="item.content.name"  :amount="item.content.amount"></TransferCard>
 						</view>
 					</view>
@@ -61,7 +62,7 @@
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
 						<view class="msg left" v-if="item.location == 0"  @longpress="showPopupMenu($event, i)">
-							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<image  :src="item.content.avatar"class="phote leftp"  />
 						</view>
 						
@@ -76,7 +77,7 @@
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
 						<view class="msg left"   @longpress="showPopupMenu($event, i)">
-							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<WxCard :nickname="item.content.nickname" :avatar="item.content.avatar"></WxCard>
 						</view>
 					</view>
@@ -88,7 +89,7 @@
 						</view>
 						<!-- 聊天内容 -->
 						<view class="msg left"  @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
-							<image class="avatar" :src="guestInfo.avatar || '/static/avatar-other.png'" />
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<view class="bubble">
 								<view >
 									{{item.content}}
@@ -170,7 +171,11 @@
 	import TransferCardVue from '../../components/TransferCard/TransferCard.vue';
 	import UploadImage from '../../components/UploadImage/UploadImage.vue';
 	import WxCard from '../../components/WxCard/WxCard.vue';
-	import { getUserInfo, login } from '@/api/index.js'
+	import { getUserInfo } from '@/api/index.js'
+	import {
+				uploadImage,
+				updateConversation
+			} from '@/api/conversations.js'
 	export default {
 		components: {
 			ExternalPayCard,
@@ -185,8 +190,10 @@
 				try {
 					this.guestInfo = JSON.parse(decodeURIComponent(options.guestInfo));
 					console.log(this.guestInfo);
+					this.massageList = JSON.parse(this.guestInfo.content)
 				} catch (e) {
 					console.error('guestInfo 参数解析失败', e);
+					this.massageList = []
 				}
 			}
 			// 获取账号信息
@@ -360,6 +367,10 @@
 			}
 		},
 		methods: {
+			updateMsg(){
+				this.guestInfo.content = JSON.stringify(this.massageList)
+				updateConversation(this.guestInfo.conversationId,this.guestInfo)
+			},
 			deleteMessage_1(index) {
 				console.log(index);
 				this.massageList.splice(index, 1);
@@ -395,18 +406,22 @@
 				}
 				console.log(data)
 				this.massageList.push(transferInfo)
+				this.updateMsg()
 			},
-			onPhotoSubmit(data){
-				console.log(data);
-				const location = this.isMe ? 1 : 0
-				const transferInfo = {
+			async onPhotoSubmit(data){
+				console.log(data.avatar);
+				const res = await uploadImage(data.avatar)
+				
+				const location = this.isMe ? 1 : 0;
+				const photoInfo = {
 					type: "content", // tips, content
 					contentType: "photo", //order , chat ,link
 					location, // 1 表示我方
-					content: data
-				}
-				console.log(transferInfo);
-				this.massageList.push(transferInfo)
+					content: {avatar:res.data}
+				};
+				console.log(photoInfo);
+				this.massageList.push(photoInfo);
+				this.updateMsg()
 			},
 			onTransferSubmit(data){
 				const location = this.isMe ? 1 : 0
@@ -418,16 +433,24 @@
 				}
 		
 				this.massageList.push(transferInfo)
+				this.updateMsg()
 			},
-			onCradSubmit(data){
-				const location = this.isMe ? 1 : 0
-				const cradInfo = {
-					type: "content", // tips, content
-					contentType: "Crad", //order , chat ,link
-					location, // 1 表示我方
-					content: data
-				}
-				this.massageList.push(cradInfo)
+		 	async onCradSubmit(data){
+			console.log(data);
+			const res = await uploadImage(data.avatar)
+			const temp = data
+			temp.avatar = res.data
+			const location = this.isMe ? 1 : 0;
+			const transferInfo = {
+				type: "content", // tips, content
+				contentType: "crad", //order , chat ,link
+				location, // 1 表示我方
+				content: temp
+			};
+			
+			// console.log(data);
+			this.massageList.push(transferInfo);
+			this.updateMsg()
 			},
 			onOrderSubmit(data) {
 				
@@ -441,6 +464,7 @@
 				}
 			
 				this.massageList.push(orderInfo)
+				this.updateMsg()
 			},
 			onTimeSubmit(data) {
 				const location = this.isMe ? 1 : 0
@@ -453,6 +477,7 @@
 				}
 				console.log(this.massageList);
 				this.massageList.push(timeInfo)
+				this.updateMsg()
 			},
 			goBack() {
 				uni.navigateBack();
@@ -508,6 +533,7 @@
 					})
 					// 清空输入框
 					this.inputValue = '';
+					this.updateMsg()
 				}
 			}
 		}
@@ -586,7 +612,7 @@
 	/* 顶部栏 */
 	.nav-bar {
 		/* padding-top: var(--status-bar-height); */
-		height: 80rpx;
+		height: 100rpx;
 		background-color: #4475C9;
 		color: white;
 		display: flex;

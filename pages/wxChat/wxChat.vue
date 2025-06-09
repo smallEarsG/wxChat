@@ -7,7 +7,7 @@
 			<view class="left" @click="goBack">
 				<uni-icons type="left" size="25"></uni-icons>
 			</view>
-			<view class="title">{{guestInfo.nickname || "微信工坊"}}</view>
+			<view class="title">{{guestInfo.name || "微信工坊"}}</view>
 			<view class="right">
 				<uni-icons type="more-filled" size="20"></uni-icons>
 			</view>
@@ -221,7 +221,10 @@
 		getUserInfo,
 		login
 	} from '@/api/index.js';
-
+	import {
+				uploadImage,
+				updateConversation
+			} from '@/api/conversations.js'
 	export default {
 		components: {
 			ExternalPayCard,
@@ -233,8 +236,14 @@
 				try {
 					this.guestInfo = JSON.parse(decodeURIComponent(options.guestInfo));
 					console.log("guestInfo:",options.guestInfo);
+					
+					// if(this.guestInfo.content==''||this.guestInfo.content==null){
+						console.log(this.guestInfo.content);
+						this.massageList = JSON.parse(this.guestInfo.content)
+					// }else
 				} catch (e) {
 					console.error('guestInfo 参数解析失败', e);
+					this.massageList = []
 				}
 			}
 			// 获取账号信息
@@ -424,10 +433,14 @@
 			});
 		},
 		methods: {
+			updateMsg(){
+				this.guestInfo.content = JSON.stringify(this.massageList)
+				updateConversation(this.guestInfo.conversationId,this.guestInfo)
+			},
 			getRB(i){
-				console.log(this.massageList[i]);
+			
 				this.massageList[i].content = !this.massageList[i].content
-				console.log(this.massageList[i]);
+				this.updateMsg()
 			},
 			resTransfer(i) {
 				if(this.massageList[i].content.st)return;
@@ -437,6 +450,7 @@
 				temp.location = this.isMe ? 0 : 1;
 				this.massageList.push(temp)
 				// 删掉 i 位置的数据 在 i这里插入两条
+				this.updateMsg()
 			},
 			addYuyin(){
 				this.$refs.yuyinPopup.open();
@@ -457,6 +471,7 @@
 				console.log(index);
 				this.massageList.splice(index, 1);
 				this.activeMsgIndex = -1; // 清除激活状态
+				this.updateMsg()
 			},
 			onYuyinSubmit(data){
 				const location = this.isMe ? 1 : 0;
@@ -470,30 +485,39 @@
 				};
 				console.log(data);
 				this.massageList.push(transferInfo);
+				this.updateMsg()
 			},
-			onCradSubmitz(data) {
-
+			async onCradSubmitz(data) {
+				console.log(data);
+				const res = await uploadImage(data.avatar)
+				const temp = data
+				temp.avatar = res.data
 				const location = this.isMe ? 1 : 0;
 				const transferInfo = {
 					type: "content", // tips, content
 					contentType: "crad", //order , chat ,link
 					location, // 1 表示我方
-					content: data
+					content: temp
 				};
-				console.log(data);
+				
+				// console.log(data);
 				this.massageList.push(transferInfo);
+				this.updateMsg()
 			},
-			onPhotoSubmit(data) {
-				console.log(data);
+			async onPhotoSubmit(data) {
+				console.log(data.avatar);
+				const res = await uploadImage(data.avatar)
+				
 				const location = this.isMe ? 1 : 0;
 				const photoInfo = {
 					type: "content", // tips, content
 					contentType: "photo", //order , chat ,link
 					location, // 1 表示我方
-					content: data
+					content: {avatar:res.data}
 				};
 				console.log(photoInfo);
 				this.massageList.push(photoInfo);
+				this.updateMsg()
 			},
 			onTransferSubmit(data) {
 				const location = this.isMe ? 1 : 0;
@@ -507,6 +531,7 @@
 					}
 				};
 				this.massageList.push(transferInfo);
+				this.updateMsg()
 			},
 			async getUserInfo(userId) {
 				console.log("执行用户信息获取", userId);
@@ -524,6 +549,7 @@
 					content: data
 				};
 				this.massageList.push(orderInfo);
+				this.updateMsg()
 			},
 			onTimeSubmit(data) {
 				const location = this.isMe ? 1 : 0;
@@ -536,6 +562,7 @@
 				};
 				console.log(this.massageList);
 				this.massageList.push(timeInfo);
+				this.updateMsg()
 			},
 			goBack() {
 				uni.navigateBack();
@@ -558,6 +585,7 @@
 					content: true
 				};
 				this.massageList.push(orderInfo);
+				this.updateMsg()
 			},
 			onSelect(type) {
 				// 处理选择事件
@@ -604,6 +632,7 @@
 					});
 					// 清空输入框
 					this.inputValue = '';
+					this.updateMsg()
 				}
 			}
 		}

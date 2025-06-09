@@ -137,7 +137,10 @@
 						return
 					}
 				}
-				this.$refs.filePopup.open()
+				// this.$refs.filePopup.open()
+			uni.navigateTo({
+				url:'/pages/chatList/chatList'
+			})
 
 			},
 			goToWxChat(){
