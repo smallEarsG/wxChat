@@ -1,8 +1,8 @@
 <template>
 	<view>
 		<uni-swipe-action >
-			<uni-swipe-action-item v-for="item in list" :right-options="options2"
-				:auto-close="false" @click="bindClick">
+			<uni-swipe-action-item v-for="(item,index) in list" :right-options="options"
+				:auto-close="false" @click="bindClick(index)">
 				
 				<view class="content-box" >
 					<uni-list-chat :avatar-circle="true" :title="item.info.transferName ||item.info.name " :avatar="item.info.url||'/static/paySe.png'"
@@ -18,6 +18,14 @@
 	export default {
 		data() {
 			return {
+				options: [{
+						text: '删除',
+						style: {
+							backgroundColor: '#F56C6C'
+						}
+					}
+				
+				],
 				list:[
 					{
 					    "type": 0,
@@ -49,6 +57,10 @@
 		  console.log(this.list);
 		},
 		methods: {
+			bindClick(index){
+				this.list.splice(index,1)
+				 uni.setStorageSync('tfList', this.list);
+			},
 			isTransfer(index){
 				return index === 0? '转账' :'扫码'
 			},

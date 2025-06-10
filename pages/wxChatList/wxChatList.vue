@@ -20,11 +20,8 @@
 				<uni-swipe-action>
 					<uni-swipe-action-item v-for="item in msgList" :right-options="options" :auto-close="false"
 						@click="bindClick(item,$event)">
-
-						<view class="content-box">
-							<uni-list-chat :title="item.name" :avatar="item.avatarUrl" :note="'[图片]'"
-								:time="item.createdAt" @click="goChat(item)" :clickable="true"></uni-list-chat>
-						</view>
+							<msgLine :item="item" @click="goChat(item)"></msgLine>
+					
 					</uni-swipe-action-item>
 				</uni-swipe-action>
 			</view>
@@ -102,7 +99,7 @@
 			},
 			async getMessageList() {
 
-				const res = await getConversationsByUser(this.userId)
+				const res = await getConversationsByUser(this.userId,'wxchat')
 				this.msgList = res.data
 			},
 			goQuery() {
@@ -122,6 +119,9 @@
 					avatarUrl: '',
 					name: '',
 					createdAt: '8:15',
+					type:'wxchat',
+					chatIndex:0,
+					description:''
 				})
 			},
 			hasHttp(str) {
@@ -134,12 +134,13 @@
 				return regex.test(str);
 			},
 			async onSubmitWx(data) {
+				const conversationId = data.conversationId ? data.conversationId : getUUid()
 				let imgUrl
 				if (this.hasHttp(data.avatarUrl)) {
 					imgUrl = data.avatarUrl
 				} else {
 					console.log(11);
-					const res = await uploadImage(data.avatarUrl)
+					const res = await uploadImage(data.avatarUrl,conversationId)
 					if (res.code !== 200) {
 						uni.showToast({
 							title: '图片上传失败',
@@ -151,11 +152,11 @@
 				}
 
 				const temp = {
-					conversationId: data.conversationId ? data.conversationId : getUUid(),
+					conversationId:conversationId ,
 					userId: this.userId,
 					name: data.name,
 					avatarUrl: imgUrl,
-					content: '',
+					content: data.content,
 					createdAt: data.createdAt
 				}
 				

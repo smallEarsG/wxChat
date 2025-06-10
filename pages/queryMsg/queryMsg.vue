@@ -62,7 +62,7 @@
 <style>
 	.content{
 		overflow: auto;
-		background-color: antiquewhite;
+		/* background-color: antiquewhite; */
 		flex: 1;
 	}
 	.container{

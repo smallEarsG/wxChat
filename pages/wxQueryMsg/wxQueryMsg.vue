@@ -41,8 +41,8 @@
 					this.msgList = []
 					return
 				}
-				
-				const res = await searchConversationsByName(v)
+				const userId = uni.getStorageSync('userId')
+				const res = await searchConversationsByName(userId,v,'wxchat')
 				this.msgList = res.data
 			},
 			cancel(){
@@ -62,7 +62,7 @@
 <style>
 	.content{
 		overflow: auto;
-		background-color: antiquewhite;
+		/* background-color: antiquewhite; */
 		flex: 1;
 	}
 	.container{

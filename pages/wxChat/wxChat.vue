@@ -240,7 +240,9 @@
 
 						console.log(this.guestInfo.content);
 						this.massageList = JSON.parse(this.guestInfo.content)
-
+						if(this.massageList == null){
+							this.massageList = []
+						}
 				} catch (e) {
 					console.error('guestInfo 参数解析失败', e);
 					this.massageList = []

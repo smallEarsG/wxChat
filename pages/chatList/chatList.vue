@@ -19,13 +19,13 @@
 		<view class="content">
 			<view class="contentMenu">
 				<view class="menu_item">
-					<image  class="msgIcon" src="/static/msgIcon.png" mode=""></image>
+					<image class="msgIcon" src="/static/msgIcon.png" mode=""></image>
 					<text class="txt">全部</text>
-					<image  class="downIcon" src="/static/downIcon.png" mode=""></image>
+					<image class="downIcon" src="/static/downIcon.png" mode=""></image>
 				</view>
 				<view class="yline" />
 				<view class="menu_item">
-					<image  class="todayIcon" src="/static/todayIcon.png" mode=""></image>
+					<image class="todayIcon" src="/static/todayIcon.png" mode=""></image>
 					<text class="txt">日程</text>
 				</view>
 				<view class="yline" />
@@ -33,7 +33,7 @@
 					<image class="huiyiIcon" src="/static/huiyiIcon.png" mode=""></image>
 					<text class="txt">会议</text>
 				</view>
-				
+
 			</view>
 			<view style="margin: 0 20rpx;">
 				<view class="xline" />
@@ -44,42 +44,44 @@
 						@click="bindClick(item,$event)">
 
 						<view class="content-box" @click="goChat(item)">
-							
+
 							<view class="msg_img">
-								<view class="msgIndex" v-if="item.chatIndex+0>0" :class="item.chatIndex+0>100?'more_red':''">
-									{{(item.chatIndex+0)>100?'99+':item.chatIndex}}
+
+								<view class="msgIndex" v-if="item.chatIndex>0"
+									:class="item.chatIndex>100?'more_red':''">
+									{{(item.chatIndex)>100?'99+':item.chatIndex}}
 								</view>
-								<image class="msg_avater" :src="item.avatarUrl" ></image>
+								<image class="msg_avater" :src="item.avatarUrl"></image>
 							</view>
 							<view class="msg_info">
 								<view class="msg_box">
 									<view class="msg_top">
-										<view class="msg_title">{{item.name}} <text class="title_desc">{{item.description}}</text></view>
+										<view class="msg_title">{{item.name}} <text
+												class="title_desc">{{item.description}}</text></view>
 										<view class="msg_time">{{item.createdAt}}</view>
 									</view>
 									<view class="msg_desc">
 										{{msgDeal(item.content)}}
 									</view>
 								</view>
-								<view class="xline"  style="position: absolute;bottom: 0;"/>
+								<view class="xline" style="position: absolute;bottom: 0;" />
 
 							</view>
-							<!-- <uni-list-chat :title="item.name" :avatar="item.avatarUrl" :note="'[图片]'"
-								:time="item.createdAt" @click="goChat(item)" :clickable="true"></uni-list-chat> -->
+							
 						</view>
 					</uni-swipe-action-item>
 				</uni-swipe-action>
 			</view>
-		    <view class="footer_btn">
-		    	<view class="foot_item">
+			<view class="footer_btn">
+				<view class="foot_item">
 					<view class="totalIndex" v-if="totalChatIndex>0" :class="totalChatIndex>99 ? 'more_red':''">
-							{{totalChatIndex>99?'99+':totalChatIndex}}
+						{{totalChatIndex>99?'99+':totalChatIndex}}
 					</view>
-		    		<image class="qwMsgIcon" src="/static/qiw/qwMsgIcon_b.png"></image>
+					<image class="qwMsgIcon" src="/static/qiw/qwMsgIcon_b.png"></image>
 					<view class="btn_txt">
 						消息
 					</view>
-				</view>	
+				</view>
 				<view class="foot_item">
 					<image class="qw_email" src="/static/qiw/qw_email.png"></image>
 					<view class="btn_txt">
@@ -103,8 +105,8 @@
 					<view class="btn_txt">
 						通讯录
 					</view>
-		    	</view>
-		    </view>
+				</view>
+			</view>
 		</view>
 		<ProMsgEditPopup ref="wxChatPopup" :msgInfo="msgInfo" @submit="onSubmitWx"></ProMsgEditPopup>
 	</view>
@@ -130,9 +132,9 @@
 					avatar: '',
 					name: '',
 					createdAt: '8:16',
-					type:'chat',
-					chatIndex:0,
-					description:''
+					type: 'chat',
+					chatIndex: 0,
+					description: ''
 				},
 				userId: uni.getStorageSync('userId'),
 				options: [{
@@ -155,54 +157,57 @@
 		onShow() {
 			this.getMessageList()
 		},
-		 computed: {
-		    totalChatIndex() {
-		      return this.msgList.reduce((sum, item) => {
-		        const chatIndex = Number(item.chatIndex || 0);
-		        return sum + chatIndex;
-		      }, 0);
+		computed: {
+			totalChatIndex() {
+				return this.msgList.reduce((sum, item) => {
+					const chatIndex = Number(item.chatIndex || 0);
+					return sum + chatIndex;
+				}, 0);
 			}
 		},
 		methods: {
-			msgDeal(content){
+			msgDeal(content) {
 				let showText = '';
 				try {
-				  // 解析JSON内容
-				  const msgAry = JSON.parse(content);
-				  console.log(msgAry);
-				  
-				  // 从后向前遍历消息数组
-				  for (let i = msgAry.length - 1; i >= 0; i--) {
-				    const el = msgAry[i];
-				    
-				    // 根据内容类型设置显示文本
-				    switch (el.contentType) {
-				      case 'chat':
-				        showText = el.content;
-				        break;
-				      case 'order':
-				        showText = '[订单]';
-				        break;
-				      case 'crad': // 修正拼写错误
-				        showText = '[名片]';
-				        break;
-				      case 'transfer':
-				        showText = '[转账]';
-				        break;
-				      case 'photo':
-				        showText = '[图片]';
-				        break;
-				      default:
-				        // showText = `[未知类型:${el.contentType}]`;
-						console.log("图片");
-				    }
-				    
-				    // 只要找到任何一种有效类型就跳出循环
-				    if (showText) break;
-				  }
+					// 解析JSON内容
+					const msgAry = JSON.parse(content);
+					console.log(msgAry);
+
+					// 从后向前遍历消息数组
+					for (let i = msgAry.length - 1; i >= 0; i--) {
+						const el = msgAry[i];
+
+						// 根据内容类型设置显示文本
+						switch (el.contentType) {
+							case 'chat':
+							 if( el.type !== 'tips'){
+								 showText = el.content;
+								}
+								
+								break;
+							case 'order':
+								showText = '[订单]';
+								break;
+							case 'crad': // 修正拼写错误
+								showText = '[名片]';
+								break;
+							case 'transfer':
+								showText = '[转账]';
+								break;
+							case 'photo':
+								showText = '[图片]';
+								break;
+							default:
+								// showText = `[未知类型:${el.contentType}]`;
+								console.log("图片");
+						}
+
+						// 只要找到任何一种有效类型就跳出循环
+						if (showText) break;
+					}
 				} catch (error) {
-				  console.error('JSON解析错误:', error);
-				  showText = '';
+					console.error('JSON解析错误:', error);
+					showText = '';
 				}
 				return showText;
 			},
@@ -231,7 +236,7 @@
 			},
 			async getMessageList() {
 
-				const res = await getConversationsByUser(this.userId,'chat')
+				const res = await getConversationsByUser(this.userId, 'chat')
 				this.msgList = res.data
 			},
 			goQuery() {
@@ -246,14 +251,14 @@
 				});
 			},
 			addMsgbox() {
-			
+
 				this.$refs.wxChatPopup.open({
 					avatarUrl: '',
 					name: '',
 					createdAt: '8:15',
-					type:'chat',
-					chatIndex:0,
-					description:'@微信'
+					type: 'chat',
+					chatIndex: 0,
+					description: '@微信'
 				})
 			},
 			hasHttp(str) {
@@ -272,7 +277,7 @@
 					imgUrl = data.avatarUrl
 				} else {
 					console.log(11);
-					const res = await uploadImage(data.avatarUrl,conversationId)
+					const res = await uploadImage(data.avatarUrl, conversationId)
 					if (res.code !== 200) {
 						uni.showToast({
 							title: '图片上传失败',
@@ -288,13 +293,13 @@
 					userId: this.userId,
 					name: data.name,
 					avatarUrl: imgUrl,
-					content:data.content,
+					content: data.content,
 					createdAt: data.createdAt,
-					type:'chat',
-					chatIndex:data.chatIndex,
-					description:data.description
+					type: 'chat',
+					chatIndex: data.chatIndex,
+					description: data.description
 				}
-				
+
 				// console.log(data.conversationId);
 				if (data.conversationId) {
 					const rul = await updateConversation(temp.conversationId, temp)
@@ -325,7 +330,7 @@
 					}
 				}
 				// updateUseFeature(this.guestInfo.id)
-			
+
 			},
 			goBack() {
 				uni.navigateBack();
@@ -386,14 +391,17 @@
 		display: flex;
 		align-items: center;
 	}
-	.computedIcon{
+
+	.computedIcon {
 		width: 38rpx;
 		height: 38rpx;
 	}
-	.backimg{
+
+	.backimg {
 		width: 42rpx;
 		height: 42rpx;
 	}
+
 	.custom-header {
 		/* width: 100%; */
 		color: #fff;
@@ -406,12 +414,14 @@
 		/* background-color: #eaeaea; */
 		/* border-bottom: 2rpx solid #e0e0e0; */
 	}
-	.contentMenu{
+
+	.contentMenu {
 		display: flex;
 		align-items: center;
 		color: #6c6f74;
 	}
-	.menu_item{
+
+	.menu_item {
 		flex: 1;
 		overflow: hidden;
 		display: flex;
@@ -420,48 +430,56 @@
 		justify-content: center;
 		font-size: 28rpx;
 	}
-	.msgIcon{
+
+	.msgIcon {
 		width: 36rpx;
 		height: 36rpx;
 		margin-right: 16rpx;
 	}
-	.downIcon{
+
+	.downIcon {
 		width: 20rpx;
 		height: 20rpx;
 		margin-left: 6rpx;
 		position: relative;
 		top: -2rpx;
 	}
-	.todayIcon{
+
+	.todayIcon {
 		width: 34rpx;
 		height: 34rpx;
 		margin-right: 16rpx;
 	}
-	.huiyiIcon{
+
+	.huiyiIcon {
 		width: 40rpx;
 		height: 40rpx;
 		margin-right: 16rpx;
 	}
-	.yline{
+
+	.yline {
 		height: 30rpx;
 		width: 2rpx;
-		background-color:#999 ;
+		background-color: #999;
 		transform: scaleX(0.1);
 	}
-	.xline{
+
+	.xline {
 		width: 100%;
 		height: 2rpx;
-		background-color:#999 ;
+		background-color: #999;
 		transform: scaleY(0.1);
 		/* margin-bottom: 20rpx; */
 	}
-	.content-box{
+
+	.content-box {
 		display: flex;
 		/* background-color: #4475C9; */
 		/* border: #4475C9 1px solid; */
 		height: 152rpx;
 	}
-	.msg_img{
+
+	.msg_img {
 		position: relative;
 		padding: 20rpx;
 		padding-right: 10rpx;
@@ -470,7 +488,8 @@
 		align-items: center;
 		justify-content: center; */
 	}
-	.msgIndex{
+
+	.msgIndex {
 		position: absolute;
 		background-color: #ee4c25;
 		z-index: 1;
@@ -485,68 +504,78 @@
 		width: 36rpx;
 		overflow: hidden;
 		border-radius: 50%;
-		
+
 	}
-	
-	.more_red{
+
+	.more_red {
 		width: 50rpx !important;
 		border-radius: 20rpx !important;
 	}
-	.msg_avater{
+
+	.msg_avater {
 		width: 100rpx;
 		height: 100rpx;
 		border-radius: 20rpx;
 	}
-	.msg_info{
+
+	.msg_info {
 		padding: 0 20rpx;
 		height: 100%;
 		/* background-color: rebeccapurple; */
-		flex:1;
+		flex: 1;
 		position: relative;
 		display: flex;
 		align-items: center;
 	}
-	.msg_box{
+
+	.msg_box {
 		display: flex;
 		flex-direction: column;
 		/* align-items: center; */
 		justify-content: center;
 		width: 100%;
 	}
-	.msg_top{
+
+	.msg_top {
 		/* margin-top: 20rpx; */
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		
+
 	}
-	.msg_title{
+
+	.msg_title {
 		font-size: 36rpx;
 		/* display: flex; */
 	}
-	.title_desc{
+
+	.title_desc {
 		color: #4bc768;
 		font-size: 30rpx;
 		margin-left: 20rpx;
 		/* display: block; */
 		/* line-height: 30rpx; */
 	}
-	.msg_time{
+
+	.msg_time {
 		font-size: 24rpx;
 		color: #cecfd1;
 	}
-	.msg_desc{
+
+	.msg_desc {
 		margin: 10rpx 0;
 		font-size: 24rpx;
 		color: #9b9fa3;
-		 white-space: nowrap;      /* 禁止换行 */
-		overflow: hidden;         /* 超出部分隐藏 */
+		white-space: nowrap;
+		/* 禁止换行 */
+		overflow: hidden;
+		/* 超出部分隐藏 */
 		height: 30rpx;
-		
-		
+
+
 	}
-	
-	.footer_btn{
+
+	.footer_btn {
 		position: absolute;
 		bottom: 0;
 		left: 0;
@@ -556,7 +585,8 @@
 		display: flex;
 		color: #53585c;
 	}
-	.foot_item{
+
+	.foot_item {
 		position: relative;
 		overflow: hidden;
 		display: flex;
@@ -566,31 +596,37 @@
 		justify-content: center;
 		font-size: 22rpx;
 	}
-	.qwMsgIcon{
+
+	.qwMsgIcon {
 		height: 50rpx;
 		width: 50rpx;
 		margin-bottom: 10rpx;
 	}
-	.qw_email{
+
+	.qw_email {
 		height: 50rpx;
 		width: 50rpx;
 		margin-bottom: 10rpx;
 	}
-	.qw_word{
+
+	.qw_word {
 		height: 50rpx;
 		width: 50rpx;
 		margin-bottom: 10rpx;
 	}
-	.qw_con{
+
+	.qw_con {
 		height: 50rpx;
 		width: 50rpx;
 		margin-bottom: 10rpx;
 	}
-	.qx_tonxun{
+
+	.qx_tonxun {
 		height: 58rpx;
 		width: 58rpx;
 	}
-	.totalIndex{
+
+	.totalIndex {
 		position: absolute;
 		background-color: #ee4c25;
 		z-index: 1;

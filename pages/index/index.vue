@@ -81,7 +81,7 @@
 		    <text class="subtitle-text">免责声明，仅供娱乐，切莫违法</text>
 		</view>
         <!-- 弹窗组件 -->
-        <ProfileEditPopup ref="filePopup" @submit="onSubmit"></ProfileEditPopup>
+        <!-- <ProfileEditPopup ref="filePopup" @submit="onSubmit"></ProfileEditPopup> -->
      
         <pfePopup ref="wxChatGroupPopup" @submit="onSubmitWxGroup"></pfePopup>
     </view>
@@ -137,11 +137,11 @@
 						return
 					}
 				}
-				// this.$refs.filePopup.open()
+			updateUseFeature(this.guestInfo.id)
 			uni.navigateTo({
 				url:'/pages/chatList/chatList'
 			})
-
+			
 			},
 			goToWxChat(){
 				if (this.guestInfo.tryCount == 0) {
@@ -154,6 +154,7 @@
 						return
 					}
 				}
+				updateUseFeature(this.guestInfo.id)
 				uni.navigateTo({
 					url:'/pages/wxChatList/wxChatList'
 				})
@@ -173,6 +174,17 @@
 				this.$refs.wxChatGroupPopup.open()
 			},
 			onSubmitWxGroup(data){
+				if (this.guestInfo.tryCount == 0) {
+					if (isMemberExpired(this.guestInfo)) {
+						// 试用次数用完后开始需要充值会员
+						uni.showToast({
+							title: '使用次数已用完请充值会员',
+							icon: 'none'
+						});
+						return
+					}
+				}
+			
 				updateUseFeature(this.guestInfo.id)
 				uni.navigateTo({
 					url: '/pages/wxChatGroup/wxChatGroup?guestInfo=' + encodeURIComponent(JSON.stringify(data))
@@ -231,6 +243,17 @@
 				});
 			},
 			gotoCodePay(){
+				if (this.guestInfo.tryCount == 0) {
+					if (isMemberExpired(this.guestInfo)) {
+						// 试用次数用完后开始需要充值会员
+						uni.showToast({
+							title: '使用次数已用完请充值会员',
+							icon: 'none'
+						});
+						return
+					}
+				}
+				updateUseFeature(this.guestInfo.id)
 				uni.navigateTo({
 					url: '/pages/codePay/codePay'
 				});
