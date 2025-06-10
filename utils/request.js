@@ -70,12 +70,12 @@ function formatFormData(data) {
 }
 
 
-export function Filerequest(file) {
+export function Filerequest(file,userId) {
 	console.log("开始上传文件", file);
 
 	return new Promise((resolve, reject) => {
 		// 使用plus.net.uploader替代FormData和uni.request
-		const uploader = plus.uploader.createUpload(BASE_URL + '/file/upload', {
+		const uploader = plus.uploader.createUpload(BASE_URL + '/file/upload/'+userId, {
 			method: 'POST'
 		}, (response, status) => {
 			console.log("上传完成", status, response);
@@ -128,13 +128,13 @@ export function Filerequest(file) {
 
 	});
 }
-export function uploadImageByPath(tempFilePath) {
+export function uploadImageByPath(tempFilePath,userId) {
 	return new Promise((resolve, reject) => {
 		// 使用plus.io转换本地路径为可上传的文件
 		plus.io.resolveLocalFileSystemURL(tempFilePath, (entry) => {
 			entry.file((file) => {
 				console.log(file, Filerequest);
-				Filerequest(file)
+				Filerequest(file,userId)
 					.then(result => resolve(result))
 					.catch(err => reject(err));
 			}, (err) => {

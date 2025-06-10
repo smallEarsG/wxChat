@@ -443,7 +443,7 @@
 			},
 			 async onCradSubmitz(data){
 				console.log(data);
-				const res = await uploadImage(data.avatar)
+				const res = await uploadImage(data.avatar,this.guestInfo.userId)
 				const temp = data
 				temp.avatar = res.data
 				const location = this.isMe ? 1 : 0;
@@ -460,7 +460,7 @@
 			},
 			async onPhotoSubmit(data){
 				console.log(data.avatar);
-				const res = await uploadImage(data.avatar)
+				const res = await uploadImage(data.avatar,this.guestInfo.userId)
 				
 				const location = this.isMe ? 1 : 0;
 				const photoInfo = {
@@ -489,7 +489,7 @@
 			},
 		 	async onCradSubmit(data){
 			console.log(data);
-			const res = await uploadImage(data.avatar)
+			const res = await uploadImage(data.avatar,this.guestInfo.userId)
 			const temp = data
 			temp.avatar = res.data
 			const location = this.isMe ? 1 : 0;

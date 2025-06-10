@@ -41,7 +41,7 @@ export const updateConversation = (conversationId, data) =>
    * @param {File} file - 图片文件
    * @returns {Promise}
    */
-  export const uploadImage = (file) => {
+  export const uploadImage = (file,userId) => {
 
-    return uploadImageByPath(file)
+    return uploadImageByPath(file,userId)
   };
