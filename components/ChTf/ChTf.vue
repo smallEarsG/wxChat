@@ -36,7 +36,7 @@ export default {
   color: #fff;
   border-radius: 16rpx;
   /* overflow: hidden; */
-   width: 480rpx;
+   width: 460rpx;
   position: relative;
   box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1);
   /* margin-right: 14rpx; */

@@ -1,6 +1,6 @@
 <template>
 	<!--  :style="{height:keyboardHeight?' 100vh':'calc(100vh - 514rpx) '}" -->
-	<view class="chat-page" >
+	<view class="chat-page">
 		<!-- 顶部栏 -->
 		<view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="back" @click="goBack">
@@ -11,8 +11,8 @@
 					<!-- {{guestInfo}} -->
 					{{guestInfo.name || "企业微信工坊"}}
 				</view>
-				<!-- <view class="desc">{{guestInfo.description}}</view> -->
-				<view class="desc">@微信</view>
+				<view class="desc">{{guestInfo.description}}</view>
+				<!-- <view class="desc">@微信</view> -->
 			</view>
 			<view class="icons">
 				<image class="nav-icon_phone" src="/static/icon-phone.png"></image>
@@ -21,20 +21,21 @@
 		</view>
 
 		<view class="chat-content">
-		
-		<view v-if="activeMsgIndex !== -1" class="overlay" @click="closePopupMenu"></view>
+
+			<view v-if="activeMsgIndex !== -1" class="overlay" @click="closePopupMenu"></view>
 			<!-- 聊天内容区域 -->
 			<scroll-view class="chat-body" scroll-y :show-scrollbar="false">
 				<view v-for="(item ,i ) in massageList " :key="i">
 
 					<!-- 时间 -->
-					<view @longpress="showPopupMenu($event, i)" v-if="item.type == 'tips'" class="msg-time cell" >
+					<view @longpress="showPopupMenu($event, i)" v-if="item.type == 'tips'" class="msg-time cell">
 						<view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
-					{{item.content}}
+						{{item.content}}
 					</view>
-					<view class="orderBox cell" @longpress="showPopupMenu($event, i)" v-else-if="item.contentType == 'order'" >
+					<view class="orderBox cell" @longpress="showPopupMenu($event, i)"
+						v-else-if="item.contentType == 'order'">
 						<view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
@@ -44,119 +45,129 @@
 						</view>
 
 					</view>
-				<!-- 转账 -->
-					<view v-else-if="item.contentType == 'transfer'" class="cell">
-					<view v-if="activeMsgIndex === i" class="popup-menu">
-						<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-					</view>
-						<view class="msg left"  @longpress="showPopupMenu($event, i)"  @click="resTransfer(i)" v-if="item.location == 0">
-							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
-							<TransferCard  :class="!item.content.st?'tfCardLeft':'tfCardLeftBg'" :state="item.content.st" :name="item.content.name" :amount="item.content.amount"
-								></TransferCard>
-						</view>
-						<view class="msg right"  @longpress="showPopupMenu($event, i)"	@click="resTransfer(i)" v-else>
-							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<TransferCard :class="!item.content.st?'tfCardRight':'tfCardRightBg'" :state="item.content.st" :name="item.content.name" :amount="item.content.amount"
-							></TransferCard>
-						
-						</view>
-					</view>
-				<!-- 收款 -->
-				<view v-else-if="item.contentType == 'wxtf'" class="cell">
-					<view v-if="activeMsgIndex === i" class="popup-menu">
-						<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-					</view>
-					<view class="msg left"  @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
-						<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
-						<ChTf class="tfCardLeftBg" :name="item.content.name" :amount="item.content.amount"
-							></ChTf>
-					</view>
-					<view class="msg right"  @longpress="showPopupMenu($event, i)" v-else>
-						<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-						<ChTf class="tfCardRightBg" :name="item.content.name" :amount="item.content.amount"
-							></ChTf>
-					</view>
-				</view>
-					<!-- 图片photo -->
-					
-					<view  v-else-if="item.contentType == 'photo'" @longpress="showPopupMenu($event, i)"  class="cell">
+					<!-- 转账 -->
+					<view v-else-if="item.contentType == 'transfer'" @longpress="showPopupMenu($event, i)" class="cell">
 						<view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
-						<view class="msg left" v-if="item.location == 0"  @longpress="showPopupMenu($event, i)">
+						<view class="msg left" @longpress="showPopupMenu($event, i)" @click="resTransfer(i)"
+							v-if="item.location == 0">
 							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
-							<image  :src="item.content.avatar"class="phote leftp"  />
+							<TransferCard :class="!item.content.st?'tfCardLeft':'tfCardLeftBg'" :state="item.content.st"
+								:name="item.content.name" :amount="item.content.amount"></TransferCard>
 						</view>
-						
-						<view class="msg right"  @longpress="showPopupMenu($event, i)" v-else>
+						<view class="msg right" @longpress="showPopupMenu($event, i)" @click="resTransfer(i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<image :src="item.content.avatar" class="phote rightp" ></image>
+							<TransferCard :class="!item.content.st?'tfCardRight':'tfCardRightBg'"
+								:state="item.content.st" :name="item.content.name" :amount="item.content.amount">
+							</TransferCard>
+
 						</view>
 					</view>
-						<!-- 名片 -->
-					<view  v-else-if="item.contentType == 'crad'"  class="cell">
-					<!-- 	<view v-if="activeMsgIndex === i" class="popup-menu">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view>
-						<view class="msg left"   @longpress="showPopupMenu($event, i)">
-							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
-							<WxCard :nickname="item.content.nickname" :avatar="item.content.avatar"></WxCard>
-						</view>
+					<!-- 收款 -->
+					<view v-else-if="item.contentType == 'wxtf'" @longpress="showPopupMenu($event, i)" class="cell">
 						<view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view> -->
+						</view>
 						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
 							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
-							<WxCard class="cardLeft"  :nickname="item.content.nickname" :avatar="item.content.avatar"
-								></WxCard>
+							<ChTf class="tfCardLeftBg" :name="item.content.name" :amount="item.content.amount"></ChTf>
 						</view>
-						<view class="msg right"  @longpress="showPopupMenu($event, i)" v-else>
+						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<WxCard  class="cardRight" :nickname="item.content.nickname" :avatar="item.content.avatar"
-							></WxCard>
+							<ChTf class="tfCardRightBg" :name="item.content.name" :amount="item.content.amount"></ChTf>
+						</view>
+					</view>
+					<!-- 图片photo -->
+
+					<view v-else-if="item.contentType == 'photo'" @longpress="showPopupMenu($event, i)" class="cell">
+						<view v-if="activeMsgIndex === i" class="popup-menu">
+							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+						</view>
+						<view class="msg left" v-if="item.location == 0" @longpress="showPopupMenu($event, i)">
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							<image :src="item.content.avatar" class="phote leftp" />
+						</view>
+
+						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
+							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<image :src="item.content.avatar" class="phote rightp"></image>
+						</view>
+					</view>
+					<view v-else-if="item.contentType == 'redBag'" @click="getRB(i)" class="cell">
+						<view v-if="activeMsgIndex === i" class="popup-menu">
+							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+						</view>
+						<view class="msg left"  @longpress="showPopupMenu($event, i)"  v-if="item.location == 0"  >
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+								<RedBag  :class="item.content?'redbagLeft':'redbagLeftBg'" :location="item.location" :name="guestInfo.name  + (guestInfo.description||'')" :state="item.content"></RedBag>
+							
+						</view>
+						<view class="msg right"   @longpress="showPopupMenu($event, i)"  v-else>
+							
+							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+								<RedBag  :class="item.content?'redbagRight':'redbagRightBg'" :location="item.location" :name="guestInfo.name + (guestInfo.description||'')" :state="item.content"></RedBag>
+							
+						</view>
+					</view>
+					<!-- 名片 -->
+					<view v-else-if="item.contentType == 'crad'" @longpress="showPopupMenu($event, i)" class="cell">
+						<view v-if="activeMsgIndex === i" class="popup-menu">
+							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+						</view>
+						
+						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							<WxCard class="cardLeft" :nickname="item.content.nickname" :avatar="item.content.avatar">
+							</WxCard>
+						</view>
+						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
+							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<WxCard class="cardRight" :nickname="item.content.nickname" :avatar="item.content.avatar">
+							</WxCard>
 						</view>
 					</view>
 					<!-- l、聊天 -->
-					<view  v-else-if="item.contentType == 'chat'" @longpress="showPopupMenu($event, i)" class="cell">
-						
+					<view v-else-if="item.contentType == 'chat'" @longpress="showPopupMenu($event, i)" class="cell">
+
 						<view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
 						<!-- 聊天内容 -->
-						<view class="msg left"  @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
+						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
 							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<view class="bubble">
-								<view >
+								<view>
 									{{item.content}}
 								</view>
 
 							</view>
 						</view>
-				
-						<view class="msg right"   @longpress="showPopupMenu($event, i)" v-else>
-							
-							
+
+						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
+
+
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view class="bubble">
-								<view >
+								<view>
 									{{item.content}}
 								</view>
 							</view>
 						</view>
 					</view>
 				</view>
-				
+
 			</scroll-view>
 
-  <!-- :style="{paddingBottom:!keyboardHeight?' 300rpx':'0 '}" -->
+			<!-- :style="{paddingBottom:!keyboardHeight?' 300rpx':'0 '}" -->
 			<!-- 底部输入栏 -->
-			<view class="fun_box" >
+			<view class="fun_box">
 				<ChatToolBar />
 				<view class="chat-input">
 					<image class="icon" src="/static/icon-voice.png"></image>
 					<view class="input—box"><input class="input" placeholder="请输入" v-model="inputValue"
 							@confirm="onEnterKey" /></view>
-					<image class="icon_face"  v-if="keyboardHeight" src="/static/icon-face.png"></image>
+					<image class="icon_face" v-if="keyboardHeight" src="/static/icon-face.png"></image>
 					<image class="icon_plus" src="/static/icon-plus.png" @click="togglePopupBox"></image>
 					<button class="send" @click="onEnterKey" v-if="!keyboardHeight"> 发送 </button>
 				</view>
@@ -188,12 +199,13 @@
 					@submit="onOrderSubmit" />
 				<EditableFormPopup ref="timePopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onTimeSubmit" />
 				<!-- 转账 -->
-				<EditableFormPopup ref="transferPopup" :value="transfer" :fieldLabels="transferKey" @submit="onTransferSubmit" />
+				<EditableFormPopup ref="transferPopup" :value="transfer" :fieldLabels="transferKey"
+					@submit="onTransferSubmit" />
 				<!-- 名片 -->
-				<ProfileEditPopup ref="cradPopup"  @submit="onCradSubmitz"></ProfileEditPopup>
+				<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
 				<!-- <EditableFormPopup ref="cradPopup" :value="crad" :fieldLabels="cradKey" @submit="onCradSubmitz" /> -->
 				<!-- 图片 -->
-				<UploadImage ref="photoPopup"  @submit="onPhotoSubmit"></UploadImage>
+				<UploadImage ref="photoPopup" @submit="onPhotoSubmit"></UploadImage>
 			</view>
 		</view>
 	</view>
@@ -206,11 +218,13 @@
 	import TransferCardVue from '../../components/TransferCard/TransferCard.vue';
 	import UploadImage from '../../components/UploadImage/UploadImage.vue';
 	import WxCard from '../../components/WxCard/WxCard.vue';
-	import { getUserInfo } from '@/api/index.js'
 	import {
-				uploadImage,
-				updateConversation
-			} from '@/api/conversations.js'
+		getUserInfo
+	} from '@/api/index.js'
+	import {
+		uploadImage,
+		updateConversation
+	} from '@/api/conversations.js'
 	export default {
 		components: {
 			ExternalPayCard,
@@ -226,33 +240,34 @@
 					this.guestInfo = JSON.parse(decodeURIComponent(options.guestInfo));
 					console.log(this.guestInfo);
 					this.massageList = JSON.parse(this.guestInfo.content)
+					if(this.massageList == null){
+						this.massageList = []
+					}
 				} catch (e) {
 					console.error('guestInfo 参数解析失败', e);
 					this.massageList = []
+					this.updateMsg()
 				}
 			}
 			// 获取账号信息
 			const userId = uni.getStorageSync('userId')
 			console.log(userId);
 			this.getUserInfo(userId)
-			
-			  uni.onKeyboardHeightChange(res => {
-					if( res.height == 0)
-			           {
-						    this.keyboardHeight = true;
-					   }
-			          else
-					    {
-							this.keyboardHeight = false;
-						}
-			        });
-					this.$forceUpdate()
+
+			uni.onKeyboardHeightChange(res => {
+				if (res.height == 0) {
+					this.keyboardHeight = true;
+				} else {
+					this.keyboardHeight = false;
+				}
+			});
+			this.$forceUpdate()
 		},
 		data() {
 			return {
 				activeMsgIndex: -1, // 当前激活的消息索引
-				keyboardHeight:true,
-				userInfo:{},
+				keyboardHeight: true,
+				userInfo: {},
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				guestInfo: {},
 				isMe: false,
@@ -298,6 +313,11 @@
 						label: '视频通话',
 						icon: '/static/icon-video.png'
 					},
+					{
+						name: 'redBag',
+						label: '红包',
+						icon: '/static/redBag.png'
+					}
 					// {
 					// 	name: 'collection',
 					// 	label: '收藏',
@@ -347,7 +367,7 @@
 					// 	location: 0, // 1 表示我方
 					// 	content: "2024年12月24日 14:10",
 
-											
+
 					// },
 					// {
 					// 	type: "content", // tips, content
@@ -355,7 +375,7 @@
 					// 	location: 1, // 1 表示我方
 					// 	content: {
 					// 		name:"G",
-							
+
 					// 	}
 					// }
 				],
@@ -375,19 +395,19 @@
 				timeKey: {
 					time: "时间"
 				},
-				transfer:{
-					name:"",
-					amount:""
+				transfer: {
+					name: "",
+					amount: ""
 				},
-				transferKey:{
-					name:"用户名",
-					amount:"转账金额"
+				transferKey: {
+					name: "用户名",
+					amount: "转账金额"
 				},
-				crad:{
-					name:"",
+				crad: {
+					name: "",
 				},
-				cradKey:{
-					name:"用户名",
+				cradKey: {
+					name: "用户名",
 				}
 			};
 		},
@@ -402,8 +422,13 @@
 			}
 		},
 		methods: {
+			getRB(i){
+			
+				this.massageList[i].content = !this.massageList[i].content
+				this.updateMsg()
+			},
 			resTransfer(i) {
-				if(this.massageList[i].content.st)return;
+				if (this.massageList[i].content.st) return;
 				const temp = JSON.parse(JSON.stringify(this.massageList[i]))
 				this.massageList[i].content.st = true
 				temp.contentType = 'wxtf'
@@ -412,9 +437,9 @@
 				// 删掉 i 位置的数据 在 i这里插入两条
 				this.updateMsg()
 			},
-			updateMsg(){
+			updateMsg() {
 				this.guestInfo.content = JSON.stringify(this.massageList)
-				updateConversation(this.guestInfo.conversationId,this.guestInfo)
+				updateConversation(this.guestInfo.conversationId, this.guestInfo)
 			},
 			deleteMessage_1(index) {
 				console.log(index);
@@ -425,7 +450,7 @@
 			showPopupMenu(e, index) {
 				// console.log("====",index, e);
 				this.activeMsgIndex = index;
-			
+
 				// 获取触摸坐标，适配弹出菜单位置
 				const touch = e.touches?.[0] || {};
 				// this.popupTop = 50 // touch.clientY - 100; // 往上偏移
@@ -435,15 +460,15 @@
 				this.activeMsgIndex = -1;
 			},
 			async getUserInfo(userId) {
-				console.log("执行用户信息获取",userId);
+				console.log("执行用户信息获取", userId);
 				const res = await getUserInfo(userId)
 				console.log(res);
 				this.userInfo = res.data
 
 			},
-			 async onCradSubmitz(data){
+			async onCradSubmitz(data) {
 				console.log(data);
-				const res = await uploadImage(data.avatar,this.guestInfo.userId)
+				const res = await uploadImage(data.avatar, this.guestInfo.userId)
 				const temp = data
 				temp.avatar = res.data
 				const location = this.isMe ? 1 : 0;
@@ -453,27 +478,29 @@
 					location, // 1 表示我方
 					content: temp
 				};
-				
+
 				// console.log(data);
 				this.massageList.push(transferInfo);
 				this.updateMsg()
 			},
-			async onPhotoSubmit(data){
+			async onPhotoSubmit(data) {
 				console.log(data.avatar);
-				const res = await uploadImage(data.avatar,this.guestInfo.userId)
-				
+				const res = await uploadImage(data.avatar, this.guestInfo.userId)
+
 				const location = this.isMe ? 1 : 0;
 				const photoInfo = {
 					type: "content", // tips, content
 					contentType: "photo", //order , chat ,link
 					location, // 1 表示我方
-					content: {avatar:res.data}
+					content: {
+						avatar: res.data
+					}
 				};
 				console.log(photoInfo);
 				this.massageList.push(photoInfo);
 				this.updateMsg()
 			},
-			onTransferSubmit(data){
+			onTransferSubmit(data) {
 				const location = this.isMe ? 1 : 0;
 				const transferInfo = {
 					type: "content", // tips, content
@@ -487,25 +514,25 @@
 				this.massageList.push(transferInfo);
 				this.updateMsg()
 			},
-		 	async onCradSubmit(data){
-			console.log(data);
-			const res = await uploadImage(data.avatar,this.guestInfo.userId)
-			const temp = data
-			temp.avatar = res.data
-			const location = this.isMe ? 1 : 0;
-			const transferInfo = {
-				type: "content", // tips, content
-				contentType: "crad", //order , chat ,link
-				location, // 1 表示我方
-				content: temp
-			};
-			
-			// console.log(data);
-			this.massageList.push(transferInfo);
-			this.updateMsg()
+			async onCradSubmit(data) {
+				console.log(data);
+				const res = await uploadImage(data.avatar, this.guestInfo.userId)
+				const temp = data
+				temp.avatar = res.data
+				const location = this.isMe ? 1 : 0;
+				const transferInfo = {
+					type: "content", // tips, content
+					contentType: "crad", //order , chat ,link
+					location, // 1 表示我方
+					content: temp
+				};
+
+				// console.log(data);
+				this.massageList.push(transferInfo);
+				this.updateMsg()
 			},
 			onOrderSubmit(data) {
-				
+
 				const location = this.isMe ? 1 : 0
 				console.log(data);
 				const orderInfo = {
@@ -514,7 +541,7 @@
 					location, // 1 表示我方
 					content: data
 				}
-			
+
 				this.massageList.push(orderInfo)
 				this.updateMsg()
 			},
@@ -556,12 +583,15 @@
 					case "transfer":
 						this.$refs.transferPopup.open()
 						break;
-					case "photo":	
+					case "photo":
 						this.$refs.photoPopup.open()
 						break;
 					case "contact":
 						this.$refs.cradPopup.open()
 						break;
+					case "redBag":
+						this.addRedBag()
+						break
 					default:
 						uni.showToast({
 							title: '请联系管理员开通',
@@ -570,6 +600,18 @@
 						break;
 				}
 
+			},
+			addRedBag() {
+				const location = this.isMe ? 1 : 0;
+
+				const orderInfo = {
+					type: "content", // tips, content
+					contentType: "redBag", //order , chat ,link
+					location, // 1 表示我方
+					content: true
+				};
+				this.massageList.push(orderInfo);
+				this.updateMsg()
 			},
 			onEnterKey() {
 				console.log(this.inputValue);
@@ -604,6 +646,7 @@
 		border-bottom: 6px solid transparent;
 		border-left: 6px solid #fff;
 	}
+
 	.cardLeft::after {
 		content: "";
 		position: absolute;
@@ -615,12 +658,15 @@
 		border-bottom: 6px solid transparent;
 		border-right: 6px solid #fff;
 	}
+	.redbagLeftBg,
+	.redbagLeft,
 	.tfCardLeftBg,
 	.tfCardLeft,
 	.cardLeft {
-		 margin-left: 14rpx;
+		margin-left: 14rpx;
 	}
-	.tfCardLeftBg::after{
+
+	.tfCardLeftBg::after {
 		content: "";
 		position: absolute;
 		top: 28rpx;
@@ -629,34 +675,7 @@
 		height: 0;
 		border-top: 6px solid transparent;
 		border-bottom: 6px solid transparent;
-		border-right: 6px solid  #fce1c3
-	}
-	.tfCardRightBg::after{
-		content: "";
-		position: absolute;
-		top: 28rpx;
-		right: -10rpx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		 border-left: 6px solid #fce1c3;
-	}
-	.tfCardRight::after {
-		content: "";
-		position: absolute;
-		top: 28rpx;
-		right: -10rpx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-left: 6px solid #f99d3b;
-	}
-	.tfCardRightBg,
-	.tfCardRight,
-	.cardRight{
-		 margin-right: 14rpx;
+		border-right: 6px solid #fce1c3
 	}
 	.tfCardLeft::after {
 		content: "";
@@ -669,7 +688,87 @@
 		border-bottom: 6px solid transparent;
 		border-right: 6px solid #f99d3b;
 	}
-	.send{
+
+.redbagLeftBg::after {
+		content: "";
+		position: absolute;
+		top: 28rpx;
+		left: -10rpx;
+		width: 0;
+		height: 0;
+		border-top: 6px solid transparent;
+		border-bottom: 6px solid transparent;
+		border-right: 6px solid #f69e94
+	}
+	.redbagLeft::after {
+		content: "";
+		position: absolute;
+		top: 28rpx;
+		left: -10rpx;
+		width: 0;
+		height: 0;
+		border-top: 6px solid transparent;
+		border-bottom: 6px solid transparent;
+		border-right: 6px solid #ff624f;
+	}
+	.tfCardRightBg::after {
+		content: "";
+		position: absolute;
+		top: 28rpx;
+		right: -10rpx;
+		width: 0;
+		height: 0;
+		border-top: 6px solid transparent;
+		border-bottom: 6px solid transparent;
+		border-left: 6px solid #fce1c3;
+	}
+
+	.tfCardRight::after {
+		content: "";
+		position: absolute;
+		top: 28rpx;
+		right: -10rpx;
+		width: 0;
+		height: 0;
+		border-top: 6px solid transparent;
+		border-bottom: 6px solid transparent;
+		border-left: 6px solid #f99d3b;
+	}
+
+
+	.redbagRightBg::after {
+		content: "";
+		position: absolute;
+		top: 28rpx;
+		right: -10rpx;
+		width: 0;
+		height: 0;
+		border-top: 6px solid transparent;
+		border-bottom: 6px solid transparent;
+		border-left: 6px solid #f69e94;
+	}
+
+	.redbagRight::after {
+		content: "";
+		position: absolute;
+		top: 28rpx;
+		right: -10rpx;
+		width: 0;
+		height: 0;
+		border-top: 6px solid transparent;
+		border-bottom: 6px solid transparent;
+		border-left: 6px solid #ff624f;
+	}
+	.redbagRight,
+	.redbagRightBg,
+	.tfCardRightBg,
+	.tfCardRight,
+	.cardRight {
+		margin-right: 14rpx;
+	}
+
+
+	.send {
 		background-color: blue;
 		color: #fff;
 		height: 60rpx;
@@ -677,9 +776,11 @@
 		font-size: 30rpx;
 		text-align: center;
 	}
-	.cell{
+
+	.cell {
 		position: relative;
 	}
+
 	.overlay {
 		position: absolute;
 		top: 0;
@@ -688,6 +789,7 @@
 		bottom: 0;
 		z-index: 1;
 	}
+
 	.popup-menu {
 		position: absolute;
 		background-color: #333;
@@ -701,12 +803,12 @@
 		top: -60rpx;
 		right: 50%;
 	}
-	
+
 	.menu-item {
 		padding: 10rpx 20rpx;
 		font-size: 24rpx;
 	}
-	
+
 	.chat-page {
 		display: flex;
 		flex-direction: column;
@@ -748,7 +850,7 @@
 		padding: 10rpx 20rpx;
 		justify-content: space-between;
 		box-sizing: content-box;
-		
+
 		/* position: fixed; */
 		/* width: 100%; */
 		/* box-sizing: border-box; */
@@ -932,19 +1034,23 @@
 		height: 58rpx;
 		margin-left: 10rpx;
 	}
-	.phote{
+
+	.phote {
 		width: 200rpx;
 		height: 200rpx;
 		/* margin-left: 10rpx; */
 		/* border-radius: 16rpx; */
 		background-color: #3086ff;
 	}
-	.rightp{
+
+	.rightp {
 		margin-right: 14rpx;
 	}
-	.leftp{
+
+	.leftp {
 		margin-left: 14rpx;
 	}
+
 	.drawer {
 		background-color: #fff;
 

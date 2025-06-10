@@ -27,7 +27,7 @@
 				</view>
 				<view class="form-item">
 					<text class="label">备注</text>
-					<input v-model="info.description" class="input" placeholder="请输入时间" />
+					<input v-model="info.description" class="input" placeholder="请输入备注" />
 					
 				</view>
 				<button class="btn" @click="submit">提交</button>

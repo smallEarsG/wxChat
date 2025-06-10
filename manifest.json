@@ -1,9 +1,9 @@
 {
-    "name" : "微信聊天工坊",
+    "name" : "销售图生成器",
     "appid" : "__UNI__F0A0757",
     "description" : "",
-    "versionName" : "1.0.9",
-    "versionCode" : 109,
+    "versionName" : "1.2.0",
+    "versionCode" : 120,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
@@ -140,9 +140,9 @@
             "https" : false,
             "proxy" : {
                 "/pawlapi" : {
-					// "target" : "http://106.15.137.235:8080/api",
+                    "target" : "http://106.15.137.235:8080/api",
                     // "target" : "http://localhost:8081/api",
-					"target" : "http://localhost:8081/api",
+                    // "target" : "http://localhost:8081/api",
                     "changeOrigin" : true,
                     "pathRewrite" : {
                         "^/pawlapi" : ""
