@@ -14,7 +14,7 @@
 					</view>
 					<view class="num" @click="exitInfo">
 						<view class="sub" />
-						{{info.num}}
+						<text class="num_txt"> {{info.num}}</text>
 					</view>
 					<view class="line" />
 				</view>
@@ -452,7 +452,10 @@
 		font-size: 56rpx;
 
 	}
-
+	.num_txt{
+		font-variant-numeric: tabular-nums; /* 强制使用等宽数字 */
+		font-family:-apple-system, 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+	}
 	.name {
 		margin-top: 30rpx;
 		font-size: 32rpx;
