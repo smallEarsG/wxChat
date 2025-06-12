@@ -1,507 +1,802 @@
 <template>
-	<view class="container">
-		<!-- 标题与按钮 -->
-		<view class="header">
-			<text class="title">图片文字识别在线</text>
-			<button class="upload-btn" @click="chooseImage">
-				<!-- <text class="iconfont"></text> -->
-				<text>上传图片识别</text>
-			</button>
-		</view>
-		<view class="header">
-			<text class="title">图片文字识别离线</text>
-			<button class="upload-btn" @click="chooseImage" :disabled="true">
-				<!-- <text class="iconfont"></text> -->
-				<text>上传图片识别</text>
-			</button>
-		</view>
-		<!-- 图片预览区域 -->
-		<view class="image-preview" v-if="imagePath">
-			<image :src="imagePath" mode="widthFix"></image>
-			<view class="close-btn" @click="clearImage">×</view>
-		</view>
-
-		<!-- 识别结果区域 -->
-		<view class="result-container" v-if="resultList.length > 0">
-			<view class="result-title">识别结果：</view>
-			<view class="result-item" v-for="(item, index) in resultList" :key="index">
-				<text class="item-index">{{ index + 1 }}.</text>
-				<text class="item-text">{{ item.words }}</text>
-			</view>
-		</view>
-		<!-- v-if="resultList.length > 0" -->
-		<view class="footer_btn" v-if="resultList.length > 0">
-			<button class="upload-btn" @click="goCodePayChild(0)">
-				<!-- <text class="iconfont"></text> -->
-				<text>转账付款</text>
-			</button>
-			<button class="upload-btn" @click="goCodePayChild(1)">
-				<!-- <text class="iconfont"></text> -->
-				<text>扫码付款</text>
-			</button>
-		</view>
-		<button type="primary" @click="goMsg" >
-			<!-- <text class="iconfont"></text> -->
-			修改记录
-		</button>
-		<!-- 加载状态 -->
-		<view class="loading" v-if="isLoading">
-			<text>识别中...</text>
-		</view>
-	</view>
+  <view class="container">
+    <!-- 顶部导航 -->
+    <view class="header">
+      <view class="back-btn" @click="goBack">
+        <uni-icons type="arrowleft" size="30" color="#333" />
+      </view>
+      <text class="page-title">图片文字识别</text>
+      <view class="spacer"></view>
+    </view>
+    
+    <!-- 内容区域 -->
+    <view class="content">
+      <!-- 功能卡片 -->
+      <view class="function-card">
+        <view class="card-title">
+          <text>识别类型</text>
+        </view>
+        
+        <view class="card-content">
+          <view class="function-item" @click="chooseImage">
+            <uni-icons type="camera" size="40" color="#4A90E2" />
+            <text>在线识别</text>
+            <view class="tag">高精度</view>
+          </view>
+          
+          <view class="function-item" @click="chooseImage" :disabled="true">
+            <uni-icons type="camera-filled" size="40" color="#999" />
+            <text>离线识别</text>
+            <view class="tag disabled">开发中</view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 图片预览区域 -->
+      <view class="image-preview" v-if="imagePath">
+        <view class="preview-wrapper">
+          <image :src="imagePath" mode="aspectFit" class="preview-image" />
+          <view class="overlay"></view>
+          <view class="close-btn" @click="clearImage">
+            <uni-icons type="close" size="30" color="#fff" />
+          </view>
+        </view>
+      </view>
+      
+      <!-- 识别结果区域 -->
+      <view class="result-card" v-if="resultList.length > 0">
+        <view class="result-header">
+          <text class="result-title">识别结果</text>
+          <view class="result-stats">
+            <text>{{ resultList.length }}行文字</text>
+          </view>
+        </view>
+        
+        <view class="result-content">
+          <view class="result-item" v-for="(item, index) in resultList" :key="index">
+            <text class="item-text">{{ item.words }}</text>
+          </view>
+        </view>
+        
+        <!-- 提取信息 -->
+        <view class="extracted-info" v-if="extractedInfo">
+          <view class="info-title">已提取信息</view>
+          <view class="info-item" v-if="extractedInfo.name || extractedInfo.transferName">
+            <text class="info-label">名称:</text>
+            <text class="info-value">{{ extractedInfo.name || extractedInfo.transferName || '未识别' }}</text>
+          </view>
+          <view class="info-item" v-if="extractedInfo.time">
+            <text class="info-label">时间:</text>
+            <text class="info-value">{{ extractedInfo.time || '未识别' }}</text>
+          </view>
+          <view class="info-item" v-if="extractedInfo.orderNumber">
+            <text class="info-label">单号:</text>
+            <text class="info-value">{{ extractedInfo.orderNumber || '未识别' }}</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 操作按钮 -->
+      <view class="action-buttons" v-if="resultList.length > 0">
+        <button class="action-btn" @click="goCodePayChild(0)">
+          <uni-icons type="moneybag" size="24" color="#fff" />
+          <text>转账付款</text>
+        </button>
+        <button class="action-btn" @click="goCodePayChild(1)">
+          <uni-icons type="scan" size="24" color="#fff" />
+          <text>扫码付款</text>
+        </button>
+      </view>
+      
+      <button class="history-btn" type="default" @click="goMsg">
+        <uni-icons type="history" size="24" color="#4A90E2" />
+        <text>修改记录</text>
+      </button>
+    </view>
+    
+    <!-- 加载状态 -->
+    <view class="loading-overlay" v-if="isLoading">
+      <view class="loading-content">
+        <uni-icons type="loading" size="40" color="#4A90E2" class="loading-icon" />
+        <text>识别中...</text>
+      </view>
+    </view>
+  </view>
 </template>
 
 <script>
-	import {
-		login
-	} from '../../api';
+import { login } from '../../api';
 
-	export default {
-		data() {
-			return {
-				imageBase64: '',
-				imagePath: '', // 选中图片路径
-				resultList: [], // 识别结果列表
-				isLoading: false, // 加载状态
-				// 百度云OCR配置（需替换为你的真实信息）
-				baiduConfig: {
-					apiKey: 'Rk9atFNERmi0vduxtu3zrF0x',
-					secretKey: 'iylst8nEtnr5fTek3QWjuXPcruzCFJnK',
-					apiUrl: 'https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic' // 高精度通用识别接口
-				}
-			};
-		},
-		methods: {
-			goMsg(){
-				uni.navigateTo({
-					url:'/pages/msgList/msgList'
-				})
-			},
-			extractInfoWithRegex(data) {
-				console.log(data);
-				const info = {
-					time: '',
-					name: '',
-					orderNumber: '',
-					otherTime:'',
-					transferName:'',
-				};
+export default {
+  data() {
+    return {
+      imageBase64: '',
+      imagePath: '', // 选中图片路径
+      resultList: [], // 识别结果列表
+      isLoading: false, // 加载状态
+      extractedInfo: null, // 提取的信息
+      // 百度云OCR配置（需替换为你的真实信息）
+      baiduConfig: {
+        apiKey: 'Rk9atFNERmi0vduxtu3zrF0x',
+        secretKey: 'iylst8nEtnr5fTek3QWjuXPcruzCFJnK',
+        apiUrl: 'https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic' // 高精度通用识别接口
+      }
+    };
+  },
+  methods: {
+    goBack() {
+      uni.navigateBack();
+    },
+    
+    goMsg() {
+      uni.navigateTo({
+        url: '/pages/msgList/msgList'
+      });
+    },
+    
+    extractInfoWithRegex(data) {
+      const info = {
+        time: '',
+        name: '',
+        orderNumber: '',
+        otherTime: '',
+        transferName: ''
+      };
 
-				data.forEach((item, index) => {
-					const words = item.words;
+      data.forEach((item, index) => {
+        const words = item.words;
 
-					// 时间格式匹配（支持年-月-日 或 时分秒）
-					const timeMatch = words.match(/\d{4}年\d{1,2}月\d{1,2}日\d{1,2}[:：]\d{2}[:：]\d{2}/);
-					const temp = words.match(/\d{4}年\d{1,2}月\d{1,2}日/);
-					if (timeMatch || temp) {
-						let tempTime = ''
-						if (timeMatch) {
-							tempTime = timeMatch[0];
-						} else {
-							tempTime = temp + ' ' + data[index + 1]?.words
-						}
-						if(info.time!=''){
-							info.otherTime = tempTime
-						}else{
-							info.time = tempTime
-						}
-						
-					}
+        // 时间格式匹配
+        const timeMatch = words.match(/\d{4}年\d{1,2}月\d{1,2}日\d{1,2}[:：]\d{2}[:：]\d{2}/);
+        const temp = words.match(/\d{4}年\d{1,2}月\d{1,2}日/);
+        if (timeMatch || temp) {
+          let tempTime = '';
+          if (timeMatch) {
+            tempTime = timeMatch[0];
+          } else {
+            tempTime = temp + ' ' + data[index + 1]?.words;
+          }
+          if (info.time !== '') {
+            info.otherTime = tempTime;
+          } else {
+            info.time = tempTime;
+          }
+        }
 
+        // 二维码付款名称
+        const nameMatch = words.match(/扫二维码付款-([^-]+)/);
+        if (nameMatch) info.name = nameMatch[1];
+        
+        // 转账付款名称
+        const transferNameMatch = words.match(/转账-([^-]+)/);
+        if (transferNameMatch) info.transferName = transferNameMatch[1];
+        
+        // 账单号
+        const orderMatch = words.match(/\d{16,32}/);
+        if (orderMatch && /单号/.test(data[index - 1]?.words)) {
+          if (orderMatch[0].length < 32) {
+            info.orderNumber = orderMatch[0] + data[index + 1]?.words;
+          } else {
+            info.orderNumber = orderMatch[0];
+          }
+        }
+      });
 
-					// 二维码付款名称（提取"扫二维码付款-"后的内容）
-					const nameMatch = words.match(/扫二维码付款-([^-]+)/);
-					if (nameMatch) info.name = nameMatch[1];
-                    // 转账付款名称
-					const transferNameMatch = words.match(/转账-([^-]+)/);
-					if (transferNameMatch) info.transferName = transferNameMatch[1];
-					// 账单号（匹配纯数字且长度较长的字符串）
-					const orderMatch = words.match(/\d{16,32}/); // 假设账单号为16-32位数字
-					console.log(orderMatch, /单号/.test(data[index - 1]?.words), index - 1);
-					if (orderMatch && /单号/.test(data[index - 1]?.words)) {
+      // 格式化日期
+      if (info.time) {
+        info.time = info.time.replace(/日(\d)/, '日 $1').replace(/：/g, ':');
+      }
+      
+      if (info.otherTime) {
+        info.otherTime = info.otherTime.replace(/日(\d)/, '日 $1').replace(/：/g, ':');
+      }
 
-						if (orderMatch[0].length < 32) {
-							info.orderNumber = orderMatch[0] + data[index + 1]?.words;
-						} else
-							info.orderNumber = orderMatch[0];
-					}
-					
-				});
+      return info;
+    },
+    
+    goCodePayChild(i) {
+      if (!this.extractedInfo) {
+        this.extractedInfo = this.extractInfoWithRegex(this.resultList);
+      }
+      
+      if (i === 1) {
+        uni.navigateTo({
+          url: "/pages/codePayChild/codePayChild?info=" + encodeURIComponent(JSON.stringify(this.extractedInfo))
+        });
+      } else {
+        uni.navigateTo({
+          url: "/pages/transfer/transfer?info=" + encodeURIComponent(JSON.stringify(this.extractedInfo))
+        });
+      }
+    },
+    
+    // 选择图片
+    chooseImage() {
+      uni.chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera'],
+        success: (res) => {
+          this.imagePath = res.tempFilePaths[0];
+          console.log("获取图片结果", res.tempFiles[0]);
+          this.startOcr(); // 选中图片后立即开始识别
+        },
+        fail: (err) => {
+          uni.showToast({
+            title: '选择图片失败',
+            icon: 'none'
+          });
+        }
+      });
+    },
 
-				return info;
-			},
-			goCodePayChild(i) {
-				const info = this.extractInfoWithRegex(this.resultList)
-				const formattedDate = info.time.replace(/日(\d)/, '日 $1') // 在"日"字后面添加空格
-					.replace(/：/g, ':'); // 全局替换中文冒号为英文冒号
-				console.log(formattedDate);
-				info.time = formattedDate
-				if(info.otherTime != ''){
-					const formattedDate_other = info.otherTime.replace(/日(\d)/, '日 $1') // 在"日"字后面添加空格
-						.replace(/：/g, ':'); // 全局替换中文冒号为英文冒号
-					info.otherTime =formattedDate_other
-				}
-				console.log(info);
-				if(i === 1){
-					uni.navigateTo({
-						url: "/pages/codePayChild/codePayChild?info=" + encodeURIComponent(JSON.stringify(info))
-					})
-				}else{
-					uni.navigateTo({
-						url: "/pages/transfer/transfer?info=" + encodeURIComponent(JSON.stringify(info))
-					})
-				}
-				
-				// console.log();
-			},
-			// 选择图片（保持不变）
-			chooseImage() {
-				uni.chooseImage({
-					count: 1,
-					success: (res) => {
-						this.imagePath = res.tempFilePaths[0];
-						console.log("获取图片结果", res.tempFiles[0]);
-						// this.imageBase64 = codeBase(res.tempFiles[0])
+    // 清除图片
+    clearImage() {
+      this.imagePath = '';
+      this.resultList = [];
+      this.extractedInfo = null;
+    },
 
-						// console.log(codeBase(res.tempFiles[0]))
-						// const tempFilePath = res.tempFilePaths[0];
-						this.startOcr(); // 选中图片后立即开始识别
-					},
-					fail: (err) => {
-						uni.showToast({
-							title: '选择图片失败',
-							icon: 'none'
-						});
-					}
-				});
-			},
+    // 开始 OCR 识别
+    async startOcr() {
+      if (!this.imagePath) return;
+      this.isLoading = true;
 
-			// 清除图片（保持不变）
-			clearImage() {
-				this.imagePath = '';
-				this.resultList = [];
-			},
+      try {
+        const accessToken = await this.getBaiduAccessToken();
+        const result = await this.uploadToBaiduOCR(this.imagePath, accessToken);
+        this.handleOcrResult(result);
+      } catch (error) {
+        console.error('识别失败:', error);
+        uni.showToast({
+          title: '识别失败，请重试',
+          icon: 'none'
+        });
+      } finally {
+        this.isLoading = false;
+      }
+    },
 
-			// 开始 OCR 识别（修改后）
-			async startOcr() {
-				if (!this.imagePath) return;
-				this.isLoading = true;
+    // 获取百度云 AccessToken
+    getBaiduAccessToken() {
+      return new Promise((resolve, reject) => {
+        uni.request({
+          url: `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${this.baiduConfig.apiKey}&client_secret=${this.baiduConfig.secretKey}`,
+          method: 'GET',
+          success: (res) => {
+            resolve(res.data.access_token);
+          },
+          fail: (err) => {
+            reject(new Error('获取 Token 失败'));
+          }
+        });
+      });
+    },
 
-				try {
-					const accessToken = await this.getBaiduAccessToken();
-					const result = await this.uploadToBaiduOCR(this.imagePath, accessToken);
-					this.handleOcrResult(result);
-				} catch (error) {
-					console.error('识别失败:', error);
-					uni.showToast({
-						title: '识别失败，请重试',
-						icon: 'none'
-					});
-				} finally {
-					this.isLoading = false;
-				}
-			},
+    // 上传图片到百度 OCR
+    uploadToBaiduOCR(imagePath, accessToken) {
+      return new Promise(async (resolve, reject) => {
+        try {
+          // 将图片转为 Base64
+          const base64Image = await this.readImageAsBase64(imagePath);
 
-			// 获取百度云 AccessToken（保持不变）
-			getBaiduAccessToken() {
-				return new Promise((resolve, reject) => {
-					uni.request({
-						url: `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${this.baiduConfig.apiKey}&client_secret=${this.baiduConfig.secretKey}`,
-						method: 'GET',
-						success: (res) => {
-							resolve(res.data.access_token);
-						},
-						fail: (err) => {
-							reject(new Error('获取 Token 失败'));
-						}
-					});
-				});
-			},
+          // 发送请求
+          uni.request({
+            url: `${this.baiduConfig.apiUrl}?access_token=${accessToken}`,
+            method: 'POST',
+            header: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data: {
+              image: base64Image,
+              language_type: 'CHN_ENG',
+              detect_direction: 'true'
+            },
+            success: (res) => {
+              console.log('百度 OCR 返回:', res.data);
+              if (res.statusCode === 200) {
+                resolve(res.data);
+              } else {
+                reject(new Error(`请求失败：${res.statusCode}`));
+              }
+            },
+            fail: (err) => {
+              console.error('网络错误:', err);
+              reject(err);
+            }
+          });
+        } catch (error) {
+          console.error('图片转换失败:', error);
+          reject(error);
+        }
+      });
+    },
 
-			// 上传图片到百度 OCR（使用 uni.request + Base64）
-			uploadToBaiduOCR(imagePath, accessToken) {
-				return new Promise(async (resolve, reject) => {
-					try {
+    // 读取图片为 Base64
+    async readImageAsBase64(imagePath) {
+      console.log('开始转换图片为 Base64，路径:', imagePath);
+      
+      // #ifdef H5
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', imagePath, true);
+        xhr.responseType = 'blob';
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64 = reader.result.split(',')[1];
+              resolve(base64);
+            };
+            reader.readAsDataURL(xhr.response);
+          } else {
+            reject(new Error(`图片加载失败: ${xhr.status}`));
+          }
+        };
+        xhr.onerror = reject;
+        xhr.send();
+      });
+      // #endif
 
-						// 将图片转为 Base64（使用之前定义的 readImageAsBase64 函数）
-						const base64Image = await this.readImageAsBase64(imagePath);
+      // 优先使用 uni.readFile
+      if (typeof uni.readFile === 'function') {
+        try {
+          console.log('尝试使用 uni.readFile...');
+          const { data } = await uni.readFile({
+            filePath: imagePath,
+            encoding: 'base64'
+          });
+          console.log('uni.readFile 成功，Base64 长度:', data.length);
+          return data.replace(/^data:image\/\w+;base64,/, '');
+        } catch (err) {
+          console.error('uni.readFile 失败:', err);
+        }
+      }
 
-						// 使用 uni.request 发送 POST 请求，携带 Base64 编码的图片
-						uni.request({
-							url: `${this.baiduConfig.apiUrl}?access_token=${accessToken}`,
-							method: 'POST',
-							header: {
-								'Content-Type': 'application/x-www-form-urlencoded' // 百度 OCR 要求的格式
-							},
-							data: {
-								image: base64Image, // 关键：Base64 编码的图片数据
-								language_type: 'CHN_ENG',
-								detect_direction: 'true'
-							},
-							success: (res) => {
-								console.log('百度 OCR 返回:', res.data);
-								if (res.statusCode === 200) {
-									resolve(res.data);
-								} else {
-									reject(new Error(`请求失败：${res.statusCode}`));
-								}
-							},
-							fail: (err) => {
-								console.error('网络错误:', err);
-								reject(err);
-							}
-						});
-					} catch (error) {
-						console.error('图片转换失败:', error);
-						reject(error);
-					}
-				});
-			},
+      // 使用 plus.io
+      if (typeof plus !== 'undefined') {
+        try {
+          console.log('尝试使用 plus.io...');
+          return new Promise((resolve, reject) => {
+            plus.io.resolveLocalFileSystemURL(imagePath, (entry) => {
+              entry.file((file) => {
+                const reader = new plus.io.FileReader();
+                reader.onloadend = (e) => {
+                  console.log('plus.io 成功，Base64 长度:', e.target.result.length);
+                  const base64 = e.target.result.split(',')[1];
+                  resolve(base64);
+                };
+                reader.onerror = (err) => {
+                  console.error('plus.io 读取失败:', err);
+                  reject(new Error(`读取文件失败: ${err.message}`));
+                };
+                reader.readAsDataURL(file);
+              }, (err) => {
+                console.error('plus.io 获取文件失败:', err);
+                reject(new Error(`获取文件信息失败: ${err.message}`));
+              });
+            }, (err) => {
+              console.error('plus.io 解析路径失败:', err);
+              reject(new Error(`解析文件路径失败: ${err.message}`));
+            });
+          });
+        } catch (err) {
+          console.error('plus.io 异常:', err);
+        }
+      }
 
-			// 确保 readImageAsBase64 函数正确处理 Base64 编码
-			// 读取图片为 Base64（Android 专用）
-			async readImageAsBase64(imagePath) {
-				console.log('开始转换图片为 Base64，路径:', imagePath);
-				// #ifdef H5
-				// H5 环境保持不变
-				return new Promise((resolve, reject) => {
-					const xhr = new XMLHttpRequest();
-					xhr.open('GET', imagePath, true);
-					xhr.responseType = 'blob';
-					xhr.onload = () => {
-						if (xhr.status === 200) {
-							const reader = new FileReader();
-							reader.onloadend = () => {
-								const base64 = reader.result.split(',')[1];
-								resolve(base64);
-							};
-							reader.readAsDataURL(xhr.response);
-						} else {
-							reject(new Error(`图片加载失败: ${xhr.status}`));
-						}
-					};
-					xhr.onerror = reject;
-					xhr.send();
-				});
-				// #endif
+      // 所有方案都失败
+      throw new Error('无法在当前环境读取文件，请确保使用自定义基座并配置了文件权限');
+    },
 
-				// 方案 1：优先使用 uni.readFile（最新 API）
-				if (typeof uni.readFile === 'function') {
-					try {
-						console.log('尝试使用 uni.readFile...');
-						const {
-							data
-						} = await uni.readFile({
-							filePath: imagePath,
-							encoding: 'base64'
-						});
-						console.log('uni.readFile 成功，Base64 长度:', data.length);
-						return data.replace(/^data:image\/\w+;base64,/, '');
-					} catch (err) {
-						console.error('uni.readFile 失败:', err);
-						// 继续尝试其他方案
-					}
-				}
-
-				// 方案 3：使用 plus.io（5+ Runtime API，Android 原生环境）
-				if (typeof plus !== 'undefined') {
-					try {
-						console.log('尝试使用 plus.io...');
-						return new Promise((resolve, reject) => {
-							plus.io.resolveLocalFileSystemURL(imagePath, (entry) => {
-								entry.file((file) => {
-									const reader = new plus.io.FileReader();
-									reader.onloadend = (e) => {
-										console.log('plus.io 成功，Base64 长度:', e.target
-											.result.length);
-										const base64 = e.target.result.split(',')[1];
-										resolve(base64);
-									};
-									reader.onerror = (err) => {
-										console.error('plus.io 读取失败:', err);
-										reject(new Error(`读取文件失败: ${err.message}`));
-									};
-									reader.readAsDataURL(file);
-								}, (err) => {
-									console.error('plus.io 获取文件失败:', err);
-									reject(new Error(`获取文件信息失败: ${err.message}`));
-								});
-							}, (err) => {
-								console.error('plus.io 解析路径失败:', err);
-								reject(new Error(`解析文件路径失败: ${err.message}`));
-							});
-						});
-					} catch (err) {
-						console.error('plus.io 异常:', err);
-					}
-				}
-
-				// 所有方案都失败
-				throw new Error('无法在当前环境读取文件，请确保使用自定义基座并配置了文件权限');
-			},
-			// 读取图片为 Base64（使用新 API）
-			// async readImageAsBase64(imagePath) {
-			// 	try {
-			// 		// #ifdef H5
-			// 		// H5 环境保持不变
-			// 		return new Promise((resolve, reject) => {
-			// 			const xhr = new XMLHttpRequest();
-			// 			xhr.open('GET', imagePath, true);
-			// 			xhr.responseType = 'blob';
-			// 			xhr.onload = () => {
-			// 				if (xhr.status === 200) {
-			// 					const reader = new FileReader();
-			// 					reader.onloadend = () => {
-			// 						const base64 = reader.result.split(',')[1];
-			// 						resolve(base64);
-			// 					};
-			// 					reader.readAsDataURL(xhr.response);
-			// 				} else {
-			// 					reject(new Error(`图片加载失败: ${xhr.status}`));
-			// 				}
-			// 			};
-			// 			xhr.onerror = reject;
-			// 			xhr.send();
-			// 		});
-			// 		// #endif
-
-			// 		// #ifndef H5
-			// 		// 非 H5 环境使用 uni.readFile
-			// 		const fileData = await uni.readFile({
-			// 			filePath: imagePath,
-			// 			encoding: 'base64'
-			// 		});
-
-			// 		// 确保没有 data:URL 前缀
-			// 		const pureBase64 = fileData.data.replace(/^data:image\/\w+;base64,/, '');
-			// 		return pureBase64;
-			// 		// #endif
-			// 	} catch (error) {
-			// 		console.error('读取图片失败:', error);
-			// 		throw error;
-			// 	}
-			// },
-			// 处理识别结果（保持不变）
-			handleOcrResult(result) {
-				console.log(result.words_result);
-				this.resultList = result.words_result || [];
-				if (this.resultList.length === 0) {
-					uni.showToast({
-						title: '未识别到文字',
-						icon: 'none'
-					});
-				}
-			}
-		}
-	};
+    // 处理识别结果
+    handleOcrResult(result) {
+      console.log(result.words_result);
+      this.resultList = result.words_result || [];
+      this.extractedInfo = this.extractInfoWithRegex(this.resultList);
+      
+      if (this.resultList.length === 0) {
+        uni.showToast({
+          title: '未识别到文字',
+          icon: 'none'
+        });
+      } else {
+        uni.showToast({
+          title: '识别成功',
+          icon: 'success'
+        });
+      }
+    }
+  }
+};
 </script>
 
 <style scoped>
-	.footer_btn {
-		margin: 30rpx 0 ;
-		display: flex;
-		align-items: center;
-	}
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+}
 
-	.container {
-		padding: 30rpx;
-		background-color: #f5f5f5;
-		height: 100vh;
-	}
+/* 顶部导航 */
+.header {
+  height: 100rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 30rpx;
+  background-color: #fff;
+  box-shadow: 0 2rpx 5rpx rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 10;
+}
 
-	.header {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		padding: 40rpx 0;
-	}
+.back-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
 
-	.title {
-		font-size: 40rpx;
-		font-weight: bold;
-		color: #333;
-		margin-right: 20rpx;
-	}
+.back-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
 
-	.upload-btn {
-		background-color: #1e90ff;
-		color: white;
-		padding: 15rpx 40rpx;
-		border-radius: 30rpx;
-		display: flex;
-		align-items: center;
-	}
+.page-title {
+  flex: 1;
+  text-align: center;
+  font-size: 36rpx;
+  font-weight: 500;
+  color: #333;
+}
 
-	.upload-btn .iconfont {
-		font-size: 32rpx;
-		margin-right: 10rpx;
-	}
+.spacer {
+  width: 60rpx;
+  height: 60rpx;
+}
 
-	.image-preview {
-		margin: 40rpx 0;
-		border-radius: 15rpx;
-		overflow: hidden;
-		position: relative;
-		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-	}
+/* 内容区域 */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30rpx;
+  -webkit-overflow-scrolling: touch;
+}
 
-	.image-preview image {
-		width: 100%;
-	}
+/* 功能卡片 */
+.function-card {
+  background-color: #fff;
+  border-radius: 20rpx;
+  box-shadow: 0 5rpx 15rpx rgba(0, 0, 0, 0.05);
+  margin-bottom: 30rpx;
+  overflow: hidden;
+}
 
-	.close-btn {
-		position: absolute;
-		top: 10rpx;
-		right: 10rpx;
-		font-size: 36rpx;
-		color: white;
-		background-color: rgba(0, 0, 0, 0.5);
-		width: 40rpx;
-		height: 40rpx;
-		border-radius: 50%;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		cursor: pointer;
-	}
+.card-title {
+  padding: 25rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
 
-	.result-container {
-		background-color: white;
-		padding: 30rpx;
-		border-radius: 15rpx;
-		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-	}
+.card-title text {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+}
 
-	.result-title {
-		font-size: 34rpx;
-		font-weight: 500;
-		color: #666;
-		margin-bottom: 20rpx;
-	}
+.card-content {
+  display: flex;
+  padding: 30rpx;
+}
 
-	.result-item {
-		display: flex;
-		align-items: flex-start;
-		margin-bottom: 20rpx;
-	}
+.function-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx;
+  border-radius: 15rpx;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
 
-	.item-index {
-		font-size: 32rpx;
-		color: #1e90ff;
-		margin-right: 15rpx;
-		min-width: 40rpx;
-	}
+.function-item:not(:last-child) {
+  margin-right: 20rpx;
+}
 
-	.item-text {
-		font-size: 32rpx;
-		color: #333;
-		line-height: 45rpx;
-	}
+.function-item:active {
+  background-color: rgba(74, 144, 226, 0.05);
+}
 
-	.loading {
-		margin-top: 30rpx;
-		font-size: 32rpx;
-		color: #999;
-		text-align: center;
-	}
+.function-item uni-icons {
+  margin-bottom: 15rpx;
+}
+
+.function-item text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.function-item.disabled uni-icons {
+  color: #999;
+}
+
+.function-item.disabled text {
+  color: #999;
+}
+
+.tag {
+  margin-top: 10rpx;
+  padding: 5rpx 15rpx;
+  border-radius: 15rpx;
+  font-size: 22rpx;
+  color: #4A90E2;
+  background-color: rgba(74, 144, 226, 0.1);
+}
+
+.tag.disabled {
+  color: #999;
+  background-color: #f5f5f5;
+}
+
+/* 图片预览区域 */
+.image-preview {
+  margin: 30rpx 0;
+  border-radius: 20rpx;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 5rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.preview-wrapper {
+  position: relative;
+  padding-bottom: 100%; /* 保持正方形 */
+  background-color: #f0f2f5;
+}
+
+.preview-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.close-btn {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  width: 50rpx;
+  height: 50rpx;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5rpx);
+  transition: all 0.2s ease;
+}
+
+.close-btn:active {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* 识别结果卡片 */
+.result-card {
+  background-color: #fff;
+  border-radius: 20rpx;
+  box-shadow: 0 5rpx 15rpx rgba(0, 0, 0, 0.05);
+  margin-bottom: 30rpx;
+  overflow: hidden;
+}
+
+.result-header {
+  padding: 25rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.result-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.result-stats {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.result-content {
+  padding: 30rpx;
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+
+.result-item {
+  margin-bottom: 20rpx;
+  padding: 15rpx 20rpx;
+  background-color: #f9f9f9;
+  border-radius: 12rpx;
+  transition: all 0.2s ease;
+}
+
+.result-item:hover {
+  background-color: #f0f2f5;
+}
+
+.item-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* 提取信息区域 */
+.extracted-info {
+  padding: 25rpx 30rpx;
+  background-color: #f9f9f9;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.info-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 15rpx;
+}
+
+.info-item {
+  display: flex;
+  margin-bottom: 10rpx;
+  padding: 10rpx 15rpx;
+  background-color: #fff;
+  border-radius: 10rpx;
+  box-shadow: 0 2rpx 5rpx rgba(0, 0, 0, 0.03);
+}
+
+.info-label {
+  flex-basis: 150rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.info-value {
+  flex: 1;
+  font-size: 26rpx;
+  color: #333;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: flex;
+  margin-bottom: 40rpx;
+}
+
+.action-btn {
+  flex: 1;
+  height: 90rpx;
+  background: linear-gradient(135deg, #4A90E2, #3A80D2);
+  color: #fff;
+  border-radius: 24rpx;
+  font-size: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10rpx 20rpx rgba(74, 144, 226, 0.2);
+  transition: all 0.2s ease;
+}
+
+.action-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 5rpx 10rpx rgba(74, 144, 226, 0.2);
+}
+
+.action-btn:first-child {
+  margin-right: 20rpx;
+}
+
+.action-btn uni-icons {
+  margin-right: 15rpx;
+}
+
+/* 历史记录按钮 */
+.history-btn {
+  width: 100%;
+  height: 90rpx;
+  background-color: #fff;
+  border: 1rpx solid #4A90E2;
+  color: #4A90E2;
+  border-radius: 24rpx;
+  font-size: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.history-btn:active {
+  background-color: rgba(74, 144, 226, 0.05);
+}
+
+.history-btn uni-icons {
+  margin-right: 15rpx;
+}
+
+/* 加载状态 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(5rpx);
+}
+
+.loading-content {
+  padding: 40rpx 50rpx;
+  background-color: #fff;
+  border-radius: 20rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.loading-icon {
+  margin-bottom: 15rpx;
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-content text {
+  font-size: 30rpx;
+  color: #666;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6rpx;
+  height: 6rpx;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(74, 144, 226, 0.2);
+  border-radius: 3rpx;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 144, 226, 0.3);
+}
 </style>

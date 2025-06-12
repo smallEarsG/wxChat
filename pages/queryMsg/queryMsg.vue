@@ -41,6 +41,7 @@
 					this.msgList = []
 					return
 				}
+				console.log("====");
 				const userId = uni.getStorageSync('userId')
 				const res = await searchConversationsByName(userId,v,'chat')
 				this.msgList = res.data

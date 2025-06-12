@@ -1,9 +1,9 @@
 {
-    "name" : "销售图生成器",
+    "name" : "销售模板生成器",
     "appid" : "__UNI__F0A0757",
     "description" : "",
-    "versionName" : "1.2.0",
-    "versionCode" : 120,
+    "versionName" : "1.2.1",
+    "versionCode" : 121,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
@@ -53,8 +53,7 @@
             "sdkConfigs" : {
                 "ad" : {
                     "gdt" : {},
-                    "ks" : {},
-                    "ks-content" : {}
+                    "ks" : {}
                 },
                 "payment" : {
                     "alipay" : {

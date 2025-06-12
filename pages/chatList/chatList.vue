@@ -241,7 +241,7 @@
 			},
 			goQuery() {
 				uni.navigateTo({
-					url: '/pages/wxQueryMsg/wxQueryMsg'
+					url: '/pages/queryMsg/queryMsg'
 				})
 			},
 			goChat(item) {
