@@ -437,20 +437,18 @@
 		margin-top: 40rpx;
 		padding-bottom: 60rpx;
 	}
-
+	
 	.sub {
 		height: 8rpx;
 		width: 26rpx;
 		background-color: #000
 	}
-
 	.num {
 		display: flex;
 		align-items: center;
 		margin-top: 40rpx;
 		font-weight: 500;
 		font-size: 56rpx;
-
 	}
 	.num_txt{
 		font-variant-numeric: tabular-nums; /* 强制使用等宽数字 */
@@ -460,19 +458,16 @@
 		margin-top: 30rpx;
 		font-size: 32rpx;
 	}
-
 	.left {
 		color: #9b9b9b;
 		width: 80px;
 	}
-
 	.item {
 		flex: 1;
 		display: flex;
 		font-size: 28rpx;
 		margin-bottom: 20rpx;
 	}
-
 	.order_info {
 		display: flex;
 		flex-direction: column;

@@ -2,6 +2,7 @@
   "dependencies": {
     "@dcloudio/uni-ui": "^1.5.7",
     "@vant/weapp": "^1.11.7",
+    "emoji-vue": "^0.2.4",
     "vant": "^2.13.7"
   }
 }

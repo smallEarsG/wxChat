@@ -29,15 +29,17 @@
 
 					<!-- 时间 -->
 					<view @longpress="showPopupMenu($event, i)" v-if="item.type == 'tips'" class="msg-time cell">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
 						</view>
 						{{item.content}}
 					</view>
 					<view class="orderBox cell" @longpress="showPopupMenu($event, i)"
 						v-else-if="item.contentType == 'order'">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+							<view class="menu-item" @click="insertTime(i)">插入时间</view>
+							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
 						</view>
 						<view class="msg right">
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
@@ -47,8 +49,10 @@
 					</view>
 					<!-- 转账 -->
 					<view v-else-if="item.contentType == 'transfer'" @longpress="showPopupMenu($event, i)" class="cell">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+							<view class="menu-item" @click="insertTime(i)">插入时间</view>
+							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
 						</view>
 						<view class="msg left" @longpress="showPopupMenu($event, i)" @click="resTransfer(i)"
 							v-if="item.location == 0">
@@ -66,8 +70,10 @@
 					</view>
 					<!-- 收款 -->
 					<view v-else-if="item.contentType == 'wxtf'" @longpress="showPopupMenu($event, i)" class="cell">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+							<view class="menu-item" @click="insertTime(i)">插入时间</view>
+							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
 						</view>
 						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
 							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
@@ -81,8 +87,10 @@
 					<!-- 图片photo -->
 
 					<view v-else-if="item.contentType == 'photo'" @longpress="showPopupMenu($event, i)" class="cell">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+							<view class="menu-item" @click="insertTime(i)">插入时间</view>
+							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
 						</view>
 						<view class="msg left" v-if="item.location == 0" @longpress="showPopupMenu($event, i)">
 							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
@@ -95,27 +103,33 @@
 						</view>
 					</view>
 					<view v-else-if="item.contentType == 'redBag'" @click="getRB(i)" class="cell">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+							<view class="menu-item" @click="insertTime(i)">插入时间</view>
+							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
 						</view>
-						<view class="msg left"  @longpress="showPopupMenu($event, i)"  v-if="item.location == 0"  >
+						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
 							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
-								<RedBag  :class="item.content?'redbagLeft':'redbagLeftBg'" :location="item.location" :name="guestInfo.name  + (guestInfo.description||'')" :state="item.content"></RedBag>
-							
+							<RedBag :class="item.content?'redbagLeft':'redbagLeftBg'" :location="item.location"
+								:name="guestInfo.name  + (guestInfo.description||'')" :state="item.content"></RedBag>
+
 						</view>
-						<view class="msg right"   @longpress="showPopupMenu($event, i)"  v-else>
-							
+						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
+
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-								<RedBag  :class="item.content?'redbagRight':'redbagRightBg'" :location="item.location" :name="guestInfo.name + (guestInfo.description||'')" :state="item.content"></RedBag>
-							
+							<RedBag :class="item.content?'redbagRight':'redbagRightBg'" :location="item.location"
+								:name="guestInfo.name + (guestInfo.description||'')" :state="item.content"></RedBag>
+
 						</view>
 					</view>
 					<!-- 名片 -->
 					<view v-else-if="item.contentType == 'crad'" @longpress="showPopupMenu($event, i)" class="cell">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+							<view class="menu-item" @click="insertTime(i)">插入时间</view>
+							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
 						</view>
-						
+
 						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
 							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<WxCard class="cardLeft" :nickname="item.content.nickname" :avatar="item.content.avatar">
@@ -130,8 +144,10 @@
 					<!-- l、聊天 -->
 					<view v-else-if="item.contentType == 'chat'" @longpress="showPopupMenu($event, i)" class="cell">
 
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
+							<view class="menu-item" @click="insertTime(i)">插入时间</view>
+							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
 						</view>
 						<!-- 聊天内容 -->
 						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
@@ -240,7 +256,7 @@
 					this.guestInfo = JSON.parse(decodeURIComponent(options.guestInfo));
 					console.log(this.guestInfo);
 					this.massageList = JSON.parse(this.guestInfo.content)
-					if(this.massageList == null){
+					if (this.massageList == null) {
 						this.massageList = []
 					}
 				} catch (e) {
@@ -265,6 +281,7 @@
 		},
 		data() {
 			return {
+				currentActionIndex: -1, // 添加当前操作的消息索引
 				activeMsgIndex: -1, // 当前激活的消息索引
 				keyboardHeight: true,
 				userInfo: {},
@@ -318,66 +335,10 @@
 						label: '红包',
 						icon: '/static/redBag.png'
 					}
-					// {
-					// 	name: 'collection',
-					// 	label: '收藏',
-					// 	icon: '/static/icon-collection.png'
-					// },
-					// {
-					// 	name: 'voice',
-					// 	label: '语音输入',
-					// 	icon: '/static/icon-voice.png'
-					// },
-					// {
-					// 	name: 'todo',
-					// 	label: '待办',
-					// 	icon: '/static/icon-todo.png'
-					// },
-					// {
-					// 	name: 'calendar',
-					// 	label: '日程',
-					// 	icon: '/static/icon-calendar.png'
-					// }
+
 				],
 				massageList: [
-					// {
-					// 	type: "tips", // tips, content
-					// 	contentType: "chat", //order , chat ,link
-					// 	location: 0, // 1 表示我方
-					// 	content: "2024年12月24日 14:10",
 
-					// },
-					// {
-					// 	type: "content", // tips, content
-					// 	contentType: "chat", //order , chat ,link
-					// 	location: 0, // 1 表示我方
-					// 	content: "你好，欢迎来到企业微信工坊"
-
-					// },
-					// {
-					// 	type: "content", // tips, content
-					// 	contentType: "chat", //order , chat ,link
-					// 	location: 1, // 1 表示我方
-					// 	content: "你好，欢迎来到企业微信工坊"
-
-					// },
-					// {
-					// 	type: "tips", // tips, content
-					// 	contentType: "chat", //order , chat ,link
-					// 	location: 0, // 1 表示我方
-					// 	content: "2024年12月24日 14:10",
-
-
-					// },
-					// {
-					// 	type: "content", // tips, content
-					// 	contentType: "crad", //order , chat ,link
-					// 	location: 1, // 1 表示我方
-					// 	content: {
-					// 		name:"G",
-
-					// 	}
-					// }
 				],
 				orderInfo: {
 					shopName: "",
@@ -408,7 +369,29 @@
 				},
 				cradKey: {
 					name: "用户名",
-				}
+				},
+				// 弹出菜单相关数据
+				popupStyle: {},
+				popupVisible: false,
+				menuItems: [{
+						name: 'delete',
+						label: '删除',
+						icon: '/static/icon-delete.png'
+					},
+					{
+						name: 'insertTime',
+						label: '插入时间',
+						icon: '/static/icon-time.png'
+					},
+					{
+						name: 'toggleRole',
+						label: '切换角色',
+						icon: '/static/icon-contacts.png'
+					}
+				],
+				// 新增数据属性
+				timePopupVisible: false,
+				currentTime: ''
 			};
 		},
 		computed: {
@@ -422,8 +405,8 @@
 			}
 		},
 		methods: {
-			getRB(i){
-			
+			getRB(i) {
+
 				this.massageList[i].content = !this.massageList[i].content
 				this.updateMsg()
 			},
@@ -445,19 +428,59 @@
 				console.log(index);
 				this.massageList.splice(index, 1);
 				this.activeMsgIndex = -1; // 清除激活状态
+				this.popupVisible = false;
 				this.updateMsg()
 			},
 			showPopupMenu(e, index) {
-				// console.log("====",index, e);
-				this.activeMsgIndex = index;
-
 				// 获取触摸坐标，适配弹出菜单位置
 				const touch = e.touches?.[0] || {};
-				// this.popupTop = 50 // touch.clientY - 100; // 往上偏移
-				// this.popupLeft = 0  //touch.clientX - 50; // 居中偏移
+				const clientX = touch.clientX || 0;
+				const clientY = touch.clientY || 0;
+
+				// 获取窗口宽度
+				const windowWidth = uni.getSystemInfoSync().windowWidth;
+
+				// 计算菜单位置，确保不超出屏幕
+				let left = clientX - 150; // 调整偏移以适应更多菜单项
+				if (left < 0) left = 10; // 防止超出左边界
+				if (left + 300 > windowWidth) left = windowWidth - 310; // 防止超出右边界
+
+				// 设置菜单样式
+				this.popupStyle = {
+					left: `${left}px`,
+					top: `${clientY - 80}px`,
+					opacity: 0,
+					transform: 'scale(0.8)',
+					transition: 'all 0.2s ease-out'
+				};
+
+				// 延迟设置可见性，以便动画效果生效
+				this.activeMsgIndex = index;
+				this.popupVisible = true;
+
+				// 触发重绘后设置最终样式
+				setTimeout(() => {
+					this.popupStyle = {
+						...this.popupStyle,
+						opacity: 1,
+						transform: 'scale(1)'
+					};
+				}, 10);
 			},
 			closePopupMenu() {
-				this.activeMsgIndex = -1;
+				// 添加关闭动画
+				this.popupStyle = {
+					...this.popupStyle,
+					opacity: 0,
+					transform: 'scale(0.8)',
+					transition: 'all 0.2s ease-out'
+				};
+
+				// 延迟隐藏，让动画完成
+				setTimeout(() => {
+					this.activeMsgIndex = -1;
+					this.popupVisible = false;
+				}, 200);
 			},
 			async getUserInfo(userId) {
 				console.log("执行用户信息获取", userId);
@@ -546,17 +569,23 @@
 				this.updateMsg()
 			},
 			onTimeSubmit(data) {
-				const location = this.isMe ? 1 : 0
-				console.log(data);
-				const timeInfo = {
-					type: "tips", // tips, content
-					contentType: "chat", //order , chat ,link
-					location, // 1 表示我方
-					content: data.time
-				}
-				console.log(this.massageList);
-				this.massageList.push(timeInfo)
-				this.updateMsg()
+				   const timeInfo = {
+				        type: "tips",
+				        contentType: "chat",
+				        content: data.time
+				    }
+				    
+				    // 如果有当前操作的索引，将时间插入到该消息上方
+				    if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
+				        this.massageList.splice(this.currentActionIndex, 0, timeInfo);
+				        // 插入后重置索引
+				        this.currentActionIndex = -1;
+				    } else {
+				        // 否则默认添加到末尾
+				        this.massageList.push(timeInfo);
+				    }
+				    
+				    this.updateMsg()
 			},
 			goBack() {
 				uni.navigateBack();
@@ -629,6 +658,43 @@
 					this.inputValue = '';
 					this.updateMsg()
 				}
+			},
+			// 新增时间插入功能
+			insertTime(index) {
+				this.currentActionIndex = index;
+					this.$refs.timePopup.open()
+					this.activeMsgIndex = -1;
+				// 显示时间确认弹窗
+				this.timePopupVisible = true;
+			},
+		
+			// 取消插入时间
+			cancelInsertTime() {
+				this.timePopupVisible = false;
+				this.activeMsgIndex = -1;
+				this.popupVisible = false;
+			},
+
+			// 新增角色切换功能
+			toggleRole(index) {
+				// 获取当前消息
+				const currentMsg = this.massageList[index];
+
+				// 切换消息角色（1变0，0变1）
+				currentMsg.location = currentMsg.location === 1 ? 0 : 1;
+
+				// 更新消息
+				this.updateMsg();
+
+				// 显示切换成功提示
+				uni.showToast({
+					title: currentMsg.location === 1 ? '已切换为自己' : '已切换为客户',
+					icon: 'none'
+				});
+
+				// 关闭菜单
+				this.activeMsgIndex = -1;
+				this.popupVisible = false;
 			}
 		}
 	};
@@ -658,6 +724,7 @@
 		border-bottom: 6px solid transparent;
 		border-right: 6px solid #fff;
 	}
+
 	.redbagLeftBg,
 	.redbagLeft,
 	.tfCardLeftBg,
@@ -677,6 +744,7 @@
 		border-bottom: 6px solid transparent;
 		border-right: 6px solid #fce1c3
 	}
+
 	.tfCardLeft::after {
 		content: "";
 		position: absolute;
@@ -689,7 +757,7 @@
 		border-right: 6px solid #f99d3b;
 	}
 
-.redbagLeftBg::after {
+	.redbagLeftBg::after {
 		content: "";
 		position: absolute;
 		top: 28rpx;
@@ -700,6 +768,7 @@
 		border-bottom: 6px solid transparent;
 		border-right: 6px solid #f69e94
 	}
+
 	.redbagLeft::after {
 		content: "";
 		position: absolute;
@@ -711,6 +780,7 @@
 		border-bottom: 6px solid transparent;
 		border-right: 6px solid #ff624f;
 	}
+
 	.tfCardRightBg::after {
 		content: "";
 		position: absolute;
@@ -759,6 +829,7 @@
 		border-bottom: 6px solid transparent;
 		border-left: 6px solid #ff624f;
 	}
+
 	.redbagRight,
 	.redbagRightBg,
 	.tfCardRightBg,
@@ -788,11 +859,12 @@
 		right: 0;
 		bottom: 0;
 		z-index: 1;
+		background-color: rgba(0, 0, 0, 0.05);
 	}
 
 	.popup-menu {
-		position: absolute;
-		background-color: #333;
+		position: fixed;
+		background-color: rgba(0, 0, 0, 0.85);
 		color: white;
 		border-radius: 12rpx;
 		padding: 10rpx 20rpx;
@@ -800,13 +872,32 @@
 		display: flex;
 		flex-direction: row;
 		justify-content: space-around;
-		top: -60rpx;
-		right: 50%;
+		overflow: hidden;
+		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 	}
 
 	.menu-item {
-		padding: 10rpx 20rpx;
-		font-size: 24rpx;
+		padding: 15rpx 30rpx;
+		font-size: 28rpx;
+		display: flex;
+		align-items: center;
+		white-space: nowrap;
+		cursor: pointer;
+		transition: background-color 0.2s ease;
+	}
+
+	.menu-item:hover {
+		background-color: rgba(255, 255, 255, 0.1);
+	}
+
+	.menu-item:active {
+		transform: scale(0.95);
+	}
+
+	.menu-item image {
+		width: 30rpx;
+		height: 30rpx;
+		margin-right: 15rpx;
 	}
 
 	.chat-page {
