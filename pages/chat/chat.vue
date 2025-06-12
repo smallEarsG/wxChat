@@ -154,7 +154,11 @@
 							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<view class="bubble">
 								<view>
-									{{item.content}}
+								
+									<template v-for="(part, i) in parseMessage(item.content)">
+									  <text v-if="part.type === 'text'" :key="i">{{ part.content }}</text>
+									  <image v-else-if="part.type === 'emoji'" :key="i" :src="getEmojiUrl(part.index,item.location)" class="emoji-inline" />
+									</template>
 								</view>
 
 							</view>
@@ -166,11 +170,17 @@
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view class="bubble">
 								<view>
-									{{item.content}}
+									<template v-for="(part, i) in parseMessage(item.content)">
+										
+									  <text v-if="part.type === 'text'" :key="i">{{ part.content }}</text>
+									  <image v-else-if="part.type === 'emoji'" :key="i" :src="getEmojiUrl(part.index,item.location)" class="emoji-inline" />
+									</template>
+									
 								</view>
 							</view>
 						</view>
 					</view>
+					<!-- <image src="/static/emoji/emoji_1_blue.png"></image> -->
 				</view>
 
 			</scroll-view>
@@ -183,9 +193,14 @@
 					<image class="icon" src="/static/icon-voice.png"></image>
 					<view class="input—box"><input class="input" placeholder="请输入" v-model="inputValue"
 							@confirm="onEnterKey" /></view>
-					<image class="icon_face" v-if="keyboardHeight" src="/static/icon-face.png"></image>
+					<image class="icon_face" v-if="keyboardHeight" src="/static/icon-face.png" @click="changeEmoji"></image>
 					<image class="icon_plus" src="/static/icon-plus.png" @click="togglePopupBox"></image>
 					<button class="send" @click="onEnterKey" v-if="!keyboardHeight"> 发送 </button>
+				</view>
+				<view class="emoji-picker" v-show="emoji">
+				  <view v-for="index in total" :key="index" class="emoji-item"  @click="addEmojiToInput(index)">
+				    <image :src="getEmojiUrl(index)" class="emoji-img" />
+				  </view>
 				</view>
 				<!-- 抽屉 -->
 				<view class="popup_box" v-show="openPopup">
@@ -281,6 +296,8 @@
 		},
 		data() {
 			return {
+				total: 108,
+				emoji:true,
 				currentActionIndex: -1, // 添加当前操作的消息索引
 				activeMsgIndex: -1, // 当前激活的消息索引
 				keyboardHeight: true,
@@ -590,8 +607,46 @@
 			goBack() {
 				uni.navigateBack();
 			},
+			changeEmoji(){
+				this.openPopup = false
+				this.emoji = !this.emoji 
+			},
+			  // 添加表情到输入框的方法
+			    addEmojiToInput(index) {
+			      // 构建表情标签，例如[smile]
+			      this.inputValue += `[emoji_${index}]`;
+			    },
+				parseMessage(msg) {
+				  const result = [];
+				  const regex = /\[emoji_(\d+)\]/g;
+				  let lastIndex = 0;
+				  let match;
+				
+				  while ((match = regex.exec(msg)) !== null) {
+				    if (match.index > lastIndex) {
+				      result.push({
+				        type: 'text',
+				        content: msg.substring(lastIndex, match.index)
+				      });
+				    }
+				    result.push({
+				      type: 'emoji',
+				      index: parseInt(match[1])
+				    });
+				    lastIndex = regex.lastIndex;
+				  }
+				
+				  if (lastIndex < msg.length) {
+				    result.push({
+				      type: 'text',
+				      content: msg.substring(lastIndex)
+				    });
+				  }
+				  return result;
+				},
 			togglePopupBox() {
 				this.openPopup = !this.openPopup;
+				this.emoji = false
 			},
 			onSwitchChange(e) {
 				console.log(e);
@@ -674,7 +729,9 @@
 				this.activeMsgIndex = -1;
 				this.popupVisible = false;
 			},
-
+			getEmojiUrl(index ,location = 0) {
+				return location == 0? `/static/emoji/emoji_${index}.png`:`/static/emoji/emoji_${index}_blue.png`;
+				},
 			// 新增角色切换功能
 			toggleRole(index) {
 				// 获取当前消息
@@ -701,6 +758,34 @@
 </script>
 
 <style scoped>
+	.emoji-inline {
+	  width: 40rpx;
+	  height: 40rpx;
+	  vertical-align: middle;
+	  margin: 0 1px;
+	  position: relative;
+	  top: -6rpx;
+	  
+	}
+	.emoji-picker{
+		background-color: #fff;
+		height: 360rpx;
+		overflow: auto;
+		display: flex;
+		flex-wrap: wrap;
+		padding: 5px;
+	}
+	.emoji-item {
+	  width: 80rpx;
+	  height: 76rpx;
+	  margin: 18rpx;
+	  overflow: hidden;
+	}
+	
+	.emoji-img {
+	  width: 32px;
+	  height: 30px;
+	}
 	.cardRight::after {
 		content: "";
 		position: absolute;
@@ -1026,10 +1111,10 @@
 	.bubble {
 		max-width: 480rpx;
 		padding: 20rpx 20rpx;
-		font-size: 28rpx;
+		font-size: 32rpx;
 		border-radius: 16rpx;
 		background-color: #ffffff;
-		line-height: 1.5;
+		line-height: 1.3;
 		position: relative;
 		box-sizing: border-box;
 	}
