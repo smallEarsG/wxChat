@@ -2,24 +2,24 @@
 	<view class="container">
 		<view class="nav" @click="goBack" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<uni-icons class="close" type="closeempty" color="#000" size="22"></uni-icons>
-			
+
 		</view>
-		
+
 		<view class="content">
 			<!-- <view class="line_b" /> -->
 
 			<view class="order">
-				
+
 				<view class="order_top">
-					<view class="avatar">
-						<image src="/static/paySe.png"></image>
+					<view class="avatar" @click="changeRole">
+						<image :src="info.url||'/static/paySe.png'"></image>
 					</view>
 					<view class="name">
 						扫二维码付款-{{info.name}}
 					</view>
 					<view class="num" @click="exitInfo">
-						<view class="sub" />
-						{{info.num}}
+						<!-- view class="sub" /> -->
+						{{info.money}}
 					</view>
 					<view class="line" />
 				</view>
@@ -31,7 +31,7 @@
 							当前状态
 						</view>
 						<view class="right">
-							支付成功
+							{{info.currentState}}
 						</view>
 					</view>
 					<view class="item">
@@ -39,7 +39,7 @@
 							收款方备注
 						</view>
 						<view class="right">
-							二维码收款
+							{{info.desc}}
 						</view>
 					</view>
 					<view class="item">
@@ -47,7 +47,17 @@
 							收款方式
 						</view>
 						<view class="right rightIcon">
-							零钱通 <image class="gthIcon" src="/static/gthIcon.png"></image>
+							{{info.payment}}
+							<uni-icons
+							
+							v-if=" info.payment == '零钱通'"
+							  type="info" 
+							  size="18" 
+							  color="#999" 
+							  
+							  class="input-icon gthIcon" 
+							/>
+							<!-- <image v-if=" info.payment == '零钱通'" class="gthIcon" src="/static/gthIcon.png"></image> -->
 						</view>
 					</view>
 					<view class="item">
@@ -56,6 +66,14 @@
 						</view>
 						<view class="right">
 							{{info.time}}
+						</view>
+					</view>
+					<view class="item" v-if="info.otherTime">
+						<view class="left">
+							收款时间
+						</view>
+						<view class="right">
+							{{info.otherTime}}
 						</view>
 					</view>
 					<view class="item">
@@ -112,26 +130,72 @@
 				本服务由财付通提供
 			</view>
 		</view>
-	<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
+		<uni-popup ref="popup" type="bottom" background-color="#fff" border-radius="10px">
+			<view class="roleList">
+				<!-- <view class=""  v-for="itme in roleList" >
+			<uni-list-chat :avatar-circle="true" :title="itme.nickname" :avatar="itme.avatar"
+											:note="itme.description"></uni-list-chat>
+			</view> -->
+				<view class="list_rl">
+					<uni-swipe-action v-if="roleList.length>0">
+						<uni-swipe-action-item v-for="item in roleList" :right-options="options2" :auto-close="false"
+							@click="bindClick">
+
+							<view class="content-box" @click="changeRl(item.avatar)">
+								<uni-list-chat :avatar-circle="true" :title="item.nickname" :avatar="item.avatar"
+									:note="item.description" :clickable="true"
+									@click="changeRl(item.avatar)"></uni-list-chat>
+							</view>
+						</uni-swipe-action-item>
+
+					</uni-swipe-action>
+				</view>
+				<view class="">
+					<button class="btn" @click="openAddPopup">添加角色</button>
+				</view>
+			</view>
+		</uni-popup>
+		<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
+		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
 	</view>
 </template>
 
 <script>
+	import {
+		eadLocalFileToBase64
+	} from "../../utils/tool.js"
 	export default {
 		data() {
 			return {
+				options2: [{
+						text: '删除',
+						style: {
+							backgroundColor: '#F56C6C'
+						}
+					}
+				
+				],
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
+				roleList: [],
 				info: {
-					"time": "2025年6月2日12：06：02",
-					"name": "给为理想而奋斗",
-					"orderNumber": "10001071012025060201715277560518",
-					"num": '88.00'
+					"url": "",
+					"name": "转给G",
+					"money": "-0.01",
+					"time": "2025年6月13日 16:19:30",
+					"orderNumber": "1000050001202506130129831495334",
+					"otherTime": "2025年6月13日 16:20:17",
+					"payment": "零钱通",
+					"currentState": "对方已收钱",
+					"desc": "转账时间",
 				},
-				infoKey:{
-					"time": "时间",
+				infoKey: {
+					"time": "付款时间",
+					"otherTime": '收款时间', //
 					"name": "名字",
 					"orderNumber": "单号",
-					"num": '金额'
+					"money": '金额',
+					"currentState": '支付状态',
+					"payment": '支付方式',
 				}
 			}
 		},
@@ -144,37 +208,91 @@
 				...temp
 			}
 			console.log(this.info.name);
+			const list =  uni.getStorageSync('roleList')
+			if(list) this.roleList = list
 		},
 		methods: {
-			saveTflist() {
-			  // 获取现有列表
-			  let list = uni.getStorageSync('tfList') || [];
-			  
-			  // 查找订单号匹配的元素
-			  const index = list.findIndex(item => {
-			    return item.info.orderNumber === this.info.orderNumber;
-			  });
-			  
-			  // 如果不存在，添加新元素
-			  if (index < 0) {
-			    list.push({
-			      type: 1,
-			      info: this.info
-			    });
-			  } 
-			  // 如果存在，更新原有元素的info部分
-			  else {
-			    list[index].info = this.info;
-			  }
-			  
-			  // 保存更新后的列表（修正参数传递方式）
-			  uni.setStorageSync('tfList', list);
+			openAddPopup(){
+				this.$refs.cradPopup.open()
 			},
-			onOrderSubmit(data){
-				this.info = {...data}
+			bindClick(con) {
+				console.log(con.index);
+				this.roleList.splice(con.index, 1)
+				uni.showToast({
+					title: '删除成功',
+					icon: 'none'
+				})
+				this.saveRoleList()
+			},
+			changeRl(url){
+				// console.log(url);
+				this.info.url = url
 				this.saveTflist()
 			},
-			exitInfo(){
+			saveRoleList(){
+				uni.setStorage({
+					key: 'roleList',
+					data: this.roleList
+				})
+			},
+			bindClick(con) {
+				console.log(con.index);
+				this.roleList.splice(con.index, 1)
+				uni.showToast({
+					title: '删除成功',
+					icon: 'none'
+				})
+			},
+			async onCradSubmitz(data) {
+				console.log(data);
+				const baseImg = await this.eadLocalFileToBase64(data.avatar)
+
+				this.roleList.push({
+					...data,
+					avatar: baseImg
+				})
+				this.saveRoleList()
+				this.info.url = baseImg
+				this.saveTflist()
+			},
+			changeRole() {
+				if (this.roleList.length > 0) {
+					this.$refs.popup.open('center')
+				} else {
+					this.$refs.cradPopup.open()
+				}
+			},
+			saveTflist() {
+				// 获取现有列表
+				let list = uni.getStorageSync('tfList') || [];
+
+				// 查找订单号匹配的元素
+				const index = list.findIndex(item => {
+					return item.info.orderNumber === this.info.orderNumber;
+				});
+
+				// 如果不存在，添加新元素
+				if (index < 0) {
+					list.push({
+						type: 1,
+						info: this.info
+					});
+				}
+				// 如果存在，更新原有元素的info部分
+				else {
+					list[index].info = this.info;
+				}
+
+				// 保存更新后的列表（修正参数传递方式）
+				uni.setStorageSync('tfList', list);
+			},
+			onOrderSubmit(data) {
+				this.info = {
+					...data
+				}
+				this.saveTflist()
+			},
+			exitInfo() {
 				this.$refs.orderPopup.open()
 			},
 			goBack() {
@@ -185,15 +303,28 @@
 </script>
 
 <style scoped>
-	.gthIcon{
-		width: 30rpx;
-		height: 30rpx;
-		margin-left: 20rpx;
+	.list_rl{
+		flex: 1;
+		overflow: auto;
 	}
-	.rightIcon{
+	.roleList {
+		display: flex;
+		flex-direction: column;
+		width: 600rpx;
+		height: 800rpx;
+	}
+	
+	.gthIcon {
+	/* 	width: 30rpx;
+		height: 30rpx; */
+		margin-left: 10rpx;
+	}
+
+	.rightIcon {
 		display: flex;
 		align-items: center;
 	}
+
 	.footer {
 		width: 100%;
 		flex: 1;
@@ -279,11 +410,13 @@
 	}
 
 	.num {
+		font-family: 'WeChat Sans Std';
 		display: flex;
 		align-items: center;
 		margin-top: 40rpx;
-		font-weight: 500;
+		/* font-weight: bold; */
 		font-size: 56rpx;
+		/* font-family: ; */
 
 	}
 
@@ -308,14 +441,16 @@
 		display: flex;
 		flex-direction: column;
 	}
-	.line_b{
+
+	.line_b {
 		width: 100%;
 		height: 1px;
 		background-color: #fafafa;
 		transform: scaleY(0.01);
 	}
+
 	.line {
-		margin-top: 92rpx;
+		margin-top: 88rpx;
 		width: 100%;
 		height: 1px;
 		background-color: #efefef;
@@ -323,10 +458,11 @@
 	}
 
 	.avatar {
-		width: 92rpx;
-		height: 92rpx;
+		width: 94rpx;
+		height: 94rpx;
 		overflow: hidden;
-		margin-top: 90rpx;
+		margin-top: 40rpx;
+		border-radius: 50px;
 	}
 
 	.avatar image {
@@ -352,7 +488,7 @@
 	.close {
 		/* background-color: aqua; */
 		/* padding-top: 160px; */
-		
+
 		padding-left: 20rpx;
 		position: relative;
 		top: 30rpx;
@@ -364,7 +500,7 @@
 		/* background-color: #5c6e96; */
 		background-color: #fff;
 		/* overflow: hidden; */
-		
+
 	}
 
 	.container {
@@ -378,7 +514,7 @@
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		
+
 		/* position: relative; */
 	}
 </style>

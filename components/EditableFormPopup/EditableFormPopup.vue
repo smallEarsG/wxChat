@@ -106,12 +106,13 @@ export default {
       let isValid = true;
       this.errorFields = {};
       
-      for (const key in this.fieldLabels) {
-        if (!this.formData[key] || this.formData[key].toString().trim() === '') {
-          this.errorFields[key] = true;
-          isValid = false;
-        }
-      }
+	  // 去掉过滤
+      // for (const key in this.fieldLabels) {
+      //   if (!this.formData[key] || this.formData[key].toString().trim() === '') {
+      //     this.errorFields[key] = true;
+      //     isValid = false;
+      //   }
+      // }
       
       return isValid;
     },

@@ -10,11 +10,11 @@
 						<image :src="info.url||'/static/paySe.png'"></image>
 					</view>
 					<view class="name">
-						转账-{{info.transferName}}
+						转账-{{info.name}}
 					</view>
 					<view class="num" @click="exitInfo">
-						<view class="sub" />
-						<text class="num_txt"> {{info.num}}</text>
+						{{info.money}}
+						<!-- <text class="num_txt"> {{info.num}}</text> -->
 					</view>
 					<view class="line" />
 				</view>
@@ -25,7 +25,7 @@
 							当前状态
 						</view>
 						<view class="right">
-							支付成功
+							{{info.currentState}}
 						</view>
 					</view>
 					<view class="item">
@@ -33,7 +33,7 @@
 							转账说明
 						</view>
 						<view class="right">
-							微信转账
+							{{info.desc}}
 						</view>
 					</view>
 					<view class="item">
@@ -57,7 +57,10 @@
 							收款方式
 						</view>
 						<view class="right rightIcon">
-							零钱通 <image class="gthIcon" src="/static/gthIcon.png"></image>
+							{{info.payment}}
+							<uni-icons v-if=" info.payment == '零钱通'" type="info" size="18" color="#999"
+								class="input-icon gthIcon" />
+							<!-- <image v-if=" info.payment == '零钱通'" class="gthIcon" src="/static/gthIcon.png"></image> -->
 						</view>
 					</view>
 
@@ -122,17 +125,18 @@
 				<uni-list-chat :avatar-circle="true" :title="itme.nickname" :avatar="itme.avatar"
 												:note="itme.description"></uni-list-chat>
 				</view> -->
-				<view class="list_rl" >
+				<view class="list_rl">
 					<uni-swipe-action v-if="roleList.length>0">
-						<uni-swipe-action-item v-for="item in roleList" :right-options="options2"
-							:auto-close="false" @click="bindClick">
-							
+						<uni-swipe-action-item v-for="item in roleList" :right-options="options2" :auto-close="false"
+							@click="bindClick">
+
 							<view class="content-box" @click="changeRl(item.avatar)">
 								<uni-list-chat :avatar-circle="true" :title="item.nickname" :avatar="item.avatar"
-									:note="item.description" :clickable="true" @click="changeRl(item.avatar)"></uni-list-chat>
+									:note="item.description" :clickable="true"
+									@click="changeRl(item.avatar)"></uni-list-chat>
 							</view>
 						</uni-swipe-action-item>
-						
+
 					</uni-swipe-action>
 				</view>
 				<view class="">
@@ -146,6 +150,9 @@
 </template>
 
 <script>
+	import {
+		eadLocalFileToBase64
+	} from "../../utils/tool.js"
 	export default {
 		data() {
 			return {
@@ -161,18 +168,23 @@
 				roleList: [],
 				info: {
 					"url": "",
-					"time": "2025年6月3日 21:23:40",
-					"orderNumber": "1000050001202506030822269810799",
-					"otherTime": "2025年6月3日 21:42:26",
-					"transferName": "转给莴笋批发223档口",
-					"num": '88.00'
+					"name": "给为理想而奋斗",
+					"money": "-0.01",
+					"time": "2025年6月13日 16:19:30",
+					"orderNumber": "1000050001202506130129831495334",
+					"otherTime": "2025年6月13日 16:20:17",
+					"payment": "零钱通",
+					"currentState": "对方已收钱",
+					"desc": "转账时间",
 				},
 				infoKey: {
-					"time": "转账时间",
-					"orderNumber": '订单编号',
-					"otherTime": '收款时间',
-					"transferName": '用户名',
-					"num": '金额'
+					"time": "付款时间",
+					"otherTime": '收款时间', //
+					"name": "名字",
+					"orderNumber": "单号",
+					"money": '金额',
+					"currentState": '支付状态',
+					"payment": '支付方式',
 				}
 			}
 		},
@@ -186,84 +198,49 @@
 			}
 			console.log(this.info.name);
 			// 读取本地角色
-			const list =  uni.getStorageSync('roleList')
-			if(list) this.roleList = list
+			const list = uni.getStorageSync('roleList')
+			if (list) this.roleList = list
 		},
 		methods: {
-			saveRoleList(){
+			saveRoleList() {
 				uni.setStorage({
 					key: 'roleList',
 					data: this.roleList
 				})
 			},
 			saveTflist() {
-			  // 获取现有列表
-			  let list = uni.getStorageSync('tfList') || [];
-			  
-			  // 查找订单号匹配的元素
-			  const index = list.findIndex(item => {
-			    return item.info.orderNumber === this.info.orderNumber;
-			  });
-			  
-			  // 如果不存在，添加新元素
-			  if (index < 0) {
-			    list.push({
-			      type: 0,
-			      info: this.info
-			    });
-			  } 
-			  // 如果存在，更新原有元素的info部分
-			  else {
-			    list[index].info = this.info;
-			  }
-			  
-			  // 保存更新后的列表（修正参数传递方式）
-			  uni.setStorageSync('tfList', list);
+				// 获取现有列表
+				let list = uni.getStorageSync('tfList') || [];
+
+				// 查找订单号匹配的元素
+				const index = list.findIndex(item => {
+					return item.info.orderNumber === this.info.orderNumber;
+				});
+
+				// 如果不存在，添加新元素
+				if (index < 0) {
+					list.push({
+						type: 0,
+						info: this.info
+					});
+				}
+				// 如果存在，更新原有元素的info部分
+				else {
+					list[index].info = this.info;
+				}
+
+				// 保存更新后的列表（修正参数传递方式）
+				uni.setStorageSync('tfList', list);
 			},
-			changeRl(url){
+			changeRl(url) {
 				// console.log(url);
 				this.info.url = url
 				this.saveTflist()
 			},
-			openAddPopup(){
+			openAddPopup() {
 				this.$refs.cradPopup.open()
 			},
-			eadLocalFileToBase64(filePath) {
-			 return new Promise((resolve, reject) => {
-			     // 检查是否在5+环境中（修改此处）
-			     if (typeof plus !== 'undefined') {
-			       // 解析本地文件URL
-			       plus.io.resolveLocalFileSystemURL(filePath, function(entry) {
-			         // 获取文件对象
-			         entry.file(function(file) {
-			           // 创建文件读取器
-			           var reader = new plus.io.FileReader();
-			           
-			           // 读取成功回调
-			           reader.onloadend = function(e) {
-			             // 获取Base64编码结果
-			             var base64Data = e.target.result;
-			             resolve(base64Data);
-			           };
-			           
-			           // 读取失败回调
-			           reader.onerror = function(err) {
-			             reject(new Error('文件读取失败: ' + err.message));
-			           };
-			           
-			           // 以DataURL方式读取文件（自动转换为Base64）
-			           reader.readAsDataURL(file);
-			         }, function(err) {
-			           reject(new Error('获取文件对象失败: ' + err.message));
-			         });
-			       }, function(err) {
-			         reject(new Error('解析文件路径失败: ' + err.message));
-			       });
-			     } else {
-			       reject(new Error('当前环境不支持plus.io'));
-			     }
-			   });
-			},
+
 			bindClick(con) {
 				console.log(con.index);
 				this.roleList.splice(con.index, 1)
@@ -271,6 +248,7 @@
 					title: '删除成功',
 					icon: 'none'
 				})
+				this.saveRoleList()
 			},
 			changeRole() {
 				if (this.roleList.length > 0) {
@@ -279,18 +257,21 @@
 					this.$refs.cradPopup.open()
 				}
 			},
-		  async onCradSubmitz(data) {
+			async onCradSubmitz(data) {
 				console.log(data);
-			 	const baseImg = await this.eadLocalFileToBase64(data.avatar)
-			   
-				this.roleList.push({...data,avatar:baseImg})
+				const baseImg = await this.eadLocalFileToBase64(data.avatar)
+
+				this.roleList.push({
+					...data,
+					avatar: baseImg
+				})
 				this.saveRoleList()
 				this.info.url = baseImg
 				this.saveTflist()
 			},
 			onOrderSubmit(data) {
 				console.log(data);
-				const baseImg = this.info.url 
+				const baseImg = this.info.url
 				this.info = {
 					...this.info,
 					...data
@@ -309,10 +290,11 @@
 </script>
 
 <style scoped>
-	.list_rl{
+	.list_rl {
 		flex: 1;
 		overflow: auto;
 	}
+
 	.roleList {
 		display: flex;
 		flex-direction: column;
@@ -321,11 +303,11 @@
 	}
 
 	.gthIcon {
-		width: 30rpx;
-		height: 30rpx;
-		margin-left: 16rpx;
-		position: relative;
-		top:-4rpx ;
+	/* 	width: 30rpx;
+		height: 30rpx; */
+		margin-left: 10rpx;
+		/* position: relative;
+		top: -4rpx; */
 	}
 
 	.rightIcon {
@@ -437,44 +419,52 @@
 		margin-top: 40rpx;
 		padding-bottom: 60rpx;
 	}
-	
+
 	.sub {
 		height: 8rpx;
 		width: 26rpx;
 		background-color: #000
 	}
+
 	.num {
+		font-family: 'WeChat Sans Std';
 		display: flex;
 		align-items: center;
 		margin-top: 40rpx;
-		font-weight: 500;
+		/* font-weight: bold; */
 		font-size: 56rpx;
 	}
-	.num_txt{
-		font-variant-numeric: tabular-nums; /* 强制使用等宽数字 */
-		font-family:-apple-system, 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+
+	.num_txt {
+		font-variant-numeric: tabular-nums;
+		/* 强制使用等宽数字 */
+		font-family: -apple-system, 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
 	}
+
 	.name {
 		margin-top: 30rpx;
 		font-size: 32rpx;
 	}
+
 	.left {
 		color: #9b9b9b;
 		width: 80px;
 	}
+
 	.item {
 		flex: 1;
 		display: flex;
 		font-size: 28rpx;
 		margin-bottom: 20rpx;
 	}
+
 	.order_info {
 		display: flex;
 		flex-direction: column;
 	}
 
 	.line {
-		margin-top: 92rpx;
+		margin-top: 88rpx;
 		width: 100%;
 		height: 1px;
 		background-color: #eaeaea;
@@ -484,14 +474,14 @@
 		width: 92rpx;
 		height: 92rpx;
 		overflow: hidden;
-		margin-top: 90rpx;
+		margin-top: 40rpx;
 		border-radius: 50%;
 	}
 
 	.avatar image {
 		width: 100%;
 		height: 100%;
-		object-fit:cover;
+		object-fit: cover;
 	}
 
 	.order_top {

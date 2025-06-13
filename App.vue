@@ -65,7 +65,26 @@
 </script>
 
 <style>
-
+	@font-face {
+	  font-family: 'CustomHeiti';
+	  src: url('/static/font/simhei.ttf') format('opentype');
+	  font-weight: normal;
+	  font-style: normal;
+	}
+	
+	@font-face {
+	  font-family: 'WeChat Sans Std';
+	  src: url('/static/font/wechatsansss-medium_mianfeiziti.com.ttf') format('opentype');
+	  font-weight: normal;
+	  font-style: normal;
+	}
+	@font-face {
+		font-family: 'Bahnschrift';
+		src: url('/static/font/bahnschrift.ttf') format('truetype');
+		/* font-weight: 600; */
+		/* 对应 Semibold */
+		font-style: normal;
+	}
 	/*每个页面公共css */
 	uni-tabbar .uni-tabbar__label {
 		font-size: 24rpx !important;

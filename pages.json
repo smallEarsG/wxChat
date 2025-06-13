@@ -167,6 +167,15 @@
         	{
         		"navigationBarTitleText" : ""
         	}
+        },
+        {
+        	"path" : "pages/ThirdpartyPayment/ThirdpartyPayment",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : "",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+        	}
         }
     ],
 	"tabBar": {
