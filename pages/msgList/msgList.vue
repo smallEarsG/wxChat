@@ -62,13 +62,30 @@
 				 uni.setStorageSync('tfList', this.list);
 			},
 			isTransfer(index){
-				return index === 0? '转账' :'扫码'
+				let str 
+				if (index === 0) {
+					str =  '转账'
+				} else if(index === 1){
+					str =  '扫码'
+				}else{
+					str =  '付款'
+				}
+				return str
 			},
 			goPage(item){
 				const index = item.type
 				const info =  item.info
+				let url 
+				if (index === 0){
+					url ='/pages/transfer/transfer?info='+ encodeURIComponent(JSON.stringify(info))
+				}else if(index === 1){
+					url= '/pages/codePayChild/codePayChild?info=' + encodeURIComponent(JSON.stringify(info))
+				}else
+				{
+					url = '/pages/ThirdpartyPayment/ThirdpartyPayment?info=' + encodeURIComponent(JSON.stringify(info))
+				}
 				uni.navigateTo({
-					url:index === 0?'/pages/transfer/transfer?info='+ encodeURIComponent(JSON.stringify(info)): '/pages/codePayChild/codePayChild?info=' + encodeURIComponent(JSON.stringify(info))
+					url
 				})
 				
 			}

@@ -141,9 +141,10 @@ export default {
   width: 680rpx;
   background-color: #fff;
   border-radius: 24rpx;
-  overflow: hidden;
+  overflow: auto;
   box-shadow: 0 10rpx 40rpx rgba(0, 0, 0, 0.1);
   padding: 0;
+  max-height: 1000rpx;
 }
 
 /* 表单头部 */

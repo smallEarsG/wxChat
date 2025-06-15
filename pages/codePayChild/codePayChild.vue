@@ -245,7 +245,7 @@
 			},
 			async onCradSubmitz(data) {
 				console.log(data);
-				const baseImg = await this.eadLocalFileToBase64(data.avatar)
+				const baseImg = await eadLocalFileToBase64(data.avatar)
 
 				this.roleList.push({
 					...data,

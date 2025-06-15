@@ -4,7 +4,8 @@
 		<!-- 顶部栏 -->
 		<view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="back" @click="goBack">
-				<image class="backimg" src="../../static/left.png"></image>
+				<image class="backimg" src="../../static/qiw/black_leftIcon.png"></image>
+				<!-- <uni-icons type="arrow-left" color="#fff" size="28" style="width: ;"></uni-icons> -->
 			</view>
 			<view class="title">
 				<view class="nikeName">
@@ -15,8 +16,8 @@
 				<!-- <view class="desc">@微信</view> -->
 			</view>
 			<view class="icons">
-				<image class="nav-icon_phone" src="/static/icon-phone.png"></image>
-				<image class="nav-icon_more" src="/static/icon-more.png"></image>
+				<image @click="addVideo" class="nav-icon_phone" src="/static/icon-phone.png"></image>
+				<image class="nav-icon_more" src="/static/qiw/more.png"></image>
 			</view>
 		</view>
 
@@ -30,21 +31,49 @@
 					<!-- 时间 -->
 					<view @longpress="showPopupMenu($event, i)" v-if="item.type == 'tips'" class="msg-time cell">
 						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-							<view class="menu-item" @click="addMsg(i)">消息插入</view>
+							<view class="menu-item" @click="deleteMessage_1(i)">
+								<uni-icons type="close" color="#999" size="25"></uni-icons>
+								<text>删除</text>
+							</view>
+							<view class="menu-item" @click="addMsg(i)">
+								<uni-icons type="chatbubble" color="#999" size="25"></uni-icons>
+								<text>消息插入</text>
+							</view>
+							<view class="menu-item" @click="changeMsg(i)">
+
+								<uni-icons type="chat" color="#999" size="25"></uni-icons>
+
+								<text>时间编辑</text>
+
+							</view>
 						</view>
 						{{item.content}}
 					</view>
 					<view class="orderBox cell" @longpress="showPopupMenu($event, i)"
 						v-else-if="item.contentType == 'order'">
 						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-							<view class="menu-item" @click="insertTime(i)">插入时间</view>
-							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
-							<view class="menu-item" @click="addMsg(i)">消息插入</view>
+							<view class="menu-item" @click="deleteMessage_1(i)">
+								<uni-icons type="close" color="#999" size="25"></uni-icons>
+								<text>删除</text>
+							</view>
+							<view class="menu-item" @click="insertTime(i)">
+								<uni-icons type="info" color="#999" size="25"></uni-icons>
+
+								<text>插入时间</text>
+							</view>
+							<view class="menu-item" @click="toggleRole(i)">
+
+								<uni-icons type="person" color="#999" size="25"></uni-icons>
+								<text>切换角色</text>
+							</view>
+							<view class="menu-item" @click="addMsg(i)">
+								<uni-icons type="chatbubble" color="#999" size="25"></uni-icons>
+								<text>消息插入</text>
+							</view>
 						</view>
 						<view class="msg right">
-							<image class="avatar"  mode="widthFix" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<image class="avatar" mode="aspectFill"
+								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<ExternalPayCard :orderInfo="item.content" />
 						</view>
 
@@ -52,21 +81,38 @@
 					<!-- 转账 -->
 					<view v-else-if="item.contentType == 'transfer'" @longpress="showPopupMenu($event, i)" class="cell">
 						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-							<view class="menu-item" @click="insertTime(i)">插入时间</view>
-							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
-							<view class="menu-item" @click="addMsg(i)">消息插入</view>
+							<view class="menu-item" @click="deleteMessage_1(i)">
+								<uni-icons type="close" color="#999" size="25"></uni-icons>
+								<text>删除</text>
+							</view>
+							<view class="menu-item" @click="insertTime(i)">
+								<uni-icons type="info" color="#999" size="25"></uni-icons>
+								<text>插入时间</text>
+							</view>
+							<view class="menu-item" @click="toggleRole(i)">
+								<uni-icons type="person" color="#999" size="25"></uni-icons>
+								<text>切换角色</text>
+							</view>
+							<view class="menu-item" @click="addMsg(i)">
+								<uni-icons type="chatbubble" color="#999" size="25"></uni-icons>
+								<text>消息插入</text>
+							</view>
+							<view class="menu-item" @click="resTransfer(i)">
+								<uni-icons type="wallet" color="#999" size="25"></uni-icons>
+								<text>收款</text>
+							</view>
 						</view>
-						<view class="msg left" @longpress="showPopupMenu($event, i)" @click="resTransfer(i)"
+						<view class="msg left" @longpress="showPopupMenu($event, i)" @click="goReceipt(item)"
 							v-if="item.location == 0">
 							<view class="avatar">
-								<image   mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<TransferCard :class="!item.content.st?'tfCardLeft':'tfCardLeftBg'" :state="item.content.st"
 								:name="item.content.name" :amount="item.content.amount"></TransferCard>
 						</view>
-						<view class="msg right" @longpress="showPopupMenu($event, i)" @click="resTransfer(i)" v-else>
-							<image class="avatar"  mode="widthFix" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+						<view class="msg right" @longpress="showPopupMenu($event, i)" @click="goReceipt(item)" v-else>
+							<image class="avatar" mode="aspectFill"
+								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<TransferCard :class="!item.content.st?'tfCardRight':'tfCardRightBg'"
 								:state="item.content.st" :name="item.content.name" :amount="item.content.amount">
 							</TransferCard>
@@ -76,19 +122,35 @@
 					<!-- 收款 -->
 					<view v-else-if="item.contentType == 'wxtf'" @longpress="showPopupMenu($event, i)" class="cell">
 						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-							<view class="menu-item" @click="insertTime(i)">插入时间</view>
-							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
-							<view class="menu-item" @click="addMsg(i)">消息插入</view>
+							<view class="menu-item" @click="deleteMessage_1(i)">
+								<uni-icons type="close" color="#999" size="25"></uni-icons>
+								<text>删除</text>
+							</view>
+							<view class="menu-item" @click="insertTime(i)">
+								<uni-icons type="info" color="#999" size="25"></uni-icons>
+								<text>插入时间</text>
+							</view>
+							<view class="menu-item" @click="toggleRole(i)">
+								<uni-icons type="person" color="#999" size="25"></uni-icons>
+								<text>切换角色</text>
+							</view>
+							<view class="menu-item" @click="addMsg(i)">
+								<uni-icons type="chatbubble" color="#999" size="25"></uni-icons>
+								<text>消息插入</text>
+							</view>
 						</view>
-						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
+						<view class="msg left" @longpress="showPopupMenu($event, i)" @click="goCollection(item)"
+							v-if="item.location == 0">
 							<view class="avatar">
-								<image   mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<ChTf class="tfCardLeftBg" :name="item.content.name" :amount="item.content.amount"></ChTf>
 						</view>
-						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
-							<image class="avatar"  mode="widthFix" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+						<view class="msg right" @longpress="showPopupMenu($event, i)" @click="goCollection(item)"
+							v-else>
+
+							<image class="avatar" mode="aspectFill"
+								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<ChTf class="tfCardRightBg" :name="item.content.name" :amount="item.content.amount"></ChTf>
 						</view>
 					</view>
@@ -96,33 +158,58 @@
 
 					<view v-else-if="item.contentType == 'photo'" @longpress="showPopupMenu($event, i)" class="cell">
 						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-							<view class="menu-item" @click="insertTime(i)">插入时间</view>
-							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
-							<view class="menu-item" @click="addMsg(i)">消息插入</view>
+							<view class="menu-item" @click="deleteMessage_1(i)">
+								<uni-icons type="close" color="#999" size="25"></uni-icons>
+								<text>删除</text>
+							</view>
+							<view class="menu-item" @click="insertTime(i)">
+								<uni-icons type="info" color="#999" size="25"></uni-icons>
+								<text>插入时间</text>
+							</view>
+							<view class="menu-item" @click="toggleRole(i)">
+								<uni-icons type="person" color="#999" size="25"></uni-icons>
+								<text>切换角色</text>
+							</view>
+							<view class="menu-item" @click="addMsg(i)">
+								<uni-icons type="chatbubble" color="#999" size="25"></uni-icons>
+								<text>消息插入</text>
+							</view>
 						</view>
 						<view class="msg left" v-if="item.location == 0" @longpress="showPopupMenu($event, i)">
 							<view class="avatar">
-								<image   mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<image :src="item.content.avatar" class="phote leftp" mode="widthFix" />
 						</view>
 
 						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
-							<image class="avatar"  mode="widthFix" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<image class="avatar" mode="aspectFill"
+								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<image :src="item.content.avatar" class="phote rightp" mode="widthFix"></image>
 						</view>
 					</view>
 					<view v-else-if="item.contentType == 'redBag'" @click="getRB(i)" class="cell">
 						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-							<view class="menu-item" @click="insertTime(i)">插入时间</view>
-							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
-							<view class="menu-item" @click="addMsg(i)">消息插入</view>
+							<view class="menu-item" @click="deleteMessage_1(i)">
+								<uni-icons type="close" color="#999" size="25"></uni-icons>
+								<text>删除</text>
+							</view>
+							<view class="menu-item" @click="insertTime(i)">
+								<uni-icons type="info" color="#999" size="25"></uni-icons>
+								<text>插入时间</text>
+							</view>
+							<view class="menu-item" @click="toggleRole(i)">
+								<uni-icons type="person" color="#999" size="25"></uni-icons>
+								<text>切换角色</text>
+							</view>
+							<view class="menu-item" @click="addMsg(i)">
+								<uni-icons type="chatbubble" color="#999" size="25"></uni-icons>
+								<text>消息插入</text>
+							</view>
 						</view>
 						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
-						<view class="avatar">
-								<image   mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							<view class="avatar">
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<RedBag :class="item.content?'redbagLeft':'redbagLeftBg'" :location="item.location"
 								:name="guestInfo.name  + (guestInfo.description||'')" :state="item.content"></RedBag>
@@ -130,7 +217,8 @@
 						</view>
 						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
 
-							<image class="avatar"  mode="widthFix" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<image class="avatar" mode="aspectFill"
+								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<RedBag :class="item.content?'redbagRight':'redbagRightBg'" :location="item.location"
 								:name="guestInfo.name + (guestInfo.description||'')" :state="item.content"></RedBag>
 
@@ -139,21 +227,34 @@
 					<!-- 名片 -->
 					<view v-else-if="item.contentType == 'crad'" @longpress="showPopupMenu($event, i)" class="cell">
 						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-							<view class="menu-item" @click="insertTime(i)">插入时间</view>
-							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
-							<view class="menu-item" @click="addMsg(i)">消息插入</view>
+							<view class="menu-item" @click="deleteMessage_1(i)">
+								<uni-icons type="close" color="#999" size="25"></uni-icons>
+								<text>删除</text>
+							</view>
+							<view class="menu-item" @click="insertTime(i)">
+								<uni-icons type="info" color="#999" size="25"></uni-icons>
+								<text>插入时间</text>
+							</view>
+							<view class="menu-item" @click="toggleRole(i)">
+								<uni-icons type="person" color="#999" size="25"></uni-icons>
+								<text>切换角色</text>
+							</view>
+							<view class="menu-item" @click="addMsg(i)">
+								<uni-icons type="chatbubble" color="#999" size="25"></uni-icons>
+								<text>消息插入</text>
+							</view>
 						</view>
 
 						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
-						<view class="avatar">
-							<image   mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
-						</view>
+							<view class="avatar">
+								<image mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							</view>
 							<WxCard class="cardLeft" :nickname="item.content.nickname" :avatar="item.content.avatar">
 							</WxCard>
 						</view>
 						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
-							<image class="avatar"   mode="widthFix" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<image class="avatar" mode="widthFix"
+								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<WxCard class="cardRight" :nickname="item.content.nickname" :avatar="item.content.avatar">
 							</WxCard>
 						</view>
@@ -162,22 +263,41 @@
 					<view v-else-if="item.contentType == 'chat'" @longpress="showPopupMenu($event, i)" class="cell">
 
 						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-							<view class="menu-item" @click="insertTime(i)">插入时间</view>
-							<view class="menu-item" @click="toggleRole(i)">切换角色</view>
-							<view class="menu-item" @click="addMsg(i)">消息插入</view>
+							<view class="menu-item" @click="deleteMessage_1(i)">
+
+								<uni-icons type="close" color="#999" size="25"></uni-icons>
+
+								<text>删除</text>
+							</view>
+							<view class="menu-item" @click="insertTime(i)">
+								<uni-icons type="info" color="#999" size="25"></uni-icons>
+								<text>插入时间</text>
+							</view>
+							<view class="menu-item" @click="toggleRole(i)">
+								<uni-icons type="person" color="#999" size="25"></uni-icons>
+								<text>切换角色</text>
+							</view>
+							<view class="menu-item" @click="addMsg(i)">
+								<uni-icons type="chatbubble" color="#999" size="25"></uni-icons>
+
+								<text>消息插入</text>
+							</view>
+							<view class="menu-item" @click="changeMsg(i)">
+								<uni-icons type="chat" color="#999" size="25"></uni-icons>
+								<text>消息编辑</text>
+							</view>
 						</view>
 						<!-- 聊天内容 -->
-						<view class="msg left"  @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
+						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
 							<view class="avatar">
-								<image   mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble">
 								<view>
-								
 									<template v-for="(part, i) in parseMessage(item.content)">
-									  <text v-if="part.type === 'text'" :key="i">{{ part.content }}</text>
-									  <image v-else-if="part.type === 'emoji'" :key="i" :src="getEmojiUrl(part.index,item.location)" class="emoji-inline" />
+										<text v-if="part.type === 'text'" :key="i">{{ part.content }}</text>
+										<image v-else-if="part.type === 'emoji'" :key="i"
+											:src="getEmojiUrl(part.index,item.location)" class="emoji-inline" />
 									</template>
 								</view>
 
@@ -187,17 +307,88 @@
 						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
 
 
-							<image class="avatar"  mode="widthFix" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<image class="avatar" mode="aspectFill"
+								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view class="bubble">
 								<view>
 									<template v-for="(part, i) in parseMessage(item.content)">
-									  <text v-if="part.type === 'text'" :key="i">{{ part.content }}</text>
-									  <image v-else-if="part.type === 'emoji'" :key="i" :src="getEmojiUrl(part.index,item.location)" class="emoji-inline" />
+										<text v-if="part.type === 'text'" :key="i">{{ part.content }}</text>
+										<image v-else-if="part.type === 'emoji'" :key="i"
+											:src="getEmojiUrl(part.index,item.location)" class="emoji-inline" />
 									</template>
-									
+
 								</view>
 							</view>
 						</view>
+
+
+					</view>
+					<!-- l、聊天 -->
+					<view v-else-if="item.contentType == 'video'" @longpress="showPopupMenu($event, i)" class="cell">
+
+						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
+							<view class="menu-item" @click="deleteMessage_1(i)">
+
+								<uni-icons type="close" color="#999" size="25"></uni-icons>
+
+								<text>删除</text>
+							</view>
+							<view class="menu-item" @click="insertTime(i)">
+								<uni-icons type="info" color="#999" size="25"></uni-icons>
+								<text>插入时间</text>
+							</view>
+							<view class="menu-item" @click="toggleRole(i)">
+								<uni-icons type="person" color="#999" size="25"></uni-icons>
+								<text>切换角色</text>
+							</view>
+							<view class="menu-item" @click="addMsg(i)">
+								<uni-icons type="chatbubble" color="#999" size="25"></uni-icons>
+
+								<text>消息插入</text>
+							</view>
+							<view class="menu-item" @click="changeMsg(i)">
+								<uni-icons type="chat" color="#999" size="25"></uni-icons>
+								<text>视频编辑</text>
+							</view>
+						</view>
+
+						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location == 0">
+							<view class="avatar">
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							</view>
+							<view class="bubble">
+								<view class="videobox">
+									<view class="video"  style="margin-right: 16rpx;">
+										<image src="/static/qiw/video.png"></image>
+									</view>
+									通话时长
+									<text>{{item.content}}</text>
+								</view>
+
+							</view>
+						</view>
+
+						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
+
+
+							<image class="avatar" mode="aspectFill"
+								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<view class="bubble">
+								<view>
+									<view class="videobox">
+										
+										通话时长
+										<text>{{item.content}}</text>
+										<view class="video" style="margin-left: 16rpx;">
+											<image src="/static/qiw/video2.png"></image>
+										</view>
+									</view>
+
+								</view>
+							</view>
+						</view>
+
+
 					</view>
 					<!-- <image src="/static/emoji/emoji_1_blue.png"></image> -->
 				</view>
@@ -210,16 +401,17 @@
 				<ChatToolBar />
 				<view class="chat-input">
 					<image class="icon" src="/static/icon-voice.png"></image>
-					<view class="input—box"><textarea  class="input"  v-model="inputValue"
-							@confirm="onEnterKey"  placeholder-class/></view>
-					<image class="icon_face" v-if="keyboardHeight" src="/static/icon-face.png" @click="changeEmoji"></image>
+					<view class="input—box"><textarea class="input" v-model="inputValue" @confirm="onEnterKey"
+							placeholder-class /></view>
+					<image class="icon_face" v-if="keyboardHeight" src="/static/icon-face.png" @click="changeEmoji">
+					</image>
 					<image class="icon_plus" src="/static/icon-plus.png" @click="togglePopupBox"></image>
 					<button class="send" @click="onEnterKey" v-if="!keyboardHeight"> 发送 </button>
 				</view>
 				<view class="emoji-picker" v-show="emoji">
-				  <view v-for="index in total" :key="index" class="emoji-item"  @click="addEmojiToInput(index)">
-				    <image :src="getEmojiUrl(index)" class="emoji-img" />
-				  </view>
+					<view v-for="index in total" :key="index" class="emoji-item" @click="addEmojiToInput(index)">
+						<image :src="getEmojiUrl(index)" class="emoji-img" />
+					</view>
 				</view>
 				<!-- 抽屉 -->
 				<view class="popup_box" v-show="openPopup">
@@ -256,7 +448,17 @@
 				<!-- <EditableFormPopup ref="cradPopup" :value="crad" :fieldLabels="cradKey" @submit="onCradSubmitz" /> -->
 				<!-- 图片 -->
 				<UploadImage ref="photoPopup" @submit="onPhotoSubmit"></UploadImage>
-					<EditableFormPopup ref="msgPopup" :value="msgInfo" :fieldLabels="msgKey" @submit="addMsgSubmit" />
+				<!-- 消息添加弹窗 -->
+				<EditableFormPopup ref="msgPopup" :value="editMsgInfo" :fieldLabels="editMsgKey"
+					@submit="addMsgSubmit" />
+				<!-- 消息编辑弹窗 -->
+				<EditableFormPopup ref="editMsgPopup" :value="editMsgInfo" :fieldLabels="editMsgKey"
+					@submit="onEditMsgSubmit" />
+				<EditableFormPopup ref="editMsgPopup" :value="editMsgInfo" :fieldLabels="editMsgKey"
+					@submit="onEditMsgSubmit" />
+				<!-- 时间编辑 -->
+				<EditableFormPopup ref="videoPopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onVideoSubmit" />
+
 			</view>
 		</view>
 	</view>
@@ -269,6 +471,7 @@
 	import TransferCardVue from '../../components/TransferCard/TransferCard.vue';
 	import UploadImage from '../../components/UploadImage/UploadImage.vue';
 	import WxCard from '../../components/WxCard/WxCard.vue';
+	import ChTf from '../../components/ChTf/ChTf.vue';
 	import {
 		getUserInfo
 	} from '@/api/index.js'
@@ -282,7 +485,8 @@
 			EditableFormPopup,
 			ChatToolBar,
 			TransferCardVue,
-			WxCard
+			WxCard,
+			ChTf
 		},
 		onLoad(options) {
 
@@ -317,7 +521,7 @@
 		data() {
 			return {
 				total: 108,
-				emoji:false,
+				emoji: false,
 				currentActionIndex: -1, // 添加当前操作的消息索引
 				activeMsgIndex: -1, // 当前激活的消息索引
 				keyboardHeight: true,
@@ -399,6 +603,14 @@
 				msgKey: {
 					msg: "消息"
 				},
+				// 消息编辑相关数据
+				editMsgIndex: -1, // 编辑的消息索引
+				editMsgInfo: {
+					msg: ""
+				},
+				editMsgKey: {
+					msg: "编辑消息"
+				},
 				transfer: {
 					name: "",
 					amount: ""
@@ -448,6 +660,7 @@
 			}
 		},
 		methods: {
+
 			getRB(i) {
 
 				this.massageList[i].content = !this.massageList[i].content
@@ -463,6 +676,19 @@
 				// 删掉 i 位置的数据 在 i这里插入两条
 				this.updateMsg()
 			},
+			goReceipt(item) {
+				// console.log(item);
+				uni.navigateTo({
+					url: "/pages/receipt/receipt?info=" + encodeURIComponent(JSON.stringify(item.content))
+				})
+			},
+			goCollection(item) {
+				console.log("---");
+				uni.navigateTo({
+					url: "/pages/collectionSuccess/collectionSuccess?info=" + encodeURIComponent(JSON.stringify(
+						item.content))
+				})
+			},
 			updateMsg() {
 				this.guestInfo.content = JSON.stringify(this.massageList)
 				updateConversation(this.guestInfo.conversationId, this.guestInfo)
@@ -474,12 +700,12 @@
 				this.popupVisible = false;
 				this.updateMsg()
 			},
-			addMsg(index){
+			addMsg(index) {
 				this.currentActionIndex = index;
 				this.$refs.msgPopup.open()
 				this.activeMsgIndex = -1; // 清除激活状态
 			},
-			addMsgSubmit(data){
+			addMsgSubmit(data) {
 				console.log(data.msg);
 				this.addMsgcomm(data.msg)
 			},
@@ -541,6 +767,24 @@
 				this.userInfo = res.data
 
 			},
+			onVideoSubmit(data) {
+				const location = this.isMe ? 1 : 0;
+				const transferInfo = {
+					type: "content", // tips, content
+					contentType: "video", //order , chat ,link
+					location, // 1 表示我方
+					content:data.time
+				}
+				
+				// console.log(data);
+				this.massageList.push(transferInfo)
+				this.updateMsg()
+			},
+			async addVideo() {
+				this.$refs.videoPopup.open()
+				
+			},
+			
 			async onCradSubmitz(data) {
 				console.log(data);
 				const res = await uploadImage(data.avatar, this.guestInfo.userId)
@@ -621,64 +865,64 @@
 				this.updateMsg()
 			},
 			onTimeSubmit(data) {
-				   const timeInfo = {
-				        type: "tips",
-				        contentType: "chat",
-				        content: data.time
-				    }
-				    
-				    // 如果有当前操作的索引，将时间插入到该消息上方
-				    if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
-				        this.massageList.splice(this.currentActionIndex, 0, timeInfo);
-				        // 插入后重置索引
-				        this.currentActionIndex = -1;
-				    } else {
-				        // 否则默认添加到末尾
-				        this.massageList.push(timeInfo);
-				    }
-				    
-				    this.updateMsg()
+				const timeInfo = {
+					type: "tips",
+					contentType: "chat",
+					content: data.time
+				}
+
+				// 如果有当前操作的索引，将时间插入到该消息上方
+				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
+					this.massageList.splice(this.currentActionIndex, 0, timeInfo);
+					// 插入后重置索引
+					this.currentActionIndex = -1;
+				} else {
+					// 否则默认添加到末尾
+					this.massageList.push(timeInfo);
+				}
+
+				this.updateMsg()
 			},
 			goBack() {
 				uni.navigateBack();
 			},
-			changeEmoji(){
+			changeEmoji() {
 				this.openPopup = false
-				this.emoji = !this.emoji 
+				this.emoji = !this.emoji
 			},
-			  // 添加表情到输入框的方法
-			    addEmojiToInput(index) {
-			      // 构建表情标签，例如[smile]
-			      this.inputValue += `[emoji_${index}]`;
-			    },
-				parseMessage(msg) {
-				  const result = [];
-				  const regex = /\[emoji_(\d+)\]/g;
-				  let lastIndex = 0;
-				  let match;
-				
-				  while ((match = regex.exec(msg)) !== null) {
-				    if (match.index > lastIndex) {
-				      result.push({
-				        type: 'text',
-				        content: msg.substring(lastIndex, match.index)
-				      });
-				    }
-				    result.push({
-				      type: 'emoji',
-				      index: parseInt(match[1])
-				    });
-				    lastIndex = regex.lastIndex;
-				  }
-				
-				  if (lastIndex < msg.length) {
-				    result.push({
-				      type: 'text',
-				      content: msg.substring(lastIndex)
-				    });
-				  }
-				  return result;
-				},
+			// 添加表情到输入框的方法
+			addEmojiToInput(index) {
+				// 构建表情标签，例如[smile]
+				this.inputValue += `[emoji_${index}]`;
+			},
+			parseMessage(msg) {
+				const result = [];
+				const regex = /\[emoji_(\d+)\]/g;
+				let lastIndex = 0;
+				let match;
+
+				while ((match = regex.exec(msg)) !== null) {
+					if (match.index > lastIndex) {
+						result.push({
+							type: 'text',
+							content: msg.substring(lastIndex, match.index)
+						});
+					}
+					result.push({
+						type: 'emoji',
+						index: parseInt(match[1])
+					});
+					lastIndex = regex.lastIndex;
+				}
+
+				if (lastIndex < msg.length) {
+					result.push({
+						type: 'text',
+						content: msg.substring(lastIndex)
+					});
+				}
+				return result;
+			},
 			togglePopupBox() {
 				this.openPopup = !this.openPopup;
 				this.emoji = false
@@ -737,7 +981,7 @@
 				this.addMsgcomm(this.inputValue)
 				this.inputValue = '';
 			},
-			addMsgcomm(inputValue){
+			addMsgcomm(inputValue) {
 				if (inputValue.trim()) {
 					console.log('用户输入内容:', inputValue);
 					// 这里可以添加发送消息的逻辑
@@ -748,39 +992,39 @@
 						location,
 						content: inputValue
 					}
-				
-					 // 如果有当前操作的索引，将时间插入到该消息上方
-				    if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
-				        this.massageList.splice(this.currentActionIndex, 0, msgInfo);
-				        // 插入后重置索引
-				        this.currentActionIndex = -1;
-				    } else {
-				        // 否则默认添加到末尾
-				        this.massageList.push(msgInfo);
-				    }
+
+					// 如果有当前操作的索引，将时间插入到该消息上方
+					if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
+						this.massageList.splice(this.currentActionIndex, 0, msgInfo);
+						// 插入后重置索引
+						this.currentActionIndex = -1;
+					} else {
+						// 否则默认添加到末尾
+						this.massageList.push(msgInfo);
+					}
 					// 清空输入框
-					
+
 					this.updateMsg()
 				}
 			},
 			// 新增时间插入功能
 			insertTime(index) {
 				this.currentActionIndex = index;
-					this.$refs.timePopup.open()
-					this.activeMsgIndex = -1;
+				this.$refs.timePopup.open()
+				this.activeMsgIndex = -1;
 				// 显示时间确认弹窗
 				this.timePopupVisible = true;
 			},
-		
+
 			// 取消插入时间
 			cancelInsertTime() {
 				this.timePopupVisible = false;
 				this.activeMsgIndex = -1;
 				this.popupVisible = false;
 			},
-			getEmojiUrl(index ,location = 0) {
-				return location == 0? `/static/emoji/emoji_${index}.png`:`/static/emoji/emoji_${index}_blue.png`;
-				},
+			getEmojiUrl(index, location = 0) {
+				return location == 0 ? `/static/emoji/emoji_${index}.png` : `/static/emoji/emoji_${index}_blue.png`;
+			},
 			// 新增角色切换功能
 			toggleRole(index) {
 				// 获取当前消息
@@ -801,22 +1045,79 @@
 				// 关闭菜单
 				this.activeMsgIndex = -1;
 				this.popupVisible = false;
+			},
+			// 消息编辑功能
+			changeMsg(index) {
+				// 保存当前编辑的消息索引
+				this.editMsgIndex = index;
+
+				// 获取当前消息内容
+				this.editMsgInfo.msg = this.massageList[index].content;
+
+				// 打开编辑弹窗
+				this.$refs.editMsgPopup.open();
+
+				// 关闭弹出菜单
+				this.activeMsgIndex = -1;
+				this.popupVisible = false;
+			},
+
+			// 消息编辑提交
+			onEditMsgSubmit(data) {
+				if (this.editMsgIndex !== -1 && data.msg.trim()) {
+					// 更新消息内容
+					this.massageList[this.editMsgIndex].content = data.msg;
+
+					// 更新消息
+					this.updateMsg();
+
+					// 显示成功提示
+					uni.showToast({
+						title: '消息编辑成功',
+						icon: 'success'
+					});
+				}
+
+				// 重置编辑索引
+				this.editMsgIndex = -1;
 			}
 		}
 	};
 </script>
 
 <style scoped>
-	.emoji-inline {
-	  width: 40rpx;
-	  height: 40rpx;
-	  vertical-align: middle;
-	  margin: 0 1px;
-	  position: relative;
-	  top: -6rpx;
-	  
+	.videobox {
+		display: flex;
+		/* text-align: center; */
+		align-items: center;
 	}
-	.emoji-picker{
+
+	.video {
+		width: 46rpx;
+		height: 40rpx;
+		/* margin: 0 ; */
+		overflow: hidden;
+	}
+
+	.video image {
+		width: 48rpx;
+		height: 48rpx;
+		position: relative;
+		bottom: 8rpx;
+
+	}
+
+	.emoji-inline {
+		width: 40rpx;
+		height: 40rpx;
+		vertical-align: middle;
+		margin: 0 1px;
+		position: relative;
+		top: -6rpx;
+
+	}
+
+	.emoji-picker {
 		background-color: #fff;
 		height: 360rpx;
 		overflow: auto;
@@ -824,17 +1125,19 @@
 		flex-wrap: wrap;
 		padding: 5px;
 	}
+
 	.emoji-item {
-	  width: 80rpx;
-	  height: 76rpx;
-	  margin: 18rpx;
-	  overflow: hidden;
+		width: 80rpx;
+		height: 76rpx;
+		margin: 18rpx;
+		overflow: hidden;
 	}
-	
+
 	.emoji-img {
-	  width: 32px;
-	  height: 30px;
+		width: 32px;
+		height: 30px;
 	}
+
 	.cardRight::after {
 		content: "";
 		position: absolute;
@@ -996,32 +1299,40 @@
 		background-color: rgba(0, 0, 0, 0.05);
 	}
 
+	/* 美化后的弹出菜单 */
 	.popup-menu {
 		position: fixed;
 		background-color: rgba(0, 0, 0, 0.85);
 		color: white;
 		border-radius: 12rpx;
-		padding: 10rpx 20rpx;
+		padding: 15rpx 20rpx;
 		z-index: 999;
 		display: flex;
 		flex-direction: row;
 		justify-content: space-around;
 		overflow: hidden;
-		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+		backdrop-filter: blur(8px);
+		transform-origin: center;
+		max-width: 600rpx;
 	}
 
 	.menu-item {
-		padding: 15rpx 30rpx;
+		padding: 15rpx 25rpx;
 		font-size: 28rpx;
 		display: flex;
+		flex-direction: column;
 		align-items: center;
 		white-space: nowrap;
 		cursor: pointer;
-		transition: background-color 0.2s ease;
+		transition: all 0.2s ease;
+		border-radius: 10rpx;
+		min-width: 80rpx;
 	}
 
 	.menu-item:hover {
 		background-color: rgba(255, 255, 255, 0.1);
+		transform: translateY(-2rpx);
 	}
 
 	.menu-item:active {
@@ -1029,9 +1340,13 @@
 	}
 
 	.menu-item image {
-		width: 30rpx;
-		height: 30rpx;
-		margin-right: 15rpx;
+		width: 40rpx;
+		height: 40rpx;
+		margin-bottom: 10rpx;
+	}
+
+	.menu-item text {
+		font-size: 24rpx;
 	}
 
 	.chat-page {
@@ -1041,10 +1356,7 @@
 		height: 100vh;
 		background-color: #eaeaea;
 		overflow: hidden;
-		/* position: absolute;
-		width: 100%; */
-		/* bottom: ; */
-		/* padding-top: 80rpx; */
+
 	}
 
 	.chat-body ::-webkit-scrollbar {
@@ -1054,19 +1366,22 @@
 	.chat-content {
 		display: flex;
 		flex-direction: column;
-		/* background-color: red; */
+
 		height: 100%;
 		overflow: hidden;
 	}
 
 	.backimg {
-		width: 50rpx;
-		height: 50rpx;
+		width: 48rpx;
+		height: 48rpx;
+		position: relative;
+		/* top: 2rpx; */
+		margin-left: 16rpx;
 	}
 
 	/* 顶部栏 */
 	.nav-bar {
-		/* padding-top: var(--status-bar-height); */
+
 		height: 100rpx;
 		background-color: #4475C9;
 		color: white;
@@ -1075,21 +1390,23 @@
 		padding: 10rpx 20rpx;
 		justify-content: space-between;
 		box-sizing: content-box;
-		
-		/* position: fixed; */
-		/* width: 100%; */
-		/* box-sizing: border-box; */
+
 	}
 
 	.title {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
+		align-items: flex-start;
+		flex: 1;
+		/* background: red; */
+		/* text-align: left; */
+		justify-content: center;
 	}
 
 	.desc {
 		color: #e4eef0;
-		font-size: 20rpx;
+		font-size: 24rpx;
+		margin-top: 6rpx;
 	}
 
 	.nikeName {
@@ -1099,7 +1416,7 @@
 
 	.back {
 		font-size: 32rpx;
-		margin-right: 60rpx;
+		margin-right: 32rpx;
 	}
 
 	.icons {
@@ -1110,13 +1427,13 @@
 
 	.nav-icon_more {
 		width: 40rpx;
-		height: 8rpx;
-		margin-left: 20rpx;
+		height: 40rpx;
+		margin-left: 30rpx;
 	}
 
 	.nav-icon_phone {
-		width: 40rpx;
-		height: 40rpx;
+		width: 42rpx;
+		height: 42rpx;
 	}
 
 	/* 聊天内容 */
@@ -1157,7 +1474,8 @@
 		margin: 0 10rpx;
 		overflow: hidden;
 	}
-	.avatar image{
+
+	.avatar image {
 		width: 100%;
 		height: 100%;
 	}
@@ -1214,7 +1532,7 @@
 	}
 
 	.fun_box {
-		
+
 		display: flex;
 		flex-direction: column;
 		flex-shrink: 0;
@@ -1247,7 +1565,7 @@
 		height: 80rpx;
 		background-color: white;
 		padding: 0 10rpx;
-		margin-left:-16rpx ;
+		margin-left: -16rpx;
 		overflow: hidden;
 		border-radius: 10rpx;
 	}

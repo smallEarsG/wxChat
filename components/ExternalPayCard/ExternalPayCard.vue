@@ -73,7 +73,7 @@
 		background-color: #ffffff;
 		border-radius: 16rpx;
 		padding: 20rpx;
-		width: 500rpx;
+		width: 460rpx;
 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 		font-size: 28rpx;
 		position: relative;

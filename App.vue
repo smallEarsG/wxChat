@@ -85,6 +85,13 @@
 		/* 对应 Semibold */
 		font-style: normal;
 	}
+	@font-face {
+	  font-family: 'WeChat Sans SS';
+	  src: url('/static/font/We Chat Sans SS Light_mianfeiziti.com.otf') format('opentype');
+	  font-weight: normal;
+	  font-style: normal;
+	}
+	
 	/*每个页面公共css */
 	uni-tabbar .uni-tabbar__label {
 		font-size: 24rpx !important;

@@ -176,6 +176,42 @@
 				"enablePullDownRefresh": false,
 				"navigationStyle": "custom"
         	}
+        },
+        {
+        	"path" : "pages/receipt/receipt",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : "",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+        	}
+        },
+        {
+        	"path" : "pages/collectionSuccess/collectionSuccess",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : "",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+        	}
+        },
+        {
+        	"path" : "pages/miniThirdpartyPayment/miniThirdpartyPayment",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : "",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+        	}
+        },
+        {
+        	"path" : "pages/barcodeThirdpartyPayment/barcodeThirdpartyPayment",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : "",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+        	}
         }
     ],
 	"tabBar": {

@@ -102,6 +102,19 @@
 
 
 			</view>
+			
+			<view class="mini ">
+		
+						<view class="left" style="color: black;">
+							商户单号
+						</view>
+						<view class="right_mini">
+							<image class="miniapp" mode="widthFix" src="/static/icon-miniapp.png"></image>
+							<text class="miniName">{{info.shopNumber}} </text>
+							<uni-icons type="right" color="#9b9b9b" size="17"></uni-icons>
+
+						</view>
+			</view>
 			<view class="serivce">
 				<view class="se_title">
 					账单服务
@@ -205,7 +218,8 @@ import {
 					"merchantName": '商户名称', // 商户名称
 					"institution": '收款机构', //收款机构
 					"shopNumber": ' 商户单号', // 商单号
-					"desc2": "由互联网清算有限公司提供付款清算服务"
+					"desc2": "由互联网清算有限公司提供付款清算服务",
+					"miniName":"小七商行收款"
 				},
 				infoKey: {
 					"time": "付款时间",
@@ -220,7 +234,8 @@ import {
 					"institution": '收款机构', //收款机构
 					"shopNumber": ' 商户单号', // 商单号
 					"desc":"收款机构备注",
-					"desc2":"支付方式备注"
+					"desc2":"支付方式备注",
+					"miniName":"收款小程序"
 				}
 			}
 		},
@@ -505,10 +520,32 @@ import {
 		font-size: 28rpx;
 		margin-bottom: 20rpx;
 	}
-
+	.mini{
+		flex: 1;
+		display: flex;
+		font-size: 28rpx;
+		margin-top: 20rpx;
+		background-color: #fff;
+		padding: 30rpx 40rpx;
+		
+	}
+	.right_mini{
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		flex: 1;
+	}
+	.miniapp{
+		width: 28rpx;
+	}
+	.miniName{
+		margin: 0 16rpx;
+		color: #878787;
+	}
 	.order_info {
 		display: flex;
 		flex-direction: column;
+		
 	}
 
 	.line {

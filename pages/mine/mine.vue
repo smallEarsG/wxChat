@@ -20,6 +20,7 @@
         <view class="member-status">
           <view class="member-tag" :class="{ 'vip-tag': !_isMemberExpired(userInfo.memberExpireAt) }">
             {{ _isMemberExpired(userInfo.memberExpireAt) ? "普通用户" : "VIP会员" }}
+			
           </view>
           <text class="expire-date">
             {{ userInfo.memberExpireAt ? "到期时间: " + formatDate(userInfo.memberExpireAt) : "--" }}
@@ -158,6 +159,8 @@ export default {
     },
     
     _isMemberExpired(at) {
+		
+		console.log(at);
       return isMemberExpired(at)
     },
     

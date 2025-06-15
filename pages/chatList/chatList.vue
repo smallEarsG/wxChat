@@ -564,7 +564,7 @@
 
 	.msg_desc {
 		margin: 10rpx 0;
-		font-size: 24rpx;
+		font-size: 26rpx;
 		color: #9b9fa3;
 		white-space: nowrap;
 		/* 禁止换行 */

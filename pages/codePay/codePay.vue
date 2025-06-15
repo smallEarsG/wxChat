@@ -86,8 +86,12 @@
 					<uni-icons type="scan" size="24" color="#fff" />
 					<text>扫码付款</text>
 				</button>
-			</view>
 
+			</view>
+			<button class="action-btn" @click="goCodePayChild(2)" style="margin-bottom: 20px;">
+				<!-- <uni-icons type="scan" size="24" color="#fff" /> -->
+				<text>第三方付款</text>
+			</button>
 			<button class="history-btn" type="default" @click="goMsg">
 				<uni-icons type="history" size="24" color="#4A90E2" />
 				<text>修改记录</text>
@@ -126,15 +130,18 @@
 			};
 		},
 		methods: {
-			async onCradSubmitz(data) {
-							console.log(data);
-						 	const baseImg = await this.eadLocalFileToBase64(data.avatar)
-						   
-							this.roleList.push({...data,avatar:baseImg})
-							this.saveRoleList()
-							this.info.url = baseImg
-							this.saveTflist()
-						},
+			// async onCradSubmitz(data) {
+			// 	console.log(data);
+			// 	const baseImg = await this.eadLocalFileToBase64(data.avatar)
+
+			// 	this.roleList.push({
+			// 		...data,
+			// 		avatar: baseImg
+			// 	})
+			// 	this.saveRoleList()
+			// 	this.info.url = baseImg
+			// 	this.saveTflist()
+			// },
 			goBack() {
 				uni.navigateBack();
 			},
@@ -147,51 +154,57 @@
 
 			extractInfoWithRegex(data) {
 				const info = {
-				
+
 					name: '请输入机构名称', //名称
-					money:'',// 金额
-					time: '',  // 转账时间
+					money: '+100.00', // 金额
+					time: '', // 转账时间
 					otherTime: '', //收款时间
-					payment:'', // 支付方式
+					payment: '', // 支付方式
 					orderNumber: '', //订单编号
 					// 第三方付款
-					currentState:'', // 当前状态
-					shop:'' , // 商品
-					merchantName:'',// 商户名称
-					institution:'',//收款机构
-					shopName:' ' ,// 商单号
-					desc:'',//备注
+					currentState: '', // 当前状态
+					shop: '', // 商品
+					merchantName: '', // 商户名称
+					institution: '', //收款机构
+					shopNumber: ' ', // 商单号
+					desc: '', //备注
 				};
 
 				data.forEach((item, index) => {
 					const words = item.words;
 
-				  
-
 					// 二维码付款名称
 					const nameMatch = words.match(/扫二维码付款-([^-]+)/);
 					if (nameMatch) {
 						info.name = nameMatch[1];
-						 info.money =  data[index + 1]?.words;
+						info.money = data[index + 1]?.words;
 					}
-					
+
 					// 转账付款名称
 					const transferNameMatch = words.match(/转账-([^-]+)/);
-					if (transferNameMatch)
-					{
-						 info.name = transferNameMatch[1];
-						 info.money =  data[index + 1]?.words;
+					if (transferNameMatch) {
+						info.name = transferNameMatch[1];
+						info.money = data[index + 1]?.words;
 					}
-					
+
 					const payment = words.match(/支付方式/);
 					if (payment) info.payment = data[index + 1]?.words;
-					
+
 					const sdesc = words.match(/收款方备注/);
 					if (sdesc) info.desc = data[index + 1]?.words;
-					
+
 					const zdesc = words.match(/转账说明/);
 					if (zdesc) info.desc = data[index + 1]?.words;
 					
+					const shop = words.match(/商品/);
+					if (shop) info.shop = data[index + 1]?.words;
+					
+					const merchantName = words.match(/商户全称/);
+					if (merchantName) info.merchantName = data[index + 1]?.words;
+					
+					const institution = words.match(/收单机构/);
+					if (institution) info.institution = data[index + 1]?.words;
+
 					const currentState = words.match(/当前状态/);
 					if (currentState) info.currentState = data[index + 1]?.words;
 					// 时间格式匹配 转账时间和收款时间
@@ -210,15 +223,29 @@
 							info.time = tempTime;
 						}
 					}
-				
+
 					// 账单号
 					const orderMatch = words.match(/\d{16,32}/);
-					if (orderMatch && /单号/.test(data[index - 1]?.words)) {
-						if (orderMatch[0].length < 31) {
-							console.log("====",orderMatch[0].length);
+					if (orderMatch && /转账单号/.test(data[index - 1]?.words)) {
+						if (orderMatch[0].length <31) {
+							console.log("====", orderMatch[0].length);
 							info.orderNumber = orderMatch[0] + data[index + 1]?.words;
 						} else {
 							info.orderNumber = orderMatch[0];
+						}
+					}else if(orderMatch && /交易单号/.test(data[index - 1]?.words)) {
+						if (orderMatch[0].length < 28) {
+							console.log("====", orderMatch[0].length);
+							info.orderNumber = orderMatch[0] + data[index + 1]?.words;
+						} else {
+							info.orderNumber = orderMatch[0];
+						}
+					}else if(orderMatch && /商户单号/.test(data[index - 1]?.words)) {
+						if (orderMatch[0].length < 28) {
+							console.log("====", orderMatch[0].length);
+							info.shopNumber = orderMatch[0] + data[index + 1]?.words;
+						} else {
+							info.shopNumber = orderMatch[0];
 						}
 					}
 				});
@@ -236,109 +263,120 @@
 			},
 
 			goCodePayChild(i) {
-				// if (!this.extractedInfo) {
-				//   this.extractedInfo = this.extractInfoWithRegex(this.resultList);
-				// }
-				const temp= [
-    {
-        "words": "4:24"
-    },
-    {
-        "words": "893"
-    },
-    {
-        "words": "5G"
-    },
-    {
-        "words": "B/s"
-    },
-    {
-        "words": "100"
-    },
-    {
-        "words": "×"
-    },
-    {
-        "words": "转账-转给G"
-    },
-    {
-        "words": "-0.01"
-    },
-    {
-        "words": "当前状态"
-    },
-    {
-        "words": "对方已收钱"
-    },
-    {
-        "words": "转账说明"
-    },
-    {
-        "words": "转账说明"
-    },
-    {
-        "words": "转账时间"
-    },
-    {
-        "words": "2025年6月13日"
-    },
-    {
-        "words": "16:19:30"
-    },
-    {
-        "words": "收款时间"
-    },
-    {
-        "words": "2025年6月13日"
-    },
-    {
-        "words": "16:20:17"
-    },
-    {
-        "words": "支付方式"
-    },
-    {
-        "words": "零钱通"
-    },
-    {
-        "words": "i"
-    },
-    {
-        "words": "转账单号"
-    },
-    {
-        "words": "1000050001202506130129831495334"
-    },
-    {
-        "words": "账单服务"
-    },
-    {
-        "words": "对订单有疑惑"
-    },
-    {
-        "words": "定位到聊天位置"
-    },
-    {
-        "words": "申请转账电子凭证"
-    },
-    {
-        "words": "查看往来转账"
-    },
-    {
-        "words": "本服务由财付通提供"
-    }
-]
-				
-				this.extractedInfo = this.extractInfoWithRegex(temp);
+				if (!this.extractedInfo) {
+				  this.extractedInfo = this.extractInfoWithRegex(this.resultList);
+				}
+				// const temp = [{
+				// 		"words": "2:38"
+				// 	},
+				// 	{
+				// 		"words": "6.5"
+				// 	},
+				// 	{
+				// 		"words": "5G"
+				// 	},
+				// 	{
+				// 		"words": "K/s"
+				// 	},
+				// 	{
+				// 		"words": "93"
+				// 	},
+				// 	{
+				// 		"words": "×"
+				// 	},
+				// 	{
+				// 		"words": "抖音App"
+				// 	},
+				// 	{
+				// 		"words": "-100.00"
+				// 	},
+				// 	{
+				// 		"words": "当前状态"
+				// 	},
+				// 	{
+				// 		"words": "支付成功"
+				// 	},
+				// 	{
+				// 		"words": "支付时间"
+				// 	},
+				// 	{
+				// 		"words": "2025年6月13日10：13：46"
+				// 	},
+				// 	{
+				// 		"words": "商品"
+				// 	},
+				// 	{
+				// 		"words": "抖音DOU+产品商业版"
+				// 	},
+				// 	{
+				// 		"words": "商户全称"
+				// 	},
+				// 	{
+				// 		"words": "北京抖音科技有限公司"
+				// 	},
+				// 	{
+				// 		"words": "收单机构"
+				// 	},
+				// 	{
+				// 		"words": "财付通支付科技有限公司"
+				// 	},
+				// 	{
+				// 		"words": "支付方式"
+				// 	},
+				// 	{
+				// 		"words": "零钱通"
+				// 	},
+				// 	{
+				// 		"words": "i"
+				// 	},
+				// 	{
+				// 		"words": "由网联清算有限公司提供付款清算服务"
+				// 	},
+				// 	{
+				// 		"words": "交易单号"
+				// 	},
+				// 	{
+				// 		"words": "4200002667202506139857674150"
+				// 	},
+				// 	{
+				// 		"words": "商户单号"
+				// 	},
+				// 	{
+				// 		"words": "2001072506130100975084639072"
+				// 	},
+				// 	{
+				// 		"words": "账单服务"
+				// 	},
+				// 	{
+				// 		"words": "对订单有疑惑"
+				// 	},
+				// 	{
+				// 		"words": "发起群收款"
+				// 	},
+				// 	{
+				// 		"words": "在此商户的交易"
+				// 	},
+				// 	{
+				// 		"words": "本服务由财付通提供"
+				// 	}
+				// ]
+
+				// this.extractedInfo = this.extractInfoWithRegex(temp);
 				if (i === 1) {
 					uni.navigateTo({
 						url: "/pages/codePayChild/codePayChild?info=" + encodeURIComponent(JSON.stringify(this
 							.extractedInfo))
 					});
-				} else {
+				} else if (i === 0) {
 					uni.navigateTo({
 						url: "/pages/transfer/transfer?info=" + encodeURIComponent(JSON.stringify(this
 							.extractedInfo))
+					});
+				} else {
+					uni.navigateTo({
+						url: "/pages/ThirdpartyPayment/ThirdpartyPayment?info=" + encodeURIComponent(JSON
+							.stringify(this
+								.extractedInfo))
 					});
 				}
 			},
