@@ -382,13 +382,7 @@
 		margin-left: 10rpx;
 	}
 
-	@font-face {
-		font-family: 'Bahnschrift';
-		src: url('../../static/font/bahnschrift.ttf') format('truetype');
-		/* font-weight: 600; */
-		/* 对应 Semibold */
-		font-style: normal;
-	}
+	
 
 	.num-text {
 		font-family: 'Bahnschrift', sans-serif;

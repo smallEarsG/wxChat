@@ -88,6 +88,16 @@
 				</button>
 
 			</view>
+			<view class="action-buttons">
+				<button class="action-btn" @click="goCodePayChild(3)">
+					<uni-icons type="moneybag" size="24" color="#fff" />
+					<text>第三方小程序</text>
+				</button>
+				<button class="action-btn" @click="goCodePayChild(4)">
+					<text>第三方条形码</text>
+				</button>
+			
+			</view>
 			<button class="action-btn" @click="goCodePayChild(2)" style="margin-bottom: 20px;">
 				<!-- <uni-icons type="scan" size="24" color="#fff" /> -->
 				<text>第三方付款</text>
@@ -370,6 +380,16 @@
 				} else if (i === 0) {
 					uni.navigateTo({
 						url: "/pages/transfer/transfer?info=" + encodeURIComponent(JSON.stringify(this
+							.extractedInfo))
+					});
+				}else if (i === 3) {
+					uni.navigateTo({
+						url: "/pages/miniThirdpartyPayment/miniThirdpartyPayment?info=" + encodeURIComponent(JSON.stringify(this
+							.extractedInfo))
+					});
+				}else if (i === 4) {
+					uni.navigateTo({
+						url: "/pages/barcodeThirdpartyPayment/barcodeThirdpartyPayment?info=" + encodeURIComponent(JSON.stringify(this
 							.extractedInfo))
 					});
 				} else {

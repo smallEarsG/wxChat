@@ -9,11 +9,10 @@
 			</view>
 			<view class="title">
 				<view class="nikeName">
-					<!-- {{guestInfo}} -->
 					{{guestInfo.name || "企业微信工坊"}}
 				</view>
 				<view class="desc">{{guestInfo.description}}</view>
-				<!-- <view class="desc">@微信</view> -->
+				
 			</view>
 			<view class="icons">
 				<image @click="addVideo" class="nav-icon_phone" src="/static/icon-phone.png"></image>
@@ -25,7 +24,10 @@
 
 			<view v-if="activeMsgIndex !== -1" class="overlay" @click="closePopupMenu"></view>
 			<!-- 聊天内容区域 -->
-			<scroll-view class="chat-body" scroll-y :show-scrollbar="false">
+			
+				
+			
+			<scroll-view class="chat-body"  :style="'background-image: url('+contentbg+');'" scroll-y :show-scrollbar="false">
 				<view v-for="(item ,i ) in massageList " :key="i">
 
 					<!-- 时间 -->
@@ -40,11 +42,8 @@
 								<text>消息插入</text>
 							</view>
 							<view class="menu-item" @click="changeMsg(i)">
-
 								<uni-icons type="chat" color="#999" size="25"></uni-icons>
-
 								<text>时间编辑</text>
-
 							</view>
 						</view>
 						{{item.content}}
@@ -394,7 +393,7 @@
 				</view>
 
 			</scroll-view>
-
+			
 			<!-- :style="{paddingBottom:!keyboardHeight?' 300rpx':'0 '}" -->
 			<!-- 底部输入栏 -->
 			<view class="fun_box">
@@ -454,11 +453,10 @@
 				<!-- 消息编辑弹窗 -->
 				<EditableFormPopup ref="editMsgPopup" :value="editMsgInfo" :fieldLabels="editMsgKey"
 					@submit="onEditMsgSubmit" />
-				<EditableFormPopup ref="editMsgPopup" :value="editMsgInfo" :fieldLabels="editMsgKey"
-					@submit="onEditMsgSubmit" />
+				<!-- <EditableFormPopup ref="editMsgPopup" :value="editMsgInfo" :fieldLabels="editMsgKey"
+					@submit="onEditMsgSubmit" /> -->
 				<!-- 时间编辑 -->
 				<EditableFormPopup ref="videoPopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onVideoSubmit" />
-
 			</view>
 		</view>
 	</view>
@@ -520,6 +518,7 @@
 		},
 		data() {
 			return {
+				contentbg:"/static/qiw/微信图片_20231113111507.png",
 				total: 108,
 				emoji: false,
 				currentActionIndex: -1, // 添加当前操作的消息索引
@@ -606,7 +605,7 @@
 				// 消息编辑相关数据
 				editMsgIndex: -1, // 编辑的消息索引
 				editMsgInfo: {
-					msg: ""
+					msg: "11"
 				},
 				editMsgKey: {
 					msg: "编辑消息"
@@ -1052,8 +1051,8 @@
 				this.editMsgIndex = index;
 
 				// 获取当前消息内容
-				this.editMsgInfo.msg = this.massageList[index].content;
-
+				// this.editMsgInfo.msg =;
+				this.editMsgInfo = { ...this.editMsgInfo, msg:  this.massageList[index].content }; // 更新数据
 				// 打开编辑弹窗
 				this.$refs.editMsgPopup.open();
 
@@ -1445,6 +1444,9 @@
 		max-height: calc(100vh - 80rpx - 100rpx);
 		/* 减去 nav-bar 和 chat-input 的高度 */
 		overflow-y: auto;
+		
+		background-size: 100% 100%;
+		
 	}
 
 	.msg-time {
@@ -1483,7 +1485,7 @@
 	.bubble {
 		max-width: 480rpx;
 		padding: 20rpx 20rpx;
-		font-size: 32rpx;
+		font-size: 34rpx;
 		border-radius: 16rpx;
 		background-color: #ffffff;
 		line-height: 1.3;

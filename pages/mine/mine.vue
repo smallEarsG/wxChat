@@ -119,9 +119,9 @@ export default {
       let srt;
       
       if(data === "year"){
-        srt = await getPayMember(this.userInfo.id, 108.00)
+        srt = await getPayMember(this.userInfo.id, 288.00)
       } else {
-        srt = await getPayMember(this.userInfo.id, 9.90)
+        srt = await getPayMember(this.userInfo.id, 29.90)
       }
       
       // 验证返回数据的有效性

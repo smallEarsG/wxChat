@@ -33,8 +33,8 @@ export default {
   data() {
     return {
       options: [
-        { type: 'month', label: '月会员', price: 9.9 },
-        { type: 'year', label: '年会员', price: 108 }
+        { type: 'month', label: '月会员', price: 29.9 },
+        { type: 'year', label: '年会员', price: 288.8 }
       ],
       selected: 'month'
     }

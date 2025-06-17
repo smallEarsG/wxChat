@@ -75,7 +75,7 @@
 							</view>
 							<view class="tips" v-if=" info.desc2">
 								{{info.desc2}}
-								
+
 							</view>
 							<!-- <image v-if=" info.payment == '零钱通'" class="gthIcon" src="/static/gthIcon.png"></image> -->
 						</view>
@@ -95,7 +95,22 @@
 							商户单号
 						</view>
 						<view class="right">
-							{{info.shopNumber}}
+							可在支持的商户扫码退款
+						</view>
+					</view>
+					<view class="item">
+						
+						<view class="left">
+
+						</view>
+						<view class="right">
+							<view class="barCodeBox" >
+								 <BarcodeGenerator v-if="info.shopNumber != ''" :content="info.shopNumber" />
+								 <view class="codeNo">
+								 	{{info.shopNumber  || "请输入商户单号" }}
+								 </view>
+							</view>
+							
 						</view>
 					</view>
 				</view>
@@ -121,20 +136,20 @@
 							发起群收款
 						</view>
 					</view>
-					<view class="serivce_bx">
+				<!-- 	<view class="serivce_bx">
 						<view class="se_item">
 							<view class="se_icon ">
 								<image class="startIcon" src="/static/qiw/tpIcon_2.png" mode=""></image>
 							</view>
 							在此商户的交易
 						</view>
-					<!-- 	<view class="se_item">
+							<view class="se_item">
 							<view class="se_icon ">
 								<image class="transferIcon" src="/static/transferIcon.png" mode=""></image>
 							</view>
 							查看往来转账
-						</view> -->
-					</view>
+						</view>
+					</view> -->
 				</view>
 
 			</view>
@@ -174,11 +189,16 @@
 	</view>
 </template>
 
-<script>
-import {
-		eadLocalFileToBase64
+<script >
+	import {
+		eadLocalFileToBase64,
+		generateBarcodeBase64
 	} from "../../utils/tool.js"
+	import BarcodeGenerator from '@/components/BarcodeGenerator/BarcodeGenerator.vue'
 	export default {
+		components: {
+			BarcodeGenerator
+		},
 		data() {
 			return {
 				options2: [{
@@ -204,7 +224,7 @@ import {
 					"shop": '商品', // 商品
 					"merchantName": '商户名称', // 商户名称
 					"institution": '收款机构', //收款机构
-					"shopNumber": ' 商户单号', // 商单号
+					"shopNumber": ' 7895004260588973', // 商单号
 					"desc2": "由互联网清算有限公司提供付款清算服务"
 				},
 				infoKey: {
@@ -219,26 +239,39 @@ import {
 					"merchantName": '商户名称', // 商户名称
 					"institution": '收款机构', //收款机构
 					"shopNumber": ' 商户单号', // 商单号
-					"desc":"收款机构备注",
-					"desc2":"支付方式备注"
-				}
+					"desc": "收款机构备注",
+					"desc2": "支付方式备注"
+				},
+				barCodeUrl: ''
 			}
 		},
 		onLoad(options) {
 
-			console.log(decodeURIComponent(options.info));
-			const temp = JSON.parse(decodeURIComponent(options.info))
-			this.info = {
-				...this.info,
-				...temp,
-				
+			// console.log(decodeURIComponent(options.info));
+			if (options.info) {
+				const temp = JSON.parse(decodeURIComponent(options.info))
+				this.info = {
+					...this.info,
+					...temp,
+
+				}
 			}
+			this.createBarCode()
 			console.log(this.info.name);
 			// 读取本地角色
 			const list = uni.getStorageSync('roleList')
 			if (list) this.roleList = list
 		},
 		methods: {
+			async createBarCode() {
+				if (this.info.shopNumber) {
+					console.log("===?=====", this.info.shopNumber);
+					this.barCodeUrl = await generateBarcodeBase64(this.info.shopNumber)
+					console.log("===", this.barCodeUrl);
+				} else {
+					console.log("===", this.info.shopNumber);
+				}
+			},
 			saveRoleList() {
 				uni.setStorage({
 					key: 'roleList',
@@ -340,7 +373,7 @@ import {
 	}
 
 	.gthIcon {
-	/* 	width: 30rpx;
+		/* 	width: 30rpx;
 		height: 30rpx; */
 		margin-left: 10rpx;
 		/* position: relative;
@@ -351,7 +384,21 @@ import {
 		display: flex;
 		align-items: center;
 	}
-	.tips{
+
+	.barCodeBox {
+		width: 336rpx;
+		/* background-color: aqua; */
+		margin-top: 40rpx;
+
+	}
+	.codeNo{
+		text-align: center;
+	}
+	/* 	.barCodeBox image{
+		width: 200px;
+		height: 100px;
+	} */
+	.tips {
 		margin-top: 12rpx;
 		color: #9b9b9b;
 		font-size: 26rpx;
@@ -492,11 +539,18 @@ import {
 		color: #878787;
 		width: 80px;
 	}
-	.right{
-		flex:1;
-		word-wrap: break-word; 
+
+	.right {
+		flex: 1;
+		word-wrap: break-word;
 		overflow-wrap: break-word;
-	
+
+	}
+
+	.bc {
+		display: flex;
+		flex-direction: column;
+
 	}
 
 	.item {
@@ -563,7 +617,8 @@ import {
 		background-color: #eaeaea;
 		display: flex;
 		flex-direction: column;
-		height: 100vh;
+		/* height: 100vh;
+		overflow: hidden; */
 	}
 
 	.content {

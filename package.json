@@ -2,7 +2,9 @@
   "dependencies": {
     "@dcloudio/uni-ui": "^1.5.7",
     "@vant/weapp": "^1.11.7",
+    "bwip-js": "^4.6.0",
     "emoji-vue": "^0.2.4",
+    "jsbarcode": "^3.12.1",
     "vant": "^2.13.7"
   }
 }

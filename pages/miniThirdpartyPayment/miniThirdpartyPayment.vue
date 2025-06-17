@@ -106,11 +106,11 @@
 			<view class="mini ">
 		
 						<view class="left" style="color: black;">
-							商户单号
+							商家小程序
 						</view>
 						<view class="right_mini">
-							<image class="miniapp" mode="widthFix" src="/static/icon-miniapp.png"></image>
-							<text class="miniName">{{info.shopNumber}} </text>
+							<image class="miniapp" mode="widthFix" src="/static/qiw/miniIcon.png"></image>
+							<text class="miniName">{{info.miniName}} </text>
 							<uni-icons type="right" color="#9b9b9b" size="17"></uni-icons>
 
 						</view>
@@ -189,7 +189,8 @@
 
 <script>
 import {
-		eadLocalFileToBase64
+		eadLocalFileToBase64,
+		
 	} from "../../utils/tool.js"
 	export default {
 		data() {
@@ -248,12 +249,14 @@ import {
 				...temp,
 				
 			}
+			
 			console.log(this.info.name);
 			// 读取本地角色
 			const list = uni.getStorageSync('roleList')
 			if (list) this.roleList = list
 		},
 		methods: {
+		
 			saveRoleList() {
 				uni.setStorage({
 					key: 'roleList',
@@ -536,10 +539,10 @@ import {
 		flex: 1;
 	}
 	.miniapp{
-		width: 28rpx;
+		width: 26rpx;
 	}
 	.miniName{
-		margin: 0 16rpx;
+		margin: 0 14rpx;
 		color: #878787;
 	}
 	.order_info {
@@ -600,7 +603,7 @@ import {
 		background-color: #eaeaea;
 		display: flex;
 		flex-direction: column;
-		height: 100vh;
+		/* height: 100vh; */
 	}
 
 	.content {
