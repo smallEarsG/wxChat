@@ -170,7 +170,7 @@
 			<!-- {{containerStyle.height}} -->
 			<view class="chat-input">
 				<image class="icon" src="/static/icon-voice.png" @click="addYuyin"></image>
-				<view class="input—box"><input class="input" placeholder="请输入" v-model="inputValue"
+				<view class="input—box"><input class="input" placeholder="" v-model="inputValue"
 						@confirm="onEnterKey" /></view>
 				<image class="icon_face" v-if="!keyboard"  src="/static/icon-face.png"></image>
 				<image class="icon_plus" src="/static/icon-plus.png" @click="togglePopupBox"></image>

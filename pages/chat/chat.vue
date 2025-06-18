@@ -518,7 +518,7 @@
 		},
 		data() {
 			return {
-				contentbg:"/static/qiw/微信图片_20231113111507.png",
+				contentbg:"null",
 				total: 108,
 				emoji: false,
 				currentActionIndex: -1, // 添加当前操作的消息索引

@@ -185,6 +185,7 @@
 					"money": '金额',
 					"currentState": '支付状态',
 					"payment": '支付方式',
+					"desc": "备注",
 				}
 			}
 		},
