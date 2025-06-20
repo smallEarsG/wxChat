@@ -217,7 +217,7 @@
 				const index = list.findIndex(item => {
 					return item.info.orderNumber === this.info.orderNumber;
 				});
-
+  
 				// 如果不存在，添加新元素
 				if (index < 0) {
 					list.push({
