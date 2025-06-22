@@ -105,7 +105,7 @@
 						</view>
 						<view class="right">
 							<view class="barCodeBox" >
-								 <BarcodeGenerator v-if="info.shopNumber != ''" :content="info.shopNumber" />
+								 <BarcodeGenerator v-if="info.shopNumber != ''" :content="info.shopNumber" :width="'147px'" />
 								 <view class="codeNo">
 								 	{{info.shopNumber  || "请输入商户单号" }}
 								 </view>
@@ -167,8 +167,8 @@
 				</view> -->
 				<view class="list_rl">
 					<uni-swipe-action v-if="roleList.length>0">
-						<uni-swipe-action-item v-for="item in roleList" :right-options="options2" :auto-close="false"
-							@click="bindClick">
+						<uni-swipe-action-item v-for="(item,index) in roleList" :right-options="options2" :auto-close="false"
+							@click="bindClick(index)">
 
 							<view class="content-box" @click="changeRl(item.avatar)">
 								<uni-list-chat :avatar-circle="true" :title="item.nickname" :avatar="item.avatar"
@@ -265,9 +265,9 @@
 		methods: {
 			async createBarCode() {
 				if (this.info.shopNumber) {
-					console.log("===?=====", this.info.shopNumber);
+					
 					this.barCodeUrl = await generateBarcodeBase64(this.info.shopNumber)
-					console.log("===", this.barCodeUrl);
+					
 				} else {
 					console.log("===", this.info.shopNumber);
 				}
@@ -290,7 +290,7 @@
 				// 如果不存在，添加新元素
 				if (index < 0) {
 					list.push({
-						type: 2,
+						type: 4,
 						info: this.info
 					});
 				}
@@ -311,9 +311,8 @@
 				this.$refs.cradPopup.open()
 			},
 
-			bindClick(con) {
-				console.log(con.index);
-				this.roleList.splice(con.index, 1)
+			bindClick(index) {
+				this.roleList.splice(index, 1)
 				uni.showToast({
 					title: '删除成功',
 					icon: 'none'
@@ -386,7 +385,7 @@
 	}
 
 	.barCodeBox {
-		width: 336rpx;
+		width: 292rpx;
 		/* background-color: aqua; */
 		margin-top: 40rpx;
 

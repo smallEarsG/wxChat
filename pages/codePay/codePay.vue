@@ -89,19 +89,26 @@
 
 			</view>
 			<view class="action-buttons">
+				<button class="action-btn" @click="goCodePayChild(2)" style="margin-bottom: 20px;">
+					<!-- <uni-icons type="scan" size="24" color="#fff" /> -->
+					<text>第三方付款</text>
+				</button>
 				<button class="action-btn" @click="goCodePayChild(3)">
 					<uni-icons type="moneybag" size="24" color="#fff" />
 					<text>第三方小程序</text>
 				</button>
-				<button class="action-btn" @click="goCodePayChild(4)">
-					<text>第三方条形码</text>
-				</button>
-			
+
 			</view>
-			<button class="action-btn" @click="goCodePayChild(2)" style="margin-bottom: 20px;">
-				<!-- <uni-icons type="scan" size="24" color="#fff" /> -->
-				<text>第三方付款</text>
-			</button>
+			<view class="action-buttons">
+				<button class="action-btn" @click="goCodePayChild(4)">
+					<text>第三方条形码(16位)</text>
+				</button>
+				<button class="action-btn" @click="goCodePayChild(5)">
+					<text>第三方条形码(32位)</text>
+				</button>
+
+			</view>
+
 			<button class="history-btn" type="default" @click="goMsg">
 				<uni-icons type="history" size="24" color="#4A90E2" />
 				<text>修改记录</text>
@@ -205,13 +212,13 @@
 
 					const zdesc = words.match(/转账说明/);
 					if (zdesc) info.desc = data[index + 1]?.words;
-					
+
 					const shop = words.match(/商品/);
 					if (shop) info.shop = data[index + 1]?.words;
-					
+
 					const merchantName = words.match(/商户全称/);
 					if (merchantName) info.merchantName = data[index + 1]?.words;
-					
+
 					const institution = words.match(/收单机构/);
 					if (institution) info.institution = data[index + 1]?.words;
 
@@ -237,20 +244,20 @@
 					// 账单号
 					const orderMatch = words.match(/\d{16,32}/);
 					if (orderMatch && /转账单号/.test(data[index - 1]?.words)) {
-						if (orderMatch[0].length <31) {
+						if (orderMatch[0].length < 31) {
 							console.log("====", orderMatch[0].length);
 							info.orderNumber = orderMatch[0] + data[index + 1]?.words;
 						} else {
 							info.orderNumber = orderMatch[0];
 						}
-					}else if(orderMatch && /交易单号/.test(data[index - 1]?.words)) {
+					} else if (orderMatch && /交易单号/.test(data[index - 1]?.words)) {
 						if (orderMatch[0].length < 28) {
 							console.log("====", orderMatch[0].length);
 							info.orderNumber = orderMatch[0] + data[index + 1]?.words;
 						} else {
 							info.orderNumber = orderMatch[0];
 						}
-					}else if(orderMatch && /商户单号/.test(data[index - 1]?.words)) {
+					} else if (orderMatch && /商户单号/.test(data[index - 1]?.words)) {
 						if (orderMatch[0].length < 28) {
 							console.log("====", orderMatch[0].length);
 							info.shopNumber = orderMatch[0] + data[index + 1]?.words;
@@ -271,134 +278,32 @@
 
 				return info;
 			},
-
 			goCodePayChild(i) {
+				// 确保信息已提取
 				if (!this.extractedInfo) {
-				  this.extractedInfo = this.extractInfoWithRegex(this.resultList);
+					this.extractedInfo = this.extractInfoWithRegex(this.resultList);
 				}
-				// const temp = [{
-				// 		"words": "2:38"
-				// 	},
-				// 	{
-				// 		"words": "6.5"
-				// 	},
-				// 	{
-				// 		"words": "5G"
-				// 	},
-				// 	{
-				// 		"words": "K/s"
-				// 	},
-				// 	{
-				// 		"words": "93"
-				// 	},
-				// 	{
-				// 		"words": "×"
-				// 	},
-				// 	{
-				// 		"words": "抖音App"
-				// 	},
-				// 	{
-				// 		"words": "-100.00"
-				// 	},
-				// 	{
-				// 		"words": "当前状态"
-				// 	},
-				// 	{
-				// 		"words": "支付成功"
-				// 	},
-				// 	{
-				// 		"words": "支付时间"
-				// 	},
-				// 	{
-				// 		"words": "2025年6月13日10：13：46"
-				// 	},
-				// 	{
-				// 		"words": "商品"
-				// 	},
-				// 	{
-				// 		"words": "抖音DOU+产品商业版"
-				// 	},
-				// 	{
-				// 		"words": "商户全称"
-				// 	},
-				// 	{
-				// 		"words": "北京抖音科技有限公司"
-				// 	},
-				// 	{
-				// 		"words": "收单机构"
-				// 	},
-				// 	{
-				// 		"words": "财付通支付科技有限公司"
-				// 	},
-				// 	{
-				// 		"words": "支付方式"
-				// 	},
-				// 	{
-				// 		"words": "零钱通"
-				// 	},
-				// 	{
-				// 		"words": "i"
-				// 	},
-				// 	{
-				// 		"words": "由网联清算有限公司提供付款清算服务"
-				// 	},
-				// 	{
-				// 		"words": "交易单号"
-				// 	},
-				// 	{
-				// 		"words": "4200002667202506139857674150"
-				// 	},
-				// 	{
-				// 		"words": "商户单号"
-				// 	},
-				// 	{
-				// 		"words": "2001072506130100975084639072"
-				// 	},
-				// 	{
-				// 		"words": "账单服务"
-				// 	},
-				// 	{
-				// 		"words": "对订单有疑惑"
-				// 	},
-				// 	{
-				// 		"words": "发起群收款"
-				// 	},
-				// 	{
-				// 		"words": "在此商户的交易"
-				// 	},
-				// 	{
-				// 		"words": "本服务由财付通提供"
-				// 	}
-				// ]
 
-				// this.extractedInfo = this.extractInfoWithRegex(temp);
-				if (i === 1) {
-					uni.navigateTo({
-						url: "/pages/codePayChild/codePayChild?info=" + encodeURIComponent(JSON.stringify(this
-							.extractedInfo))
-					});
-				} else if (i === 0) {
-					uni.navigateTo({
-						url: "/pages/transfer/transfer?info=" + encodeURIComponent(JSON.stringify(this
-							.extractedInfo))
-					});
-				}else if (i === 3) {
-					uni.navigateTo({
-						url: "/pages/miniThirdpartyPayment/miniThirdpartyPayment?info=" + encodeURIComponent(JSON.stringify(this
-							.extractedInfo))
-					});
-				}else if (i === 4) {
-					uni.navigateTo({
-						url: "/pages/barcodeThirdpartyPayment/barcodeThirdpartyPayment?info=" + encodeURIComponent(JSON.stringify(this
-							.extractedInfo))
-					});
-				} else {
-					uni.navigateTo({
-						url: "/pages/ThirdpartyPayment/ThirdpartyPayment?info=" + encodeURIComponent(JSON
-							.stringify(this
-								.extractedInfo))
-					});
-				}
+				// 复用之前的路由映射配置
+				const routeMap = {
+					0: '/pages/transfer/transfer',
+					1: '/pages/codePayChild/codePayChild',
+					2: '/pages/ThirdpartyPayment/ThirdpartyPayment', // 原默认情况
+					3: '/pages/miniThirdpartyPayment/miniThirdpartyPayment',
+					4: '/pages/barcodeThirdpartyPayment/barcodeThirdpartyPayment',
+					5: '/pages/barcodeThirdpartyPayment32/barcodeThirdpartyPayment32'
+				};
+
+				// 获取目标路由，默认使用第三方支付页面
+				const targetRoute = routeMap[i] || routeMap[2];
+
+				// 构建完整URL
+				const url = `${targetRoute}?info=${encodeURIComponent(JSON.stringify(this.extractedInfo))}`;
+
+				// 导航到目标页面
+				uni.navigateTo({
+					url
+				});
 			},
 
 			// 选择图片

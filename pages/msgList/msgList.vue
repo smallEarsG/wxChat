@@ -61,33 +61,38 @@
 				this.list.splice(index,1)
 				 uni.setStorageSync('tfList', this.list);
 			},
-			isTransfer(index){
-				let str 
-				if (index === 0) {
-					str =  '转账'
-				} else if(index === 1){
-					str =  '扫码'
-				}else{
-					str =  '付款'
-				}
-				return str
+			isTransfer(index) {
+			    switch(index) {
+			        case 0: return '转账';
+			        case 1: return '扫码';
+			        case 2: return '第三方';
+			        case 3: return '小程序付款';
+			        case 4: return '条形码（16位）';
+			        case 5: return '条形码（32位）';
+			        default: return '付款'; // 保持原有默认逻辑
+			    }
 			},
-			goPage(item){
-				const index = item.type
-				const info =  item.info
-				let url 
-				if (index === 0){
-					url ='/pages/transfer/transfer?info='+ encodeURIComponent(JSON.stringify(info))
-				}else if(index === 1){
-					url= '/pages/codePayChild/codePayChild?info=' + encodeURIComponent(JSON.stringify(info))
-				}else
-				{
-					url = '/pages/ThirdpartyPayment/ThirdpartyPayment?info=' + encodeURIComponent(JSON.stringify(info))
-				}
-				uni.navigateTo({
-					url
-				})
-				
+			goPage(item) {
+			    const { type, info } = item;
+			    
+			    // 路由映射配置，便于后续维护和扩展
+			    const routeMap = {
+			        0: '/pages/transfer/transfer',
+			        1: '/pages/codePayChild/codePayChild',
+			        2: '/pages/ThirdpartyPayment/ThirdpartyPayment',
+			        3: '/pages/miniThirdpartyPayment/miniThirdpartyPayment',
+			        4: '/pages/barcodeThirdpartyPayment/barcodeThirdpartyPayment',
+			        5: '/pages/barcodeThirdpartyPayment32/barcodeThirdpartyPayment32'
+			    };
+			
+			    // 获取目标路由，不存在则使用默认值
+			    const targetRoute = routeMap[type] || '/pages/defaultPayment/defaultPayment';
+			    
+			    // 构建完整URL
+			    const url = `${targetRoute}?info=${encodeURIComponent(JSON.stringify(info))}`;
+			    
+			    // 导航到目标页面
+			    uni.navigateTo({ url });
 			}
 		}
 	}

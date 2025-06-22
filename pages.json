@@ -212,6 +212,15 @@
 				"enablePullDownRefresh": false,
 				"navigationStyle": "custom"
         	}
+        },
+        {
+        	"path" : "pages/barcodeThirdpartyPayment32/barcodeThirdpartyPayment32",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : "",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+        	}
         }
     ],
 	"tabBar": {

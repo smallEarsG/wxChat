@@ -6,13 +6,14 @@
         <image class="icon" src="/static/images/tf_2.png" />
       </view>
       <view class="info">
-       <view class="title">向{{ name }}转账</view>
-       <view class="amount">￥{{ amount }}</view>
-        <view class="desc">已收款</view>
+      <view class="title" :style="{ fontSize: rpx(32) }">向{{ name }}转账</view>
+      <view class="amount" :style="{ fontSize: rpx(32) }">￥{{ amount }}</view>
+      <view class="desc" :style="{ fontSize: rpx(24) }">已收款</view>
+        <!-- <view class="desc">已收款</view> -->
       </view>
     </view>
 	<view class="line" />
-    <view class="bottom-bar">
+    <view class="bottom-bar" :style="{ fontSize: rpx(24) }">
     <view class="left">转账</view>
     <view class="right">企业</view>
     </view>
@@ -20,7 +21,9 @@
 </template>
 
 <script>
+import scaleMixin from '@/mixins/scaleMixin.js'
 export default {
+ mixins: [scaleMixin],
   name: 'TransferCard',
   props: {
 	  

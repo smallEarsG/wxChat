@@ -1,6 +1,6 @@
 <template>
-  <view class="container_z">
-    <canvas canvas-id="barcode-canvas" style="width: 600rpx; height: 110rpx;" />
+  <view class="container_z" :style="{width:width}" >
+    <canvas canvas-id="barcode-canvas" />
   </view>
 </template>
 
@@ -13,7 +13,11 @@ export default {
     content: {
       type: String,
       required: true
-    }
+    },
+	width:{
+		type: String,
+		required: true
+	}
   },
   mounted() {
     this.drawBarcode()
@@ -47,7 +51,7 @@ export default {
             JsBarcode(_canvas, this.content, {
               format: "CODE128",
               lineColor: "#000000",
-              width: 1.1,
+              width: 1,
               height: 50,
               displayValue: false,
 			  // fontSize:18
@@ -74,5 +78,10 @@ export default {
   position: relative;
   /* left: -20rpx; */
   /* background-color: bisque; */
+  overflow: hidden; 
+  height: 102rpx;
+}
+.barcode-canvas{
+	 /* height: 110rpx; */
 }
 </style>

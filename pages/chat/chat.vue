@@ -1,37 +1,33 @@
 <template>
-	<!--  :style="{height:keyboardHeight?' 100vh':'calc(100vh - 514rpx) '}" -->
-	<view class="chat-page">
+	<view class="chat-page" :style="{ '--global-font-size': currentFontSize + 'px' }">
 		<!-- 顶部栏 -->
 		<view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="back" @click="goBack">
 				<image class="backimg" src="../../static/qiw/black_leftIcon.png"></image>
-				<!-- <uni-icons type="arrow-left" color="#fff" size="28" style="width: ;"></uni-icons> -->
 			</view>
 			<view class="title">
-				<view class="nikeName">
+				<view class="nikeName"  :style="{ fontSize: rpx(36) }">
 					{{guestInfo.name || "企业微信工坊"}}
 				</view>
-				<view class="desc">{{guestInfo.description}}</view>
-				
+				<view class="desc" :style="{ fontSize: rpx(24) }">{{guestInfo.description}}</view>
+
 			</view>
 			<view class="icons">
 				<image @click="addVideo" class="nav-icon_phone" src="/static/icon-phone.png"></image>
-				<image class="nav-icon_more" src="/static/qiw/more.png"></image>
+				<image @click="openMenu" class="nav-icon_more" src="/static/qiw/more.png"></image>
 			</view>
 		</view>
 
 		<view class="chat-content">
 
 			<view v-if="activeMsgIndex !== -1" class="overlay" @click="closePopupMenu"></view>
-			<!-- 聊天内容区域 -->
-			
-				
-			
-			<scroll-view class="chat-body"  :style="'background-image: url('+contentbg+');'" scroll-y :show-scrollbar="false">
+
+			<scroll-view class="chat-body" :scroll-top="scrollTop" :style="'background-image: url('+contentbg+');'"
+				scroll-y :show-scrollbar="false">
 				<view v-for="(item ,i ) in massageList " :key="i">
 
 					<!-- 时间 -->
-					<view @longpress="showPopupMenu($event, i)" v-if="item.type == 'tips'" class="msg-time cell">
+					<view @longpress="showPopupMenu($event, i)"  :style="{ fontSize: rpx(24) }" v-if="item.type == 'tips'" class="msg-time cell">
 						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
 							<view class="menu-item" @click="deleteMessage_1(i)">
 								<uni-icons type="close" color="#999" size="25"></uni-icons>
@@ -291,12 +287,12 @@
 							<view class="avatar">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<view class="bubble">
+							<view class="bubble" :style="{ fontSize: rpx(34) }" >
 								<view>
 									<template v-for="(part, i) in parseMessage(item.content)">
 										<text v-if="part.type === 'text'" :key="i">{{ part.content }}</text>
 										<image v-else-if="part.type === 'emoji'" :key="i"
-											:src="getEmojiUrl(part.index,item.location)" class="emoji-inline" />
+											:src="getEmojiUrl(part.index,item.location)" class="emoji-inline" :style="{ width: rpx(40), height: rpx(40) }" />
 									</template>
 								</view>
 
@@ -308,12 +304,12 @@
 
 							<image class="avatar" mode="aspectFill"
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<view class="bubble">
+							<view class="bubble" :style="{ fontSize: rpx(34) }">
 								<view>
 									<template v-for="(part, i) in parseMessage(item.content)">
 										<text v-if="part.type === 'text'" :key="i">{{ part.content }}</text>
 										<image v-else-if="part.type === 'emoji'" :key="i"
-											:src="getEmojiUrl(part.index,item.location)" class="emoji-inline" />
+											:src="getEmojiUrl(part.index,item.location)" class="emoji-inline" :style="{ width: rpx(40), height: rpx(40) }" />
 									</template>
 
 								</view>
@@ -322,14 +318,13 @@
 
 
 					</view>
-					<!-- l、聊天 -->
+					<!-- 视频电话 -->
 					<view v-else-if="item.contentType == 'video'" @longpress="showPopupMenu($event, i)" class="cell">
 
 						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
 							<view class="menu-item" @click="deleteMessage_1(i)">
 
 								<uni-icons type="close" color="#999" size="25"></uni-icons>
-
 								<text>删除</text>
 							</view>
 							<view class="menu-item" @click="insertTime(i)">
@@ -355,11 +350,10 @@
 							<view class="avatar">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<view class="bubble">
+							<view class="bubble" :style="{ fontSize: rpx(34) }">
 								<view class="videobox">
-									<view class="video"  style="margin-right: 16rpx;">
-										<image src="/static/qiw/video.png"></image>
-									</view>
+									
+									<image src="/static/qiw/video.png" style="" mode="widthFix" :style="{ width: rpx(50),marginRight: rpx(12)}"></image>
 									通话时长
 									<text>{{item.content}}</text>
 								</view>
@@ -369,18 +363,14 @@
 
 						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
 
-
 							<image class="avatar" mode="aspectFill"
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<view class="bubble">
+							<view class="bubble"  :style="{ fontSize: rpx(34) }">
 								<view>
 									<view class="videobox">
-										
 										通话时长
 										<text>{{item.content}}</text>
-										<view class="video" style="margin-left: 16rpx;">
-											<image src="/static/qiw/video2.png"></image>
-										</view>
+									<image  style="margin-left: 16upx;" src="/static/qiw/video2.png"  mode="widthFix"  :style="{ width: rpx(50),marginLeft: rpx(12)}"></image>
 									</view>
 
 								</view>
@@ -393,18 +383,17 @@
 				</view>
 
 			</scroll-view>
-			
-			<!-- :style="{paddingBottom:!keyboardHeight?' 300rpx':'0 '}" -->
+
 			<!-- 底部输入栏 -->
 			<view class="fun_box">
 				<ChatToolBar />
 				<view class="chat-input">
-					<image class="icon" src="/static/icon-voice.png"></image>
-					<view class="input—box"><textarea class="input" v-model="inputValue" @confirm="onEnterKey"
+					<image class="icon" :style="{ width: rpx(60), height: rpx(60) }"  src="/static/icon-voice.png" ></image>
+					<view class="input—box" :style="{  height: rpx(80) }" ><textarea class="input" v-model="inputValue" @confirm="onEnterKey"
 							placeholder-class /></view>
-					<image class="icon_face" v-if="keyboardHeight" src="/static/icon-face.png" @click="changeEmoji">
+					<image class="icon_face"  :style="{ width: rpx(60), height: rpx(60) }" v-if="keyboardHeight" src="/static/icon-face.png" @click="changeEmoji">
 					</image>
-					<image class="icon_plus" src="/static/icon-plus.png" @click="togglePopupBox"></image>
+					<image class="icon_plus"  :style="{ width: rpx(68), height: rpx(68) }"  src="/static/icon-plus.png" @click="togglePopupBox"></image>
 					<button class="send" @click="onEnterKey" v-if="!keyboardHeight"> 发送 </button>
 				</view>
 				<view class="emoji-picker" v-show="emoji">
@@ -419,7 +408,7 @@
 							<view class="feature-grid">
 								<view>
 									<switch :checked="isMe" @change="onSwitchChange" />{{isMe?"我":"客户"}}
-									<view style="margin-top: 20rpx;">角色切换</view>
+									<view style="margin-top: 20upx;">角色切换</view>
 								</view>
 							</view>
 						</swiper-item>
@@ -457,8 +446,28 @@
 					@submit="onEditMsgSubmit" /> -->
 				<!-- 时间编辑 -->
 				<EditableFormPopup ref="videoPopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onVideoSubmit" />
+				<!-- 背景修改 -->
+				<UploadImage ref="bgPopup" @submit="onBgSubmit"></UploadImage>
 			</view>
 		</view>
+		<uni-popup ref="menuPopup" background-color="#fff" >
+			<view class="menu" :style="{ paddingTop: statusBarHeight + 'px' }">
+				<button type="primary" plain="true" @click="openBgPopup">修改背景</button>
+				<!-- 滑块组件 -->
+				  <view class="fontChange">
+					<view class="">
+						字体调节
+					</view>
+					<slider
+					  :value="scale"
+					  :min="0.7"
+					  :max="1.5"
+					  :step="0.02"
+					  @changing="onScaleChange"
+					/>
+				  </view>
+			</view>
+		</uni-popup>
 	</view>
 </template>
 
@@ -470,6 +479,8 @@
 	import UploadImage from '../../components/UploadImage/UploadImage.vue';
 	import WxCard from '../../components/WxCard/WxCard.vue';
 	import ChTf from '../../components/ChTf/ChTf.vue';
+	import scaleMixin from '@/mixins/scaleMixin.js'
+	import { setScale } from '@/utils/scale.js'
 	import {
 		getUserInfo
 	} from '@/api/index.js'
@@ -478,6 +489,7 @@
 		updateConversation
 	} from '@/api/conversations.js'
 	export default {
+		mixins: [scaleMixin],
 		components: {
 			ExternalPayCard,
 			EditableFormPopup,
@@ -518,7 +530,9 @@
 		},
 		data() {
 			return {
-				contentbg:"null",
+				currentFontSize: 16, // 默认字体大小
+				scrollTop: 0,
+				contentbg: "null",
 				total: 108,
 				emoji: false,
 				currentActionIndex: -1, // 添加当前操作的消息索引
@@ -658,8 +672,41 @@
 				return pages;
 			}
 		},
+		mounted() {
+			this.scrollToBottom()
+		},
 		methods: {
-
+			onScaleChange(e) {
+			  const scale = e.detail.value
+			  // setScale(this.scale)
+			  this.$store.commit('setScale', scale)
+			},
+			scrollToBottom() {
+				// 确保DOM更新完成
+				this.$nextTick(() => {
+					// 使用定时器延迟执行，确保DOM完全渲染
+				  setTimeout(() => {
+					  uni.createSelectorQuery().select('.chat-body')
+					  	.fields({
+					  		size: true, // 获取元素尺寸
+					  		scrollOffset: true // 获取滚动位置和内容尺寸
+					  	}, res => {
+					  		console.log('内容总高度:', res.scrollHeight);
+					  		console.log('可视区域高度:', res.height);
+					  		console.log('当前滚动位置:', res.scrollTop);
+					  		this.scrollTop = res.scrollHeight
+					  	})
+					  	.exec();
+				  },100)
+				});
+			},
+			openBgPopup() {
+				this.$refs.bgPopup.open()
+				this.$refs.menuPopup.close()
+			},
+			openMenu() {
+				this.$refs.menuPopup.open('top')
+			},
 			getRB(i) {
 
 				this.massageList[i].content = !this.massageList[i].content
@@ -690,6 +737,7 @@
 			},
 			updateMsg() {
 				this.guestInfo.content = JSON.stringify(this.massageList)
+				
 				updateConversation(this.guestInfo.conversationId, this.guestInfo)
 			},
 			deleteMessage_1(index) {
@@ -772,18 +820,18 @@
 					type: "content", // tips, content
 					contentType: "video", //order , chat ,link
 					location, // 1 表示我方
-					content:data.time
+					content: data.time
 				}
-				
+
 				// console.log(data);
 				this.massageList.push(transferInfo)
 				this.updateMsg()
 			},
 			async addVideo() {
 				this.$refs.videoPopup.open()
-				
+
 			},
-			
+
 			async onCradSubmitz(data) {
 				console.log(data);
 				const res = await uploadImage(data.avatar, this.guestInfo.userId)
@@ -800,6 +848,9 @@
 				// console.log(data);
 				this.massageList.push(transferInfo);
 				this.updateMsg()
+			},
+			onBgSubmit(data) {
+				this.contentbg = data.avatar
 			},
 			async onPhotoSubmit(data) {
 				console.log(data.avatar);
@@ -979,6 +1030,7 @@
 				console.log(this.inputValue);
 				this.addMsgcomm(this.inputValue)
 				this.inputValue = '';
+				this.scrollToBottom()
 			},
 			addMsgcomm(inputValue) {
 				if (inputValue.trim()) {
@@ -1052,7 +1104,10 @@
 
 				// 获取当前消息内容
 				// this.editMsgInfo.msg =;
-				this.editMsgInfo = { ...this.editMsgInfo, msg:  this.massageList[index].content }; // 更新数据
+				this.editMsgInfo = {
+					...this.editMsgInfo,
+					msg: this.massageList[index].content
+				}; // 更新数据
 				// 打开编辑弹窗
 				this.$refs.editMsgPopup.open();
 
@@ -1085,40 +1140,46 @@
 </script>
 
 <style scoped>
+	.fontChange{
+		margin-top: 20upx;
+		border:1px solid #007aff;
+		padding: 10upx;
+		border-radius: 16upx;
+		
+	}
+	/* 字体调节 */
+	.chat-page {
+	    font-size: var(--global-font-size, 16px);
+	}
+	
+	.menu{
+		padding:40upx ;
+	}
 	.videobox {
 		display: flex;
 		/* text-align: center; */
 		align-items: center;
+		
 	}
+.videobox  image{
+	position: relative;
+	top: -2upx;
+}
 
-	.video {
-		width: 46rpx;
-		height: 40rpx;
-		/* margin: 0 ; */
-		overflow: hidden;
-	}
-
-	.video image {
-		width: 48rpx;
-		height: 48rpx;
-		position: relative;
-		bottom: 8rpx;
-
-	}
 
 	.emoji-inline {
-		width: 40rpx;
-		height: 40rpx;
+		width: 40upx;
+		height: 40upx;
 		vertical-align: middle;
 		margin: 0 1px;
 		position: relative;
-		top: -6rpx;
+		top: -6upx;
 
 	}
 
 	.emoji-picker {
 		background-color: #fff;
-		height: 360rpx;
+		height: 360upx;
 		overflow: auto;
 		display: flex;
 		flex-wrap: wrap;
@@ -1126,22 +1187,22 @@
 	}
 
 	.emoji-item {
-		width: 80rpx;
-		height: 76rpx;
-		margin: 18rpx;
+		width: 80upx;
+		height: 76upx;
+		margin: 18upx;
 		overflow: hidden;
 	}
 
 	.emoji-img {
 		width: 32px;
-		height: 30px;
+		height: 32px;
 	}
 
 	.cardRight::after {
 		content: "";
 		position: absolute;
-		top: 28rpx;
-		right: -10rpx;
+		top: 28upx;
+		right: -10upx;
 		width: 0;
 		height: 0;
 		border-top: 6px solid transparent;
@@ -1152,8 +1213,8 @@
 	.cardLeft::after {
 		content: "";
 		position: absolute;
-		top: 28rpx;
-		left: -10rpx;
+		top: 28upx;
+		left: -10upx;
 		width: 0;
 		height: 0;
 		border-top: 6px solid transparent;
@@ -1166,14 +1227,14 @@
 	.tfCardLeftBg,
 	.tfCardLeft,
 	.cardLeft {
-		margin-left: 14rpx;
+		margin-left: 14upx;
 	}
 
 	.tfCardLeftBg::after {
 		content: "";
 		position: absolute;
-		top: 28rpx;
-		left: -10rpx;
+		top: 28upx;
+		left: -10upx;
 		width: 0;
 		height: 0;
 		border-top: 6px solid transparent;
@@ -1184,8 +1245,8 @@
 	.tfCardLeft::after {
 		content: "";
 		position: absolute;
-		top: 28rpx;
-		left: -10rpx;
+		top: 28upx;
+		left: -10upx;
 		width: 0;
 		height: 0;
 		border-top: 6px solid transparent;
@@ -1196,8 +1257,8 @@
 	.redbagLeftBg::after {
 		content: "";
 		position: absolute;
-		top: 28rpx;
-		left: -10rpx;
+		top: 28upx;
+		left: -10upx;
 		width: 0;
 		height: 0;
 		border-top: 6px solid transparent;
@@ -1208,8 +1269,8 @@
 	.redbagLeft::after {
 		content: "";
 		position: absolute;
-		top: 28rpx;
-		left: -10rpx;
+		top: 28upx;
+		left: -10upx;
 		width: 0;
 		height: 0;
 		border-top: 6px solid transparent;
@@ -1220,8 +1281,8 @@
 	.tfCardRightBg::after {
 		content: "";
 		position: absolute;
-		top: 28rpx;
-		right: -10rpx;
+		top: 28upx;
+		right: -10upx;
 		width: 0;
 		height: 0;
 		border-top: 6px solid transparent;
@@ -1232,8 +1293,8 @@
 	.tfCardRight::after {
 		content: "";
 		position: absolute;
-		top: 28rpx;
-		right: -10rpx;
+		top: 28upx;
+		right: -10upx;
 		width: 0;
 		height: 0;
 		border-top: 6px solid transparent;
@@ -1245,8 +1306,8 @@
 	.redbagRightBg::after {
 		content: "";
 		position: absolute;
-		top: 28rpx;
-		right: -10rpx;
+		top: 28upx;
+		right: -10upx;
 		width: 0;
 		height: 0;
 		border-top: 6px solid transparent;
@@ -1257,8 +1318,8 @@
 	.redbagRight::after {
 		content: "";
 		position: absolute;
-		top: 28rpx;
-		right: -10rpx;
+		top: 28upx;
+		right: -10upx;
 		width: 0;
 		height: 0;
 		border-top: 6px solid transparent;
@@ -1271,16 +1332,16 @@
 	.tfCardRightBg,
 	.tfCardRight,
 	.cardRight {
-		margin-right: 14rpx;
+		margin-right: 14upx;
 	}
 
 
 	.send {
 		background-color: blue;
 		color: #fff;
-		height: 60rpx;
-		line-height: 60rpx;
-		font-size: 30rpx;
+		height: 60upx;
+		line-height: 60upx;
+		font-size: 30upx;
 		text-align: center;
 	}
 
@@ -1303,8 +1364,8 @@
 		position: fixed;
 		background-color: rgba(0, 0, 0, 0.85);
 		color: white;
-		border-radius: 12rpx;
-		padding: 15rpx 20rpx;
+		border-radius: 12upx;
+		padding: 15upx 20upx;
 		z-index: 999;
 		display: flex;
 		flex-direction: row;
@@ -1313,25 +1374,25 @@
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 		backdrop-filter: blur(8px);
 		transform-origin: center;
-		max-width: 600rpx;
+		max-width: 600upx;
 	}
 
 	.menu-item {
-		padding: 15rpx 25rpx;
-		font-size: 28rpx;
+		padding: 15upx 25upx;
+		font-size: 28upx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		white-space: nowrap;
 		cursor: pointer;
 		transition: all 0.2s ease;
-		border-radius: 10rpx;
-		min-width: 80rpx;
+		border-radius: 10upx;
+		min-width: 80upx;
 	}
 
 	.menu-item:hover {
 		background-color: rgba(255, 255, 255, 0.1);
-		transform: translateY(-2rpx);
+		transform: translateY(-2upx);
 	}
 
 	.menu-item:active {
@@ -1339,19 +1400,19 @@
 	}
 
 	.menu-item image {
-		width: 40rpx;
-		height: 40rpx;
-		margin-bottom: 10rpx;
+		width: 40upx;
+		height: 40upx;
+		margin-bottom: 10upx;
 	}
 
 	.menu-item text {
-		font-size: 24rpx;
+		font-size: 24upx;
 	}
 
 	.chat-page {
 		display: flex;
 		flex-direction: column;
-		/* height: calc(100vh - 514rpx); */
+		/* height: calc(100vh - 514upx); */
 		height: 100vh;
 		background-color: #eaeaea;
 		overflow: hidden;
@@ -1371,22 +1432,22 @@
 	}
 
 	.backimg {
-		width: 48rpx;
-		height: 48rpx;
+		width: 48upx;
+		height: 48upx;
 		position: relative;
-		/* top: 2rpx; */
-		margin-left: 16rpx;
+		/* top: 2upx; */
+		margin-left: 16upx;
 	}
 
 	/* 顶部栏 */
 	.nav-bar {
 
-		height: 100rpx;
+		height: 100upx;
 		background-color: #4475C9;
 		color: white;
 		display: flex;
 		align-items: center;
-		padding: 10rpx 20rpx;
+		padding: 10upx 20upx;
 		justify-content: space-between;
 		box-sizing: content-box;
 
@@ -1404,61 +1465,62 @@
 
 	.desc {
 		color: #e4eef0;
-		font-size: 24rpx;
-		margin-top: 6rpx;
+		font-size: 24upx;
+		margin-top: 4upx;
 	}
 
 	.nikeName {
-		font-size: 36rpx;
+		font-size: 36upx;
 		/* font-weight: 600; */
 	}
 
 	.back {
-		font-size: 32rpx;
-		margin-right: 32rpx;
+		font-size: 32upx;
+		margin-right: 32upx;
 	}
 
 	.icons {
 		display: flex;
-		gap: 20rpx;
+		gap: 20upx;
 		align-items: center;
 	}
 
 	.nav-icon_more {
-		width: 40rpx;
-		height: 40rpx;
-		margin-left: 30rpx;
+		width: 40upx;
+		height: 40upx;
+		margin-left: 30upx;
 	}
 
 	.nav-icon_phone {
-		width: 42rpx;
-		height: 42rpx;
+		width: 42upx;
+		height: 42upx;
 	}
 
 	/* 聊天内容 */
 	.chat-body {
 		flex: 1;
-		padding: 10rpx 20rpx;
+		padding: 0 20upx;
 		/* 修正 padding 属性 */
 		box-sizing: border-box;
-		max-height: calc(100vh - 80rpx - 100rpx);
+		max-height: calc(100vh - 80upx - 100upx);
 		/* 减去 nav-bar 和 chat-input 的高度 */
 		overflow-y: auto;
-		
+
 		background-size: 100% 100%;
-		
+
 	}
 
 	.msg-time {
 		text-align: center;
 		color: #999;
-		font-size: 24rpx;
-		margin: 30rpx 0;
+		font-size: 24upx;
+		margin: 30upx 0;
 	}
 
 	.msg {
 		display: flex;
-		margin-top: 34rpx;
+		margin-top: 14upx;
+		padding-bottom: 14upx;
 	}
 
 	.msg.left {
@@ -1470,10 +1532,10 @@
 	}
 
 	.avatar {
-		width: 80rpx;
-		height: 80rpx;
-		border-radius: 10rpx;
-		margin: 0 10rpx;
+		width: 80upx;
+		height: 80upx;
+		border-radius: 10upx;
+		margin: 0 10upx;
 		overflow: hidden;
 	}
 
@@ -1483,30 +1545,32 @@
 	}
 
 	.bubble {
-		max-width: 480rpx;
-		padding: 20rpx 20rpx;
-		font-size: 34rpx;
-		border-radius: 16rpx;
+		max-width: 480upx;
+		padding: 20upx 20upx;
+		font-size: 34upx;
+		border-radius: 16upx;
 		background-color: #ffffff;
 		line-height: 1.3;
 		position: relative;
 		box-sizing: border-box;
+		display: flex;
+		align-items: center;
 	}
 
 	.msg.right .bubble {
 		background-color: #CDE5FD;
-		margin-right: 14rpx;
+		margin-right: 14upx;
 	}
 
 	.msg.left .bubble {
-		margin-left: 14rpx;
+		margin-left: 14upx;
 	}
 
 	.msg.right .bubble::after {
 		content: "";
 		position: absolute;
-		top: 28rpx;
-		right: -10rpx;
+		top: 28upx;
+		right: -10upx;
 		width: 0;
 		height: 0;
 		border-top: 6px solid transparent;
@@ -1517,8 +1581,8 @@
 	.msg.left .bubble::after {
 		content: "";
 		position: absolute;
-		top: 28rpx;
-		left: -10rpx;
+		top: 28upx;
+		left: -10upx;
 		width: 0;
 		height: 0;
 		border-top: 6px solid transparent;
@@ -1529,7 +1593,7 @@
 	/* 链接样式 */
 	.link {
 		color: #3086ff;
-		margin-top: 10rpx;
+		margin-top: 10upx;
 		display: inline-block;
 	}
 
@@ -1539,79 +1603,79 @@
 		flex-direction: column;
 		flex-shrink: 0;
 		/* 防止收缩 */
-		max-height: calc(100vh - 80rpx);
+		max-height: calc(100vh - 80upx);
 		/* 减去 nav-bar 的高度 */
 	}
 
 	/* 输入框 */
 	.chat-input {
-		height: 120rpx;
+		height: 120upx;
 		background-color: #f5f5f5;
 		display: flex;
 		align-items: center;
-		padding: 10rpx 20rpx;
-		gap: 20rpx;
+		padding: 10upx 20upx;
+		gap: 20upx;
 		box-sizing: border-box;
 	}
 
 	.input {
 		width: 100%;
-		border-radius: 35rpx;
+		border-radius: 35upx;
 		height: 100%;
-		padding-top: 24rpx;
-		font-size: 28rpx;
+		padding-top: 24upx;
+		font-size: 28upx;
 	}
 
 	.input—box {
 		flex: 1;
-		height: 80rpx;
+		height: 80upx;
 		background-color: white;
-		padding: 0 10rpx;
-		margin-left: -16rpx;
+		padding: 0 10upx;
+		margin-left: -16upx;
 		overflow: hidden;
-		border-radius: 10rpx;
+		border-radius: 10upx;
 	}
 
 	.icon {
-		width: 60rpx;
-		height: 60rpx;
-		margin-right: 10rpx;
+		width: 60upx;
+		height: 60upx;
+		margin-right: 10upx;
 	}
 
 	.icon_face {
-		width: 60rpx;
-		height: 60rpx;
-		/* margin-left: 10rpx; */
+		width: 60upx;
+		height: 60upx;
+		/* margin-left: 10upx; */
 	}
 
 	.icon_plus {
-		width: 68rpx;
-		height: 68rpx;
-		/* margin-left: 10rpx; */
+		width: 68upx;
+		height: 68upx;
+		/* margin-left: 10upx; */
 	}
 
 	.phote {
-		width: 200rpx;
-		height: 200rpx;
+		width: 200upx;
+		height: 200upx;
 		object-fit: cover;
-		/* margin-left: 10rpx; */
-		/* border-radius: 16rpx; */
+		/* margin-left: 10upx; */
+		/* border-radius: 16upx; */
 		/* background-color: #3086ff; */
 	}
 
 	.rightp {
-		margin-right: 14rpx;
+		margin-right: 14upx;
 	}
 
 	.leftp {
-		margin-left: 14rpx;
+		margin-left: 14upx;
 	}
 
 	.drawer {
 		background-color: #fff;
 
-		border-top-left-radius: 20rpx;
-		border-top-right-radius: 20rpx;
+		border-top-left-radius: 20upx;
+		border-top-right-radius: 20upx;
 		display: flex;
 		justify-content: space-around;
 		transition: height 0.3s ease;
@@ -1622,50 +1686,50 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 20rpx;
+		padding: 20upx;
 	}
 
 	.drawer-icon {
-		width: 80rpx;
-		height: 80rpx;
-		margin-bottom: 10rpx;
+		width: 80upx;
+		height: 80upx;
+		margin-bottom: 10upx;
 	}
 
 	.popup_box {
 		background-color: #f9f9f9;
-		padding: 20rpx 0;
-		border-top-left-radius: 20rpx;
-		border-top-right-radius: 20rpx;
+		padding: 20upx 0;
+		border-top-left-radius: 20upx;
+		border-top-right-radius: 20upx;
 		transition: all 0.3s ease-in-out;
 	}
 
 	.drawer-swiper {
-		height: 360rpx;
+		height: 360upx;
 	}
 
 	.feature-grid {
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: space-around;
-		padding: 0 20rpx;
+		padding: 0 20upx;
 	}
 
 	.feature-item {
 		width: 25%;
-		margin-top: 20rpx;
+		margin-top: 20upx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 	}
 
 	.feature-icon {
-		width: 80rpx;
-		height: 80rpx;
-		margin-bottom: 10rpx;
+		width: 80upx;
+		height: 80upx;
+		margin-bottom: 10upx;
 	}
 
 	.feature-text {
-		font-size: 24rpx;
+		font-size: 24upx;
 		color: #333;
 	}
 </style>

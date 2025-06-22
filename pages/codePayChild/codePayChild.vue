@@ -138,8 +138,8 @@
 			</view> -->
 				<view class="list_rl">
 					<uni-swipe-action v-if="roleList.length>0">
-						<uni-swipe-action-item v-for="item in roleList" :right-options="options2" :auto-close="false"
-							@click="bindClick">
+						<uni-swipe-action-item v-for="(item,index) in roleList" :right-options="options2" :auto-close="false"
+							@click="bindClick(index)">
 
 							<view class="content-box" @click="changeRl(item.avatar)">
 								<uni-list-chat :avatar-circle="true" :title="item.nickname" :avatar="item.avatar"
@@ -215,9 +215,8 @@
 			openAddPopup(){
 				this.$refs.cradPopup.open()
 			},
-			bindClick(con) {
-				console.log(con.index);
-				this.roleList.splice(con.index, 1)
+			bindClick(index) {
+				this.roleList.splice(index, 1)
 				uni.showToast({
 					title: '删除成功',
 					icon: 'none'
@@ -235,14 +234,7 @@
 					data: this.roleList
 				})
 			},
-			bindClick(con) {
-				console.log(con.index);
-				this.roleList.splice(con.index, 1)
-				uni.showToast({
-					title: '删除成功',
-					icon: 'none'
-				})
-			},
+		
 			async onCradSubmitz(data) {
 				console.log(data);
 				const baseImg = await eadLocalFileToBase64(data.avatar)

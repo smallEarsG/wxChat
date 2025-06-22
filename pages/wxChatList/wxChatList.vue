@@ -157,7 +157,8 @@
 					name: data.name,
 					avatarUrl: imgUrl,
 					content: data.content,
-					createdAt: data.createdAt
+					createdAt: data.createdAt,
+					type:'wxchat'
 				}
 				
 				// console.log(data.conversationId);
