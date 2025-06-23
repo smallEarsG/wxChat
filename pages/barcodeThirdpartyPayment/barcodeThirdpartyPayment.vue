@@ -105,7 +105,7 @@
 						</view>
 						<view class="right">
 							<view class="barCodeBox" >
-								 <BarcodeGenerator v-if="info.shopNumber != ''" :content="info.shopNumber" :width="'147px'" />
+								 <BarcodeGenerator v-if="info.shopNumber != ''" :content="info.shopNumber" :width="'161px'" />
 								 <view class="codeNo">
 								 	{{info.shopNumber  || "请输入商户单号" }}
 								 </view>
@@ -385,7 +385,7 @@
 	}
 
 	.barCodeBox {
-		width: 292rpx;
+		width: 318rpx;
 		/* background-color: aqua; */
 		margin-top: 40rpx;
 

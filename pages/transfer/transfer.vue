@@ -52,7 +52,7 @@
 							{{info.otherTime}}
 						</view>
 					</view>
-					<view class="item">
+					<view class="item"  v-if="info.payment!=''">
 						<view class="left">
 							收款方式
 						</view>

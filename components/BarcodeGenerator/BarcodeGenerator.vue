@@ -51,7 +51,7 @@ export default {
             JsBarcode(_canvas, this.content, {
               format: "CODE128",
               lineColor: "#000000",
-              width: 1,
+              width: 1.1,
               height: 50,
               displayValue: false,
 			  // fontSize:18
