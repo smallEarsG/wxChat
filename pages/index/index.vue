@@ -347,6 +347,7 @@
 		justify-content: center;
 		margin-bottom: 20rpx;
 		transition: background-color 0.3s ease;
+		padding-bottom: env(safe-area-inset-bottom);
 	}
 
 	.card:hover .icon-container.bg-blue-100 {

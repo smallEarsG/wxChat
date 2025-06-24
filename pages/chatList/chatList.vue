@@ -170,7 +170,7 @@
 				let showText = '';
 				try {
 					// 解析JSON内容
-					const msgAry = JSON.parse(content);
+					const msgAry = JSON.parse(msgAry);
 					console.log(msgAry);
 
 					// 从后向前遍历消息数组
@@ -584,6 +584,7 @@
 		background-color: #fafbfd;
 		display: flex;
 		color: #53585c;
+		padding-bottom: env(safe-area-inset-bottom); /* 防止内容被挡，但背景照样铺到底 */
 	}
 
 	.foot_item {
@@ -595,35 +596,36 @@
 		align-items: center;
 		justify-content: center;
 		font-size: 22rpx;
+		margin-top: 10rpx;
 	}
 
 	.qwMsgIcon {
-		height: 50rpx;
-		width: 50rpx;
+		height: 48rpx;
+		width: 48rpx;
 		margin-bottom: 10rpx;
 	}
 
 	.qw_email {
-		height: 50rpx;
-		width: 50rpx;
+		height: 48rpx;
+		width: 48rpx;
 		margin-bottom: 10rpx;
 	}
 
 	.qw_word {
-		height: 50rpx;
-		width: 50rpx;
+		height: 48rpx;
+		width: 48rpx;
 		margin-bottom: 10rpx;
 	}
 
 	.qw_con {
-		height: 50rpx;
-		width: 50rpx;
+		height: 48rpx;
+		width: 48rpx;
 		margin-bottom: 10rpx;
 	}
 
 	.qx_tonxun {
-		height: 58rpx;
-		width: 58rpx;
+		height: 48rpx;
+		width: 48rpx;
 	}
 
 	.totalIndex {

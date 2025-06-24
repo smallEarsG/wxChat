@@ -70,91 +70,140 @@ function formatFormData(data) {
 }
 
 
-export function Filerequest(file,userId) {
-	console.log("开始上传文件", file);
+// export function Filerequest(file,userId) {
+// 	console.log("开始上传文件", file);
+
+// 	return new Promise((resolve, reject) => {
+// 		// 使用plus.net.uploader替代FormData和uni.request
+// 		const uploader = plus.uploader.createUpload(BASE_URL + '/file/upload/'+userId, {
+// 			method: 'POST'
+// 		}, (response, status) => {
+// 			console.log("上传完成", status, response);
+
+// 			if (status === 200) {
+// 				try {
+// 					const data = JSON.parse(response.responseText);
+// 					resolve(data);
+// 				} catch (e) {
+// 					console.error("解析响应失败", e);
+// 					uni.showToast({
+// 						title: '解析响应失败',
+// 						icon: 'none'
+// 					});
+// 					reject({
+// 						message: '解析响应失败',
+// 						error: e
+// 					});
+// 				}
+// 			} else {
+// 				console.error("上传失败", status, response);
+// 				try {
+// 					const data = JSON.parse(response.responseText);
+// 					uni.showToast({
+// 						title: data.message || '接口异常',
+// 						icon: 'none'
+// 					});
+// 					reject(data);
+// 				} catch (e) {
+// 					uni.showToast({
+// 						title: `上传失败: ${status}`,
+// 						icon: 'none'
+// 					});
+// 					reject({
+// 						message: `上传失败: ${status}`,
+// 						status,
+// 						response
+// 					});
+// 				}
+// 			}
+// 		});
+
+// 		// 添加文件
+// 		uploader.addFile(file.fullPath, {
+// 			key: 'file'
+// 		});
+
+// 		// 开始上传
+// 		uploader.start();
+
+// 	});
+// }
+export function Filerequest(filePath, userId) {
+	console.log("开始上传文件", filePath);
 
 	return new Promise((resolve, reject) => {
-		// 使用plus.net.uploader替代FormData和uni.request
-		const uploader = plus.uploader.createUpload(BASE_URL + '/file/upload/'+userId, {
-			method: 'POST'
-		}, (response, status) => {
-			console.log("上传完成", status, response);
-
-			if (status === 200) {
-				try {
-					const data = JSON.parse(response.responseText);
-					resolve(data);
-				} catch (e) {
-					console.error("解析响应失败", e);
+		uni.uploadFile({
+			url: BASE_URL + '/file/upload/' + userId,
+			filePath: filePath, // 注意传的是本地路径
+			name: 'file', // 后端接收字段
+			header: {
+				'Content-Type': 'multipart/form-data',
+				'Authorization': uni.getStorageSync('token') || ''
+			},
+			success: (res) => {
+				if (res.statusCode === 200) {
+					try {
+						const data = JSON.parse(res.data);
+						resolve(data);
+					} catch (e) {
+						console.error("解析响应失败", e);
+						uni.showToast({
+							title: '解析响应失败',
+							icon: 'none'
+						});
+						reject({ message: '解析响应失败', error: e });
+					}
+				} else {
+					console.error("上传失败", res);
 					uni.showToast({
-						title: '解析响应失败',
+						title: '上传失败',
 						icon: 'none'
 					});
-					reject({
-						message: '解析响应失败',
-						error: e
-					});
+					reject({ message: '上传失败', status: res.statusCode });
 				}
-			} else {
-				console.error("上传失败", status, response);
-				try {
-					const data = JSON.parse(response.responseText);
-					uni.showToast({
-						title: data.message || '接口异常',
-						icon: 'none'
-					});
-					reject(data);
-				} catch (e) {
-					uni.showToast({
-						title: `上传失败: ${status}`,
-						icon: 'none'
-					});
-					reject({
-						message: `上传失败: ${status}`,
-						status,
-						response
-					});
-				}
-			}
-		});
-
-		// 添加文件
-		uploader.addFile(file.fullPath, {
-			key: 'file'
-		});
-
-		// 开始上传
-		uploader.start();
-
-	});
-}
-export function uploadImageByPath(tempFilePath,userId) {
-	return new Promise((resolve, reject) => {
-		// 使用plus.io转换本地路径为可上传的文件
-		plus.io.resolveLocalFileSystemURL(tempFilePath, (entry) => {
-			entry.file((file) => {
-				console.log(file, Filerequest);
-				Filerequest(file,userId)
-					.then(result => resolve(result))
-					.catch(err => reject(err));
-			}, (err) => {
-				console.error('获取文件失败', err);
+			},
+			fail: (err) => {
+				console.error("上传出错", err);
 				uni.showToast({
-					title: '文件处理失败',
+					title: '网络错误',
 					icon: 'none'
 				});
 				reject(err);
-			});
-		}, (err) => {
-			console.error('解析文件路径失败', err);
-			uni.showToast({
-				title: '文件路径解析失败',
-				icon: 'none'
-			});
-			reject(err);
+			}
 		});
 	});
 }
+
+export function uploadImageByPath(tempFilePath, userId) {
+	return Filerequest(tempFilePath, userId);
+}
+// export function uploadImageByPath(tempFilePath,userId) {
+// 	return new Promise((resolve, reject) => {
+// 		// 使用plus.io转换本地路径为可上传的文件
+// 		plus.io.resolveLocalFileSystemURL(tempFilePath, (entry) => {
+// 			entry.file((file) => {
+// 				console.log(file, Filerequest);
+// 				Filerequest(file,userId)
+// 					.then(result => resolve(result))
+// 					.catch(err => reject(err));
+// 			}, (err) => {
+// 				console.error('获取文件失败', err);
+// 				uni.showToast({
+// 					title: '文件处理失败',
+// 					icon: 'none'
+// 				});
+// 				reject(err);
+// 			});
+// 		}, (err) => {
+// 			console.error('解析文件路径失败', err);
+// 			uni.showToast({
+// 				title: '文件路径解析失败',
+// 				icon: 'none'
+// 			});
+// 			reject(err);
+// 		});
+// 	});
+// }
 
 
 export function request_m({

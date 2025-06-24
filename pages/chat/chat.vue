@@ -387,14 +387,14 @@
 			<!-- 底部输入栏 -->
 			<view class="fun_box">
 				<ChatToolBar />
-				<view class="chat-input">
+				<view class="chat-input" :style="{marginBottom: keyboardHeight+'px'}">
 					<image class="icon" :style="{ width: rpx(60), height: rpx(60) }"  src="/static/icon-voice.png" ></image>
-					<view class="input—box" :style="{  height: rpx(80) }" ><textarea class="input" v-model="inputValue" @confirm="onEnterKey"
+					<view class="input—box" :style="{  height: rpx(80) }" ><textarea  class="input" :adjustPosition="false" v-model="inputValue" @confirm="onEnterKey"
 							placeholder-class /></view>
-					<image class="icon_face"  :style="{ width: rpx(60), height: rpx(60) }" v-if="keyboardHeight" src="/static/icon-face.png" @click="changeEmoji">
+					<image class="icon_face"  :style="{ width: rpx(60), height: rpx(60) }" v-if="inputValue.length == 0" src="/static/icon-face.png" @click="changeEmoji">
 					</image>
 					<image class="icon_plus"  :style="{ width: rpx(68), height: rpx(68) }"  src="/static/icon-plus.png" @click="togglePopupBox"></image>
-					<button class="send" @click="onEnterKey" v-if="!keyboardHeight"> 发送 </button>
+					<button class="send" @click="onEnterKey" v-if="inputValue.length>0"> 发送 </button>
 				</view>
 				<view class="emoji-picker" v-show="emoji">
 					<view v-for="index in total" :key="index" class="emoji-item" @click="addEmojiToInput(index)">
@@ -482,7 +482,7 @@
 	import scaleMixin from '@/mixins/scaleMixin.js'
 	import { setScale } from '@/utils/scale.js'
 	import {
-		getUserInfo
+		getUserInfo, login
 	} from '@/api/index.js'
 	import {
 		uploadImage,
@@ -518,18 +518,28 @@
 			const userId = uni.getStorageSync('userId')
 			console.log(userId);
 			this.getUserInfo(userId)
-
+			this.isIos =  uni.getSystemInfoSync().platform === 'ios'
+			if(!this.isIos){
+				this.keyboardHeight = 10
+			}
 			uni.onKeyboardHeightChange(res => {
 				if (res.height == 0) {
-					this.keyboardHeight = true;
+					// console.log();)
+					this.keyboardHeight = this.isIos?0: 10;
 				} else {
-					this.keyboardHeight = false;
+					this.emoji = false
+					this.openPopup = false
+					const safeAreaBottom = this.getSafeAreaInsetBottom();
+					this.keyboardHeight = res.height - safeAreaBottom  ;
 				}
 			});
 			this.$forceUpdate()
+			
+			
 		},
 		data() {
 			return {
+				isIos:false,
 				currentFontSize: 16, // 默认字体大小
 				scrollTop: 0,
 				contentbg: "null",
@@ -537,7 +547,7 @@
 				emoji: false,
 				currentActionIndex: -1, // 添加当前操作的消息索引
 				activeMsgIndex: -1, // 当前激活的消息索引
-				keyboardHeight: true,
+				keyboardHeight: 0,
 				userInfo: {},
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				guestInfo: {},
@@ -676,6 +686,17 @@
 			this.scrollToBottom()
 		},
 		methods: {
+			 getSafeAreaInsetBottom() {
+			   const systemInfo = uni.getSystemInfoSync();
+			     
+			     // iOS 设备且有安全区域信息
+			     if (systemInfo.platform === 'ios' && systemInfo.safeArea) {
+			       return systemInfo.screenHeight - systemInfo.safeArea.bottom;
+			     }
+			     
+			     // Android 设备通常没有安全区域问题，返回 0
+			     return 0;
+			},
 			onScaleChange(e) {
 			  const scale = e.detail.value
 			  // setScale(this.scale)
@@ -1502,8 +1523,8 @@
 		padding: 0 20upx;
 		/* 修正 padding 属性 */
 		box-sizing: border-box;
-		max-height: calc(100vh - 80upx - 100upx);
-		/* 减去 nav-bar 和 chat-input 的高度 */
+		/* max-height: calc(100vh - 80upx - 100upx); */
+		
 		overflow-y: auto;
 
 		background-size: 100% 100%;
@@ -1603,16 +1624,20 @@
 		flex-direction: column;
 		flex-shrink: 0;
 		/* 防止收缩 */
-		max-height: calc(100vh - 80upx);
+		/* max-height: calc(100vh - 80upx); */
+	     padding-bottom: env(safe-area-inset-bottom); /* 防止内容被挡，但背景照样铺到底 */
 		/* 减去 nav-bar 的高度 */
+		background-color: #f5f5f5;
 	}
 
 	/* 输入框 */
 	.chat-input {
-		height: 120upx;
+		/* height: 120upx; */
+		/* padding: 20upx; */
 		background-color: #f5f5f5;
 		display: flex;
 		align-items: center;
+		margin-top: 14upx;
 		padding: 10upx 20upx;
 		gap: 20upx;
 		box-sizing: border-box;

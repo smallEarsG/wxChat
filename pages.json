@@ -3,7 +3,9 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "销售模板生成器"
+				"navigationBarTitleText": "销售模板生成器",	
+				 "safeAreaInsetBottom": true // 开启底部安全区域适配
+				 
 			}
 		}
 	    ,{
@@ -11,8 +13,10 @@
             "style" :                                                                                    
             {
                 "navigationBarTitleText": "登录",
+				 "safeAreaInsetBottom": false,
                 "enablePullDownRefresh": false,
 				"navigationStyle": "custom"
+			
             }
             
         }
@@ -228,11 +232,11 @@
 	    "selectedColor": "#007AFF",
 	    "borderStyle": "black",
 	    "backgroundColor": "#FFFFFF",
-		"fontSize": "28rpx",
+		"fontSize": "10rpx",
 	    "list": [
 	      {
 	        "pagePath": "pages/index/index",
-	        "text": "功能",
+	        "text": "主页",
 	        "iconPath": "/static/icon-home.png",
 	        "selectedIconPath": "/static/icon-home-active.png"
 	      },
@@ -245,10 +249,12 @@
 	    ]
 	  },
 	"globalStyle": {
+		"pullRefresh": false, // 禁用下拉刷新
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "销售模板生成器",
 		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8"
+		"backgroundColor": "#F8F8F8",
+		"onReachBottomDistance": 0 // 设置触底距离为 0，禁用上拉触底
 	},
 	"uniIdRouter": {},
 	"easycom": {

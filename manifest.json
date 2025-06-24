@@ -7,6 +7,13 @@
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
+		"safearea" : {
+		            //安全区域配置，仅iOS平台生效  
+		            "bottom" : {
+		                // 底部安全区域配置  
+		                "offset" : "none" // 底部安全区域偏移，"none"表示不空出安全区域，"auto"自动计算空出安全区域，默认值为"none"  
+		            }
+		        },
         "compatible" : {
             "fontSize" : 0 // 禁用系统字体缩放，保证 upx 计算准确
         },

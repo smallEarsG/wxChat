@@ -100,5 +100,17 @@
 	page {
 	  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", "Roboto", "Noto Sans CJK SC", sans-serif;
 	}
+	:root {
+	  --safe-area-inset-top: env(safe-area-inset-top);
+	  --safe-area-inset-right: env(safe-area-inset-right);
+	  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+	  --safe-area-inset-left: env(safe-area-inset-left);
+	}
+	
+	/* 全局适配 */
+	.page {
+	  padding-bottom: constant(safe-area-inset-bottom); /* 兼容 iOS < 11.2 */
+	  padding-bottom: env(safe-area-inset-bottom); /* 兼容 iOS >= 11.2 */
+	}
 
 </style>
