@@ -101,12 +101,12 @@
 						</view>
 						对订单有疑惑
 					</view>
-					<view class="se_item">
+				<!-- 	<view class="se_item">
 						<view class="se_icon ">
 							<image class="skIcon" src="/static/skIcon.png" mode=""></image>
 						</view>
 						发起群收款
-					</view>
+					</view> -->
 				</view>
 			</view>
 			<view class="serivce">

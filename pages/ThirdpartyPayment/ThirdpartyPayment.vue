@@ -36,7 +36,7 @@
 							{{info.time}}
 						</view>
 					</view>
-					<view class="item">
+					<view class="item"  v-if="info.shop!=''">
 						<view class="left">
 							商品
 						</view>
@@ -44,7 +44,7 @@
 							{{info.shop}}
 						</view>
 					</view>
-					<view class="item">
+					<view class="item"  v-if="info.merchantName!=''">
 						<view class="left">
 							商户全称
 						</view>
@@ -90,12 +90,20 @@
 						</view>
 					</view>
 
-					<view class="item">
+					<view class="item" v-if="info.shopNumber!=''">
 						<view class="left">
 							商户单号
 						</view>
 						<view class="right">
 							{{info.shopNumber}}
+						</view>
+					</view>
+					<view class="item" v-if="info.BoNumber!=''&&                                                                             info.BoNumber !=null">
+						<view class="left">
+							经营单号
+						</view>
+						<view class="right">
+							{{info.BoNumber}}
 						</view>
 					</view>
 				</view>
@@ -205,7 +213,8 @@ import {
 					"merchantName": '商户名称', // 商户名称
 					"institution": '收款机构', //收款机构
 					"shopNumber": ' 商户单号', // 商单号
-					"desc2": "由互联网清算有限公司提供付款清算服务"
+					"desc2": "由互联网清算有限公司提供付款清算服务",
+					"BoNumber":""
 				},
 				infoKey: {
 					"time": "付款时间",
@@ -220,7 +229,8 @@ import {
 					"institution": '收款机构', //收款机构
 					"shopNumber": ' 商户单号', // 商单号
 					"desc":"收款机构备注",
-					"desc2":"支付方式备注"
+					"desc2":"支付方式备注",
+					"BoNumber":"经营单号"
 				}
 			}
 		},

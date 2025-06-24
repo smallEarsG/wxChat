@@ -400,19 +400,19 @@
 	}
 
 	.chatIcon {
-		width: 32rpx;
-		height: 32rpx;
+		width: 28rpx;
+		height: 28rpx;
 		margin-right: 14rpx;
 		position: relative;
 		top: 6rpx;
 	}
 
 	.transferIcon {
-		width: 34rpx;
-		height: 34rpx;
+		width: 22rpx;
+		height: 22rpx;
 		margin-right: 14rpx;
 		position: relative;
-		top: 6rpx;
+		top: 4rpx;
 	}
 
 	.order_info {
