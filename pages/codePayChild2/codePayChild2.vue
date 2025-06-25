@@ -15,7 +15,7 @@
 						<image :src="info.url||'/static/paySe.png'"></image>
 					</view>
 					<view class="name">
-						扫二维码收款-{{info.name}}
+						扫二维码付款-{{info.name}}
 					</view>
 					<view class="num" @click="exitInfo">
 						<!-- view class="sub" /> -->
@@ -42,9 +42,9 @@
 							{{info.desc}}
 						</view>
 					</view>
-					<view class="item" v-if="info.payment">
+					<view class="item" v-if="info.payment!=''&&info.payment!=null">
 						<view class="left">
-							收款方式
+							支付方式
 						</view>
 						<view class="right rightIcon">
 							{{info.payment}}
@@ -60,14 +60,14 @@
 							<!-- <image v-if=" info.payment == '零钱通'" class="gthIcon" src="/static/gthIcon.png"></image> -->
 						</view>
 					</view>
-				<!-- 	<view class="item">
+					<view class="item">
 						<view class="left">
 							转账时间
 						</view>
 						<view class="right">
 							{{info.time}}
 						</view>
-					</view> -->
+					</view>
 					<view class="item" v-if="info.otherTime">
 						<view class="left">
 							收款时间
@@ -89,7 +89,7 @@
 
 
 			</view>
-		<!-- 	<view class="serivce">
+			<view class="serivce">
 				<view class="se_title">
 					账单服务
 				</view>
@@ -124,7 +124,7 @@
 
 					</view>
 				</view>
-			</view> -->
+			</view>
 
 			<view class="footer">
 				本服务由财付通提供
@@ -268,7 +268,7 @@
 				// 如果不存在，添加新元素
 				if (index < 0) {
 					list.push({
-						type: 1,
+						type: 6,
 						info: this.info
 					});
 				}

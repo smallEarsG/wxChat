@@ -239,6 +239,24 @@
         	{
         		"navigationBarTitleText" : "账单详情"
         	}
+        },
+        {
+        	"path" : "pages/codePayChild2/codePayChild2",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : "",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+        	}
+        },
+        {
+        	"path" : "pages/barcodeThirdpartyPayment34/barcodeThirdpartyPayment34",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : "",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+        	}
         }
     ],
 	"tabBar": {

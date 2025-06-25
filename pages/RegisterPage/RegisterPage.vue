@@ -201,7 +201,7 @@ export default {
         phone: this.phone,
         passwordHash: this.passwordHash,
         inviteCode: this.inviteCode,
-        tryCount: 5
+        tryCount: 0
       }
       
       console.log('注册信息：', userInfo)

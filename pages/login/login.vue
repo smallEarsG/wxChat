@@ -182,7 +182,7 @@ export default {
   /* height: env(safe-area-inset-bottom); */
   background: linear-gradient(135deg, #4A90E2, #50E3C2);
   overflow: hidden;
-   padding-bottom: env(safe-area-inset-bottom); /* 防止内容被挡，但背景照样铺到底 */
+  padding-bottom: env(safe-area-inset-bottom); /* 防止内容被挡，但背景照样铺到底 */
 }
 
 /* 背景装饰元素 */

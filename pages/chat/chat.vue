@@ -1,7 +1,8 @@
 <template>
+	
 	<view class="chat-page" :style="{ '--global-font-size': currentFontSize + 'px' }">
 		<!-- 顶部栏 -->
-		<view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
+		<view  v-if="!isIos" class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="back" @click="goBack">
 				<image class="backimg" src="../../static/qiw/black_leftIcon.png"></image>
 			</view>
@@ -13,17 +14,36 @@
 
 			</view>
 			<view class="icons">
-				<image @click="addVideo" class="nav-icon_phone" src="/static/icon-phone.png"></image>
+				<image @click="addVideo" class="nav-icon_phone" mode="widthFix" src="/static/icon-phone.png"></image>
 				<image @click="openMenu" class="nav-icon_more" src="/static/qiw/more.png"></image>
 			</view>
 		</view>
-
+		<!-- isIos -->
+		<view  v-else class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
+			<view class="back" @click="goBack">
+				<uni-icons type="left" color="#fff" size="24"></uni-icons>
+				<view class="nav-icon_phone" style="margin-right: 46upx;" />
+				
+				<!-- <image class="backimg-ios" mode="widthFix" src="/static/left.png"></image> -->
+			</view>
+			<view class="title-ios">
+				<view class="nikeName"  :style="{ fontSize: rpx(34),fontWeight:'500' }">
+					{{guestInfo.name || "企业微信工坊"}}
+				</view>
+				<view class="desc" :style="{ fontSize: rpx(24) }">{{guestInfo.description}}</view>
+			</view>
+			<view class="icons">
+				<image @click="addVideo" class="nav-icon_phone" mode="widthFix" src="/static/icon-phone.png"></image>
+				<uni-icons type="more-filled" @click="openMenu" class="nav-icon_more-ios" color="#fff" size="24"></uni-icons>
+			</view>
+		</view>
+		
 		<view class="chat-content">
 
-			<view v-if="activeMsgIndex !== -1" class="overlay" @click="closePopupMenu"></view>
-
-			<scroll-view class="chat-body" :scroll-top="scrollTop" :style="'background-image: url('+contentbg+');'"
+			
+			<scroll-view class="chat-body"  :class="{'scroll-auto': activeMsgIndex!== -1}" :scroll-top="scrollTop" :style="'background-image: url('+contentbg+');'"
 				scroll-y :show-scrollbar="false">
+				<view v-if="activeMsgIndex !== -1" class="overlay" @click="closePopupMenu"></view>
 				<view v-for="(item ,i ) in massageList " :key="i">
 
 					<!-- 时间 -->
@@ -322,7 +342,7 @@
 					<view v-else-if="item.contentType == 'video'" @longpress="showPopupMenu($event, i)" class="cell">
 
 						<view v-if="activeMsgIndex === i" class="popup-menu" :style="popupStyle">
-							<view class="menu-item" @click="deleteMessage_1(i)">
+							<view class="menu-item" @click="deleteMessage_1(i)"  @touchstart="deleteMessage_1(i)">
 
 								<uni-icons type="close" color="#999" size="25"></uni-icons>
 								<text>删除</text>
@@ -353,7 +373,7 @@
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
 								<view class="videobox">
 									
-									<image src="/static/qiw/video.png" style="" mode="widthFix" :style="{ width: rpx(50),marginRight: rpx(12)}"></image>
+									<image src="/static/qiw/video.png" :class="isIos?'videobox-ios':'videobox-and'"  mode="widthFix" :style="{ width: rpx(50),marginRight: rpx(12)}"></image>
 									通话时长
 									<text>{{item.content}}</text>
 								</view>
@@ -370,7 +390,7 @@
 									<view class="videobox">
 										通话时长
 										<text>{{item.content}}</text>
-									<image  style="margin-left: 16upx;" src="/static/qiw/video2.png"  mode="widthFix"  :style="{ width: rpx(50),marginLeft: rpx(12)}"></image>
+									<image :class="isIos?'videobox-ios':'videobox-and'"  style="margin-left: 16upx;" src="/static/qiw/video2.png"  mode="widthFix"  :style="{ width: rpx(50),marginLeft: rpx(12)}"></image>
 									</view>
 
 								</view>
@@ -814,6 +834,7 @@
 				}, 10);
 			},
 			closePopupMenu() {
+				console.log("0000");
 				// 添加关闭动画
 				this.popupStyle = {
 					...this.popupStyle,
@@ -1159,7 +1180,11 @@
 		}
 	};
 </script>
-
+<style>
+:deep(.scroll-auto .uni-scroll-view){
+	-webkit-overflow-scrolling: auto!important;
+}
+</style>
 <style scoped>
 	.fontChange{
 		margin-top: 20upx;
@@ -1184,10 +1209,14 @@
 	}
 .videobox  image{
 	position: relative;
+	
+}
+.videobox-ios{
+	top: 2upx;
+}
+.videobox-and{
 	top: -2upx;
 }
-
-
 	.emoji-inline {
 		width: 40upx;
 		height: 40upx;
@@ -1371,23 +1400,26 @@
 	}
 
 	.overlay {
-		position: absolute;
+		position: fixed;
 		top: 0;
 		left: 0;
 		right: 0;
 		bottom: 0;
-		z-index: 1;
-		background-color: rgba(0, 0, 0, 0.05);
+		z-index: 9998;
+		/* background-color: rgba(0, 0, 0, 0.05); */
+		/* background-color: green; */
+		 pointer-events: auto; /* 确保能捕获事件 */
 	}
 
 	/* 美化后的弹出菜单 */
 	.popup-menu {
+		 pointer-events: auto; /* 菜单可点击 */
 		position: fixed;
 		background-color: rgba(0, 0, 0, 0.85);
 		color: white;
 		border-radius: 12upx;
 		padding: 15upx 20upx;
-		z-index: 999;
+		z-index: 9999;
 		display: flex;
 		flex-direction: row;
 		justify-content: space-around;
@@ -1397,7 +1429,7 @@
 		transform-origin: center;
 		max-width: 600upx;
 	}
-
+	
 	.menu-item {
 		padding: 15upx 25upx;
 		font-size: 28upx;
@@ -1459,7 +1491,9 @@
 		/* top: 2upx; */
 		margin-left: 16upx;
 	}
-
+.backimg-ios{
+	width: 58upx;
+}
 	/* 顶部栏 */
 	.nav-bar {
 
@@ -1483,21 +1517,37 @@
 		/* text-align: left; */
 		justify-content: center;
 	}
+	.title-ios{
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		/* flex: 1; */
+		align-items: center;
+		/* margin-: 20upx; */
+	}
 
 	.desc {
 		color: #e4eef0;
 		font-size: 24upx;
-		margin-top: 4upx;
+		/* margin-top: 2upx; */
 	}
 
 	.nikeName {
+		
 		font-size: 36upx;
+		
 		/* font-weight: 600; */
+	}
+	.nikeName-ios{
+		font-size: 36upx;
+		font-weight: 500;
+		color: #fff;
 	}
 
 	.back {
 		font-size: 32upx;
 		margin-right: 32upx;
+		display: flex;
 	}
 
 	.icons {
@@ -1511,10 +1561,15 @@
 		height: 40upx;
 		margin-left: 30upx;
 	}
+	.nav-icon_more-ios{
+		margin-left: 30upx;
+		margin-right: 16upx;
+		/* width: 40upx; */
+	}
 
 	.nav-icon_phone {
-		width: 42upx;
-		height: 42upx;
+		width: 44upx;
+		/* height: 42upx; */
 	}
 
 	/* 聊天内容 */

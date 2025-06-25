@@ -84,7 +84,7 @@
 				</button>
 				<button class="action-btn" @click="goCodePayChild(1)">
 					<uni-icons type="scan" size="24" color="#fff" />
-					<text>扫码付款</text>
+					<text>扫码收款</text>
 				</button>
 
 			</view>
@@ -108,7 +108,15 @@
 				</button>
 
 			</view>
+				<view class="action-buttons">
+				<button class="action-btn" @click="goCodePayChild(6)">
+					<text>扫码付款</text>
+				</button>
+				<button class="action-btn" @click="goCodePayChild(7)">
+					<text>第三方条形码(34位)</text>
+				</button>
 
+			</view>
 			<button class="history-btn" type="default" @click="goMsg">
 				<uni-icons type="history" size="24" color="#4A90E2" />
 				<text>修改记录</text>
@@ -291,7 +299,9 @@
 					2: '/pages/ThirdpartyPayment/ThirdpartyPayment', // 原默认情况
 					3: '/pages/miniThirdpartyPayment/miniThirdpartyPayment',
 					4: '/pages/barcodeThirdpartyPayment/barcodeThirdpartyPayment',
-					5: '/pages/barcodeThirdpartyPayment32/barcodeThirdpartyPayment32'
+					5: '/pages/barcodeThirdpartyPayment32/barcodeThirdpartyPayment32',
+					6: '/pages/codePayChild2/codePayChild2',
+					7: '/pages/barcodeThirdpartyPayment34/barcodeThirdpartyPayment34',
 				};
 
 				// 获取目标路由，默认使用第三方支付页面

@@ -2,30 +2,24 @@
 	<view class="container">
 		<view class="nav" @click="goBack" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<uni-icons class="close" type="closeempty" color="#000" size="22"></uni-icons>
-
 		</view>
-
 		<view class="content">
-			<!-- <view class="line_b" /> -->
-
 			<view class="order">
-
 				<view class="order_top">
 					<view class="avatar" @click="changeRole">
-						<image :src="info.url||'/static/paySe.png'"></image>
+						<image :src="info.url||'/static/logo.png'"></image>
 					</view>
 					<view class="name">
-						扫二维码收款-{{info.name}}
+						{{info.name}}
 					</view>
 					<view class="num" @click="exitInfo">
-						<!-- view class="sub" /> -->
 						{{info.money}}
+						<!-- <text class="num_txt"> {{info.num}}</text> -->
 					</view>
 					<view class="line" />
 				</view>
 
 				<view class="order_info">
-
 					<view class="item">
 						<view class="left">
 							当前状态
@@ -36,95 +30,130 @@
 					</view>
 					<view class="item">
 						<view class="left">
-							收款方备注
-						</view>
-						<view class="right">
-							{{info.desc}}
-						</view>
-					</view>
-					<view class="item" v-if="info.payment">
-						<view class="left">
-							收款方式
-						</view>
-						<view class="right rightIcon">
-							{{info.payment}}
-							<uni-icons
-							
-							v-if=" info.payment == '零钱通'"
-							  type="info" 
-							  size="18" 
-							  color="#999" 
-							  
-							  class="input-icon gthIcon" 
-							/>
-							<!-- <image v-if=" info.payment == '零钱通'" class="gthIcon" src="/static/gthIcon.png"></image> -->
-						</view>
-					</view>
-				<!-- 	<view class="item">
-						<view class="left">
-							转账时间
+							支付时间
 						</view>
 						<view class="right">
 							{{info.time}}
 						</view>
-					</view> -->
-					<view class="item" v-if="info.otherTime">
+					</view>
+					<view class="item">
 						<view class="left">
-							收款时间
+							商品
 						</view>
 						<view class="right">
-							{{info.otherTime}}
+							{{info.shop}}
 						</view>
 					</view>
 					<view class="item">
 						<view class="left">
-							转账单号
+							商户全称
+						</view>
+						<view class="right">
+							{{info.merchantName}}
+						</view>
+					</view>
+					<view class="item">
+						<view class="left">
+							收单机构
+						</view>
+						<view class="right">
+							<view> {{info.institution}}</view>
+							<view class="tips" v-if=" info.desc">
+								{{info.desc}}
+							</view>
+						</view>
+					</view>
+					<view class="item">
+						<view class="left">
+							支付方式
+						</view>
+						<view class="right  ">
+							<view class="rightIcon">
+								{{info.payment}}
+								<uni-icons v-if=" info.payment == '零钱通'" type="info" size="18" color="#999"
+									class="input-icon gthIcon" />
+								<view v-if=" info.payment == '分付'" class="selectInfo">
+									查看详情
+								</view>
+							</view>
+							<view class="tips" v-if=" info.desc2">
+								{{info.desc2}}
+
+							</view>
+
+						</view>
+					</view>
+
+					<view class="item">
+						<view class="left">
+							交易单号
 						</view>
 						<view class="right">
 							{{info.orderNumber}}
 						</view>
 					</view>
 
-				</view>
-
-
-			</view>
-		<!-- 	<view class="serivce">
-				<view class="se_title">
-					账单服务
-				</view>
-
-				<view class="serivce_bx">
-					<view class="se_item">
-						<view class="se_icon ">
-							<image class="wticon" src="/static/wticon.png" mode=""></image>
+					<view class="item">
+						<view class="left">
+							商户单号
 						</view>
-						对订单有疑惑
+						<view class="right">
+							可在支持的商户扫码退款
+						</view>
 					</view>
-					<view class="se_item">
-						<view class="se_icon ">
-							<image class="skIcon" src="/static/skIcon.png" mode=""></image>
+					<view class="item">
+
+
+						<view class="right">
+							<view class="barCodeBox">
+								<BarcodeGenerator v-if="info.shopNumber != ''"  :width="'234px'" :content="info.shopNumber" />
+							</view>
+							<view class="codeNo">
+								{{info.shopNumber || "请输入商户单号" }}
+							</view>
 						</view>
-						发起群收款
 					</view>
 				</view>
+
+
 			</view>
 			<view class="serivce">
 				<view class="se_title">
 					账单服务
 				</view>
-				<view class="serivce_bx">
-					<view class="se_item">
-						<view class="se_icon ">
-							<image class="cordIcon" src="/static/cordIcon.png" mode=""></image>
+				<view class="serivce_line">
+					<view class="serivce_bx">
+						<view class="se_item">
+							<view class="se_icon ">
+								<image class="wticon" src="/static/wticon.png" mode=""></image>
+							</view>
+							对订单有疑惑
 						</view>
-						收款方名片
+						<view class="se_item">
+							<view class="se_icon ">
+								<image class="chatIcon" src="/static/qiw/tpicon_1.png" mode=""></image>
+							</view>
+							发起群收款
+						</view>
 					</view>
-					<view class="se_item">
-
-					</view>
+					<!-- 	<view class="serivce_bx">
+						<view class="se_item">
+							<view class="se_icon ">
+								<image class="startIcon" src="/static/qiw/tpIcon_2.png" mode=""></image>
+							</view>
+							在此商户的交易
+						</view>
+							<view class="se_item">
+							<view class="se_icon ">
+								<image class="transferIcon" src="/static/transferIcon.png" mode=""></image>
+							</view>
+							查看往来转账
+						</view>
+					</view> -->
 				</view>
-			</view> -->
+
+			</view>
+
 
 			<view class="footer">
 				本服务由财付通提供
@@ -133,9 +162,9 @@
 		<uni-popup ref="popup" type="bottom" background-color="#fff" border-radius="10px">
 			<view class="roleList">
 				<!-- <view class=""  v-for="itme in roleList" >
-			<uni-list-chat :avatar-circle="true" :title="itme.nickname" :avatar="itme.avatar"
-											:note="itme.description"></uni-list-chat>
-			</view> -->
+				<uni-list-chat :avatar-circle="true" :title="itme.nickname" :avatar="itme.avatar"
+												:note="itme.description"></uni-list-chat>
+				</view> -->
 				<view class="list_rl">
 					<uni-swipe-action v-if="roleList.length>0">
 						<uni-swipe-action-item v-for="(item,index) in roleList" :right-options="options2" :auto-close="false"
@@ -162,9 +191,14 @@
 
 <script>
 	import {
-		eadLocalFileToBase64
+		eadLocalFileToBase64,
+		generateBarcodeBase64
 	} from "../../utils/tool.js"
+	import BarcodeGenerator from '@/components/BarcodeGenerator/BarcodeGenerator.vue'
 	export default {
+		components: {
+			BarcodeGenerator
+		},
 		data() {
 			return {
 				options2: [{
@@ -173,88 +207,76 @@
 							backgroundColor: '#F56C6C'
 						}
 					}
-				
+
 				],
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				roleList: [],
 				info: {
 					"url": "",
-					"name": "转给G",
+					"name": "给为理想而奋斗",
 					"money": "-0.01",
 					"time": "2025年6月13日 16:19:30",
 					"orderNumber": "1000050001202506130129831495334",
 					"otherTime": "2025年6月13日 16:20:17",
-					"payment": "零钱通",
-					"currentState": "对方已收钱",
-					"desc": "转账时间",
-				
+					"payment": "分期",
+					"currentState": "对方已收款",
+					"desc": "由互联网清算有限公司提供付款清算服务",
+					"shop": '商品', // 商品
+					"merchantName": '商户名称', // 商户名称
+					"institution": '收款机构', //收款机构
+					"shopNumber": '20250621110113130166201789980574', // 商单号
+					"desc2": "由互联网清算有限公司提供付款清算服务"
 				},
 				infoKey: {
 					"time": "付款时间",
 					"otherTime": '收款时间', //
 					"name": "名字",
-					"orderNumber": "单号",
+					"orderNumber": "交易单号",
 					"money": '金额',
 					"currentState": '支付状态',
 					"payment": '支付方式',
-					"desc": "备注",
-				}
+					"shop": '商品', // 商品
+					"merchantName": '商户名称', // 商户名称
+					"institution": '收款机构', //收款机构
+					"shopNumber": ' 商户单号', // 商单号
+					"desc": "收款机构备注",
+					"desc2": "支付方式备注"
+				},
+				barCodeUrl: ''
 			}
 		},
 		onLoad(options) {
 
-			console.log(decodeURIComponent(options.info));
-			const temp = JSON.parse(decodeURIComponent(options.info))
-			this.info = {
-				...this.info,
-				...temp
+			// console.log(decodeURIComponent(options.info));
+			if (options.info) {
+				const temp = JSON.parse(decodeURIComponent(options.info))
+				this.info = {
+					...this.info,
+					...temp,
+
+				}
 			}
+			this.createBarCode()
 			console.log(this.info.name);
-			const list =  uni.getStorageSync('roleList')
-			if(list) this.roleList = list
+			// 读取本地角色
+			const list = uni.getStorageSync('roleList')
+			if (list) this.roleList = list
 		},
 		methods: {
-			openAddPopup(){
-				this.$refs.cradPopup.open()
+			async createBarCode() {
+				if (this.info.shopNumber) {
+					console.log("===?=====", this.info.shopNumber);
+					this.barCodeUrl = await generateBarcodeBase64(this.info.shopNumber)
+					console.log("===", this.barCodeUrl);
+				} else {
+					console.log("===", this.info.shopNumber);
+				}
 			},
-			bindClick(index) {
-				this.roleList.splice(index, 1)
-				uni.showToast({
-					title: '删除成功',
-					icon: 'none'
-				})
-				this.saveRoleList()
-			},
-			changeRl(url){
-				// console.log(url);
-				this.info.url = url
-				this.saveTflist()
-			},
-			saveRoleList(){
+			saveRoleList() {
 				uni.setStorage({
 					key: 'roleList',
 					data: this.roleList
 				})
-			},
-		
-			async onCradSubmitz(data) {
-				console.log(data);
-				const baseImg = await eadLocalFileToBase64(data.avatar)
-
-				this.roleList.push({
-					...data,
-					avatar: baseImg
-				})
-				this.saveRoleList()
-				this.info.url = baseImg
-				this.saveTflist()
-			},
-			changeRole() {
-				if (this.roleList.length > 0) {
-					this.$refs.popup.open('center')
-				} else {
-					this.$refs.cradPopup.open()
-				}
 			},
 			saveTflist() {
 				// 获取现有列表
@@ -268,7 +290,7 @@
 				// 如果不存在，添加新元素
 				if (index < 0) {
 					list.push({
-						type: 1,
+						type: 7,
 						info: this.info
 					});
 				}
@@ -280,10 +302,49 @@
 				// 保存更新后的列表（修正参数传递方式）
 				uni.setStorageSync('tfList', list);
 			},
+			changeRl(url) {
+				this.info.url = url
+				this.saveTflist()
+			},
+			openAddPopup() {
+				this.$refs.cradPopup.open()
+			},
+
+			bindClick(index) {
+				this.roleList.splice(index, 1)
+				uni.showToast({
+					title: '删除成功',
+					icon: 'none'
+				})
+				this.saveRoleList()
+			},
+			changeRole() {
+				if (this.roleList.length > 0) {
+					this.$refs.popup.open('center')
+				} else {
+					this.$refs.cradPopup.open()
+				}
+			},
+			async onCradSubmitz(data) {
+				console.log(data);
+				const baseImg = await eadLocalFileToBase64(data.avatar)
+
+				this.roleList.push({
+					...data,
+					avatar: baseImg
+				})
+				this.saveRoleList()
+				this.info.url = baseImg
+				this.saveTflist()
+			},
 			onOrderSubmit(data) {
+				console.log(data);
+				const baseImg = this.info.url
 				this.info = {
+					...this.info,
 					...data
 				}
+				this.info.url = baseImg
 				this.saveTflist()
 			},
 			exitInfo() {
@@ -297,26 +358,54 @@
 </script>
 
 <style scoped>
-	.list_rl{
+	.list_rl {
 		flex: 1;
 		overflow: auto;
 	}
+
 	.roleList {
 		display: flex;
 		flex-direction: column;
 		width: 600rpx;
 		height: 800rpx;
 	}
-	
+
 	.gthIcon {
-	/* 	width: 30rpx;
+		/* 	width: 30rpx;
 		height: 30rpx; */
 		margin-left: 10rpx;
+		/* position: relative;
+		top: -4rpx; */
 	}
 
 	.rightIcon {
 		display: flex;
 		align-items: center;
+	}
+
+	.barCodeBox {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		/* width: 336rpx; */
+		/* background-color: aqua; */
+		margin-top: 40rpx;
+
+	}
+
+	.codeNo {
+		margin-top: 10rpx;
+		text-align: center;
+	}
+
+	/* 	.barCodeBox image{
+		width: 200px;
+		height: 100px;
+	} */
+	.tips {
+		margin-top: 12rpx;
+		color: #9b9b9b;
+		font-size: 26rpx;
 	}
 
 	.footer {
@@ -341,19 +430,22 @@
 		box-sizing: border-box;
 	}
 
-	.serivce_bx {
+	.serivce_line {
 		border-top: 1px solid #eaeaea;
+	}
+
+	.serivce_bx {
 		display: flex;
 		align-items: center;
-		padding: 35rpx 0;
+		margin: 35rpx 0;
 		box-sizing: border-box;
 	}
 
 	.se_title {
-		font-size: 26rpx;
+		font-size: 28rpx;
 		padding-top: 30rpx;
 		padding-bottom: 35rpx;
-		font-weight: 500;
+		/* font-weight: 500; */
 		box-sizing: border-box;
 	}
 
@@ -392,6 +484,30 @@
 		top: 6rpx;
 	}
 
+	.startIcon {
+		width: 32rpx;
+		height: 32rpx;
+		margin-right: 12rpx;
+		position: relative;
+		top: 6rpx;
+	}
+
+	.chatIcon {
+		width: 32rpx;
+		height: 32rpx;
+		margin-right: 14rpx;
+		position: relative;
+		top: 6rpx;
+	}
+
+	.transferIcon {
+		width: 34rpx;
+		height: 34rpx;
+		margin-right: 14rpx;
+		position: relative;
+		top: 6rpx;
+	}
+
 	.order_info {
 		margin-top: 40rpx;
 		padding-bottom: 60rpx;
@@ -410,8 +526,12 @@
 		margin-top: 40rpx;
 		/* font-weight: bold; */
 		font-size: 56rpx;
-		/* font-family: ; */
+	}
 
+	.num_txt {
+		font-variant-numeric: tabular-nums;
+		/* 强制使用等宽数字 */
+		font-family: -apple-system, 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
 	}
 
 	.name {
@@ -420,8 +540,21 @@
 	}
 
 	.left {
-		color: #9b9b9b;
+		color: #878787;
 		width: 80px;
+	}
+
+	.right {
+		flex: 1;
+		word-wrap: break-word;
+		overflow-wrap: break-word;
+
+	}
+
+	.bc {
+		display: flex;
+		flex-direction: column;
+
 	}
 
 	.item {
@@ -436,27 +569,19 @@
 		flex-direction: column;
 	}
 
-	.line_b {
-		width: 100%;
-		height: 1px;
-		background-color: #fafafa;
-		transform: scaleY(0.01);
-	}
-
 	.line {
 		margin-top: 88rpx;
 		width: 100%;
 		height: 1px;
-		background-color: #efefef;
-		transform: scaleY(0.6);
+		background-color: #eaeaea;
 	}
 
 	.avatar {
-		width: 94rpx;
-		height: 94rpx;
+		width: 92rpx;
+		height: 92rpx;
 		overflow: hidden;
 		margin-top: 40rpx;
-		border-radius: 50px;
+		border-radius: 50%;
 	}
 
 	.avatar image {
@@ -482,7 +607,6 @@
 	.close {
 		/* background-color: aqua; */
 		/* padding-top: 160px; */
-
 		padding-left: 20rpx;
 		position: relative;
 		top: 30rpx;
@@ -490,25 +614,26 @@
 	}
 
 	.nav {
-		height: 86rpx;
-		/* background-color: #5c6e96; */
 		background-color: #fff;
-		/* overflow: hidden; */
-
 	}
 
 	.container {
 		background-color: #eaeaea;
 		display: flex;
 		flex-direction: column;
-		height: 100vh;
+		/* height: 100vh;
+		overflow: hidden; */
 	}
 
 	.content {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-
 		/* position: relative; */
+	}
+
+	.selectInfo {
+		color: #5c6e96;
+		margin-left: 20rpx;
 	}
 </style>

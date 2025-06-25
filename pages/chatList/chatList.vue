@@ -344,7 +344,7 @@
 		overflow: auto;
 		background-color: #fff;
 		flex: 1;
-		padding-bottom: 122rpx;
+		/* padding-bottom: 122rpx; */
 		box-sizing: border-box;
 	}
 
@@ -551,8 +551,8 @@
 
 	.title_desc {
 		color: #4bc768;
-		font-size: 30rpx;
-		margin-left: 20rpx;
+		font-size: 26rpx;
+		margin-left: 8rpx;
 		/* display: block; */
 		/* line-height: 30rpx; */
 	}

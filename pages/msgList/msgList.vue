@@ -64,11 +64,13 @@
 			isTransfer(index) {
 			    switch(index) {
 			        case 0: return '转账';
-			        case 1: return '扫码';
+			        case 1: return '扫马收款';
 			        case 2: return '第三方';
 			        case 3: return '小程序付款';
 			        case 4: return '条形码（16位）';
 			        case 5: return '条形码（32位）';
+					case 6: return '条形码（32位）';
+					case 7: return '扫码付款';
 			        default: return '付款'; // 保持原有默认逻辑
 			    }
 			},
@@ -82,7 +84,9 @@
 			        2: '/pages/ThirdpartyPayment/ThirdpartyPayment',
 			        3: '/pages/miniThirdpartyPayment/miniThirdpartyPayment',
 			        4: '/pages/barcodeThirdpartyPayment/barcodeThirdpartyPayment',
-			        5: '/pages/barcodeThirdpartyPayment32/barcodeThirdpartyPayment32'
+			        5: '/pages/barcodeThirdpartyPayment32/barcodeThirdpartyPayment32',
+					6: '/pages/codePayChild2/codePayChild2',
+					7: '/pages/barcodeThirdpartyPayment34/barcodeThirdpartyPayment34',
 			    };
 			
 			    // 获取目标路由，不存在则使用默认值

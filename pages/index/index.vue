@@ -251,22 +251,27 @@
 				});
 			},
 			goToAlipay(){
-				if (isMemberExpired(this.guestInfo.memberExpireAt)) {
-					// 试用次数用完后开始需要充值会员
-					if (this.guestInfo.tryCount == 0) {
-						uni.showToast({
-							title: '使用次数已用完请充值会员',
-							icon: 'none'
-						});
-						return
-					} else {
-						updateUseFeature(this.guestInfo.id)
-					}
-				}
-				
-				uni.navigateTo({
-					url: '/pages/Alipay/Alipay'
+				uni.showToast({
+					title: '功能预计于6月29日上线',
+					icon: 'none'
 				});
+				return
+				// if (isMemberExpired(this.guestInfo.memberExpireAt)) {
+				// 	// 试用次数用完后开始需要充值会员
+				// 	if (this.guestInfo.tryCount == 0) {
+				// 		uni.showToast({
+				// 			title: '使用次数已用完请充值会员',
+				// 			icon: 'none'
+				// 		});
+				// 		return
+				// 	} else {
+				// 		updateUseFeature(this.guestInfo.id)
+				// 	}
+				// }
+				
+				// uni.navigateTo({
+				// 	url: '/pages/Alipay/Alipay'
+				// });
 			},
 			gotoGuset() {
 				uni.navigateTo({
