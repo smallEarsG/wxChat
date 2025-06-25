@@ -187,6 +187,7 @@
 					"payment": "零钱通",
 					"currentState": "对方已收钱",
 					"desc": "转账时间",
+				
 				},
 				infoKey: {
 					"time": "付款时间",
@@ -196,6 +197,7 @@
 					"money": '金额',
 					"currentState": '支付状态',
 					"payment": '支付方式',
+					"desc": "备注",
 				}
 			}
 		},
