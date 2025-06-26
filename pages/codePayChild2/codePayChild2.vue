@@ -111,7 +111,7 @@
 			</view>
 			<view class="serivce">
 				<view class="se_title">
-					账单服务
+					收款方服务
 				</view>
 				<view class="serivce_bx">
 					<view class="se_item">

@@ -1,14 +1,14 @@
 <template>
-	<view  class="container">
+	<view class="container">
 		<view class="info">
 			<view class="bg" />
 			<view class="avatar">
-				<image src="/static/paySe.png" ></image>
+				<image src="/static/paySe.png"></image>
 			</view>
-			 <view class="name">
-			 	用户
+			<view class="name">
+				用户
 				<uni-icons type="right" size="14"></uni-icons>
-			 </view>
+			</view>
 			<view class="money">
 				+561.00
 			</view>
@@ -41,6 +41,18 @@
 				</view>
 			</view>
 		</view>
+		<view class="Bill">
+			<view class="title">
+				账单管理
+			</view>
+			<view class="yellow-tip">
+				本月转账红包是最大支出目录，看看花在了哪里？ <uni-icons type="right" size="14"></uni-icons>
+			</view>
+			<view class="bill-item">
+				<view class="left">账单分类</view>
+				<view class="right">转账红包</view>
+			</view>
+		</view>
 	</view>
 </template>
 
@@ -48,34 +60,36 @@
 	export default {
 		data() {
 			return {
-				
+
 			}
 		},
 		methods: {
-			
+
 		}
 	}
 </script>
 
 <style>
-	.blue-tip{
+	.blue-tip {
 		display: flex;
 		justify-content: space-between;
 		width: 100%;
-		padding:10upx 20rpx;
+		padding: 10upx 20rpx;
 		box-sizing: border-box;
 		align-items: center;
 		/* background-color: red; */
 	}
-	.info-item{
+
+	.info-item {
 		padding: 20upx 0upx;
 		display: flex;
 		justify-content: space-between;
 		/* background-color: antiquewhite; */
 		width: 100%;
 	}
-	.orderInfo{
-		position:relative;
+
+	.orderInfo {
+		position: relative;
 		z-index: 1;
 		display: flex;
 		align-items: center;
@@ -86,24 +100,28 @@
 		box-sizing: border-box;
 		/* flex:1 */
 	}
-	.transaction{
-		position:relative;
+
+	.transaction {
+		position: relative;
 		z-index: 1;
 	}
-	.money{
-		position:relative;
+
+	.money {
+		position: relative;
 		z-index: 1;
 		font-size: 40upx;
 	}
-	.name{
+
+	.name {
 		position: relative;
 		z-index: 1;
 		font-size: 24upx;
-		padding: 20upx 0 ;
+		padding: 20upx 0;
 		display: flex;
 		align-items: center;
 	}
-	.bg{
+
+	.bg {
 		background-color: #fff;
 		position: absolute;
 		bottom: 0;
@@ -112,26 +130,30 @@
 		top: 35upx;
 		z-index: 0;
 	}
-.avatar{
-	width: 70upx;
-	height: 70upx;
-	overflow: hidden;
-}
-.avatar image{
-	width: 100%;
-	height: 100%;
-}
-.info{
-	position: relative;
+
+	.avatar {
+		width: 70upx;
+		height: 70upx;
+		overflow: hidden;
+	}
+
+	.avatar image {
+		width: 100%;
+		height: 100%;
+	}
+
+	.info {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-}
- .container{
-	 height: 100vh;
-	 background-color: #eaeaea;
-	 display: flex;
-	 flex-direction: column;
-	 padding: 40upx;
- }
+	}
+
+	.container {
+		height: 100vh;
+		background-color: #eaeaea;
+		display: flex;
+		flex-direction: column;
+		padding: 40upx;
+	}
 </style>

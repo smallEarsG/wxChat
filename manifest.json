@@ -2,8 +2,8 @@
     "name" : "销售模板生成器",
     "appid" : "__UNI__0052531",
     "description" : "",
-    "versionName" : "1.4.1",
-    "versionCode" : 141,
+    "versionName" : "1.4.2",
+    "versionCode" : 142,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
@@ -55,10 +55,7 @@
             },
             /* SDK配置 */
             "sdkConfigs" : {
-                "ad" : {
-                    "gdt" : {},
-                    "ks" : {}
-                },
+                "ad" : {},
                 "payment" : {
                     "alipay" : {
                         "__platform__" : [ "ios", "android" ]

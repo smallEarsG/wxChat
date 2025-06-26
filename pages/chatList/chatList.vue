@@ -82,25 +82,35 @@
 						消息
 					</view>
 				</view>
-				<view class="foot_item">
+				<view class="foot_item" @click="openIndexPopup(1)">
+					<view class="totalIndex" v-if="emailIndexMsg>0" :class="emailIndexMsg>99 ? 'more_red':''">
+						{{emailIndexMsg>99?'99+':emailIndexMsg}}
+					</view>
 					<image class="qw_email" src="/static/qiw/qw_email.png"></image>
 					<view class="btn_txt">
 						邮件
 					</view>
 				</view>
-				<view class="foot_item">
+				<view class="foot_item" @click="openIndexPopup(2)">
+					<view class="totalIndex" v-if="wordIndexMsg>0" :class="wordIndexMsg>99 ? 'more_red':''">
+						{{wordIndexMsg>99?'99+':wordIndexMsg}}
+					</view>
 					<image class="qw_word" src="/static/qiw/qw_word.png"></image>
 					<view class="btn_txt">
 						文档
 					</view>
 				</view>
 				<view class="foot_item">
+					
 					<image class="qw_con" src="/static/qiw/qw_con.png"></image>
 					<view class="btn_txt">
 						工作台
 					</view>
 				</view>
-				<view class="foot_item">
+				<view class="foot_item" @click="openIndexPopup(3)">
+					<view class="totalIndex" v-if="addIndexMsg>0" :class="addIndexMsg>99 ? 'more_red':''">
+						{{addIndexMsg>99?'99+':addIndexMsg}}
+					</view>
 					<image class="qx_tonxun" src="/static/qiw/qx_tonxun.png"></image>
 					<view class="btn_txt">
 						通讯录
@@ -108,6 +118,7 @@
 				</view>
 			</view>
 		</view>
+		<EditableFormPopup ref="indexPopup" :value="indexInfo" :fieldLabels="indexKey" @submit="onIndexSubmit" />
 		<ProMsgEditPopup ref="wxChatPopup" :msgInfo="msgInfo" @submit="onSubmitWx"></ProMsgEditPopup>
 	</view>
 </template>
@@ -126,6 +137,14 @@
 	export default {
 		data() {
 			return {
+				selectItem:-1,
+				indexInfo:{
+					index:0
+				},
+				indexKey:{index:'消息条数'},
+				addIndexMsg:0,
+				wordIndexMsg:0,
+				emailIndexMsg:0,
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				msgList: [],
 				msgInfo: {
@@ -166,11 +185,32 @@
 			}
 		},
 		methods: {
+			openIndexPopup(index){
+				this.selectItem = index
+				this.$refs.indexPopup.open()
+				
+			},
+			onIndexSubmit(data){
+				console.log(data);
+				switch(this.selectItem){
+					case 1 :
+						this.emailIndexMsg = data.index;
+						break;
+					case 2 : 
+						this.wordIndexMsg = data.index
+						break;
+					case 3 :
+						this.addIndexMsg = data.index
+						break;
+				}
+				// this.addIndexMsg = data.index
+				this.selectItem = -1
+			},
 			msgDeal(content) {
 				let showText = '';
 				try {
 					// 解析JSON内容
-					const msgAry = JSON.parse(msgAry);
+					const msgAry = JSON.parse(content);
 					console.log(msgAry);
 
 					// 从后向前遍历消息数组
@@ -181,9 +221,10 @@
 						switch (el.contentType) {
 							case 'chat':
 							 if( el.type !== 'tips'){
+								 // console.log(el.content,"====");
 								 showText = el.content;
 								}
-								
+								 // showText = el.content;
 								break;
 							case 'order':
 								showText = '[订单]';
@@ -545,7 +586,7 @@
 	}
 
 	.msg_title {
-		font-size: 36rpx;
+		font-size: 32rpx;
 		/* display: flex; */
 	}
 
@@ -632,8 +673,8 @@
 		position: absolute;
 		background-color: #ee4c25;
 		z-index: 1;
-		right: 24rpx;
-		top: 12rpx;
+		right: 28rpx;
+		top: 8rpx;
 		color: #fffffd;
 		font-size: 20rpx;
 		display: flex;
@@ -644,4 +685,5 @@
 		overflow: hidden;
 		border-radius: 50%;
 	}
+
 </style>

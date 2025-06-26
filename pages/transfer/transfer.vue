@@ -95,9 +95,15 @@
 							</view>
 							定位到聊天位置
 						</view>
+						<view class="se_item" v-if="info.payment==''">
+							<view class="se_icon ">
+								<image class="startIcon" src="/static/startIcon.png" mode=""></image>
+							</view>
+							申请转账电子凭证
+						</view>
 					</view>
 					<view class="serivce_bx">
-						<view class="se_item">
+						<view class="se_item" v-if="info.payment!=''">
 							<view class="se_icon ">
 								<image class="startIcon" src="/static/startIcon.png" mode=""></image>
 							</view>
