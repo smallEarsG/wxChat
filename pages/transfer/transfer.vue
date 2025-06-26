@@ -54,7 +54,7 @@
 					</view>
 					<view class="item"  v-if="info.payment!=''">
 						<view class="left">
-							收款方式
+							支付方式
 						</view>
 						<view class="right rightIcon">
 							{{info.payment}}
@@ -83,7 +83,7 @@
 				</view>
 				<view class="serivce_line">
 					<view class="serivce_bx">
-						<view class="se_item">
+						<view class="se_item"  v-if="info.payment!=''">
 							<view class="se_icon ">
 								<image class="wticon" src="/static/wticon.png" mode=""></image>
 							</view>

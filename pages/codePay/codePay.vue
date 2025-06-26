@@ -192,7 +192,8 @@
 					merchantName: '', // 商户名称
 					institution: '', //收款机构
 					shopNumber: ' ', // 商单号
-					desc: '', //备注
+					desc: '', //备注，
+					payDesc:'',// 支付说明
 				};
 
 				data.forEach((item, index) => {
@@ -214,7 +215,10 @@
 
 					const payment = words.match(/支付方式/);
 					if (payment) info.payment = data[index + 1]?.words;
-
+					
+					const payDesc = words.match(/支付说明/);
+					if (payDesc) info.payDesc = data[index + 1]?.words;
+					
 					const sdesc = words.match(/收款方备注/);
 					if (sdesc) info.desc = data[index + 1]?.words;
 

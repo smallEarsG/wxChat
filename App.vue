@@ -93,6 +93,12 @@
 	  font-style: normal;
 	}
 	
+	@font-face {
+	  font-family: 'WConsolas_mianfeiziti';
+	  src: url('/static/font/Consolas_mianfeiziti.com.ttf') format('opentype');
+	  font-weight: normal;
+	  font-style: normal;
+	}
 	/*每个页面公共css */
 	uni-tabbar .uni-tabbar__label {
 		font-size: 24rpx !important;

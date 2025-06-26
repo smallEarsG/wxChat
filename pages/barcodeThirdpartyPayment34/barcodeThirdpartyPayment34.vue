@@ -36,7 +36,7 @@
 							{{info.time}}
 						</view>
 					</view>
-					<view class="item">
+					<view class="item" v-if="info.shop">
 						<view class="left">
 							商品
 						</view>
@@ -44,7 +44,7 @@
 							{{info.shop}}
 						</view>
 					</view>
-					<view class="item">
+					<view class="item" v-if="info.merchantName">
 						<view class="left">
 							商户全称
 						</view>
@@ -83,7 +83,14 @@
 
 						</view>
 					</view>
-
+					<view class="item" v-if="info.payDesc">
+						<view class="left">
+							支付说明
+						</view>
+						<view class="right">
+							{{info.payDesc}}
+						</view>
+					</view>
 					<view class="item">
 						<view class="left">
 							交易单号
@@ -396,6 +403,8 @@
 	.codeNo {
 		margin-top: 10rpx;
 		text-align: center;
+		font-family: 'WConsolas_mianfeiziti';
+		font-size: 30upx;
 	}
 
 	/* 	.barCodeBox image{

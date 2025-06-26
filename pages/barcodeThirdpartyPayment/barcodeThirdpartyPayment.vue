@@ -36,7 +36,7 @@
 							{{info.time}}
 						</view>
 					</view>
-					<view class="item">
+					<view class="item" v-if="info.shop">
 						<view class="left">
 							商品
 						</view>
@@ -44,7 +44,7 @@
 							{{info.shop}}
 						</view>
 					</view>
-					<view class="item">
+					<view class="item" v-if="info.merchantName">
 						<view class="left">
 							商户全称
 						</view>
@@ -80,7 +80,14 @@
 							<!-- <image v-if=" info.payment == '零钱通'" class="gthIcon" src="/static/gthIcon.png"></image> -->
 						</view>
 					</view>
-
+					<view class="item" v-if="info.payDesc">
+						<view class="left">
+							支付说明
+						</view>
+						<view class="right">
+							{{info.payDesc}}
+						</view>
+					</view>
 					<view class="item">
 						<view class="left">
 							交易单号
@@ -225,7 +232,8 @@
 					"merchantName": '商户名称', // 商户名称
 					"institution": '收款机构', //收款机构
 					"shopNumber": ' 7895004260588973', // 商单号
-					"desc2": "由互联网清算有限公司提供付款清算服务"
+					"desc2": "由互联网清算有限公司提供付款清算服务",
+					"payDesc":'支付说明',
 				},
 				infoKey: {
 					"time": "付款时间",
@@ -235,6 +243,7 @@
 					"money": '金额',
 					"currentState": '支付状态',
 					"payment": '支付方式',
+					"payDesc":'支付说明',
 					"shop": '商品', // 商品
 					"merchantName": '商户名称', // 商户名称
 					"institution": '收款机构', //收款机构
@@ -392,6 +401,8 @@
 	}
 	.codeNo{
 		text-align: center;
+		font-family: 'WConsolas_mianfeiziti';
+		font-size: 30upx;
 	}
 	/* 	.barCodeBox image{
 		width: 200px;
