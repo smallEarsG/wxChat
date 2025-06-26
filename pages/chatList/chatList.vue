@@ -35,7 +35,7 @@
 				</view>
 
 			</view>
-			<view style="margin: 0 20rpx;">
+			<view style="margin: 0 20rpx; margin-bottom: 1px;">
 				<view class="xline" />
 			</view>
 			<view class="roleList">
@@ -518,6 +518,7 @@
 		/* background-color: #4475C9; */
 		/* border: #4475C9 1px solid; */
 		height: 152rpx;
+		
 	}
 
 	.msg_img {
@@ -534,15 +535,15 @@
 		position: absolute;
 		background-color: #ee4c25;
 		z-index: 1;
-		right: -14rpx;
-		top: 12rpx;
+		right: -12rpx;
+		top: 4rpx;
 		color: #fffffd;
 		font-size: 20rpx;
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		height: 36rpx;
-		width: 36rpx;
+		height: 34rpx;
+		width: 34rpx;
 		overflow: hidden;
 		border-radius: 50%;
 
