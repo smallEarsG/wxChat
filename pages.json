@@ -237,7 +237,9 @@
         	"path" : "pages/billDetail/billDetail",
         	"style" : 
         	{
-        		"navigationBarTitleText" : "账单详情"
+        		"navigationBarTitleText" : "账单详情",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
         	}
         },
         {
@@ -251,6 +253,15 @@
         },
         {
         	"path" : "pages/barcodeThirdpartyPayment34/barcodeThirdpartyPayment34",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : "",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+        	}
+        },
+        {
+        	"path" : "pages/ailpayThirdpartyPayment/ailpayThirdpartyPayment",
         	"style" : 
         	{
         		"navigationBarTitleText" : "",

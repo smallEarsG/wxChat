@@ -168,10 +168,7 @@
 		</view>
 		<uni-popup ref="popup" type="bottom" background-color="#fff" border-radius="10px">
 			<view class="roleList">
-				<!-- <view class=""  v-for="itme in roleList" >
-				<uni-list-chat :avatar-circle="true" :title="itme.nickname" :avatar="itme.avatar"
-												:note="itme.description"></uni-list-chat>
-				</view> -->
+		
 				<view class="list_rl">
 					<uni-swipe-action v-if="roleList.length>0">
 						<uni-swipe-action-item v-for="(item,index) in roleList" :right-options="options2" :auto-close="false"
@@ -401,7 +398,7 @@
 	}
 	.codeNo{
 		text-align: center;
-		font-family: 'WConsolas_mianfeiziti';
+		/* font-family: 'WConsolas_mianfeiziti'; */
 		font-size: 30upx;
 	}
 	/* 	.barCodeBox image{
@@ -554,7 +551,7 @@
 		flex: 1;
 		word-wrap: break-word;
 		overflow-wrap: break-word;
-
+		overflow: auto;
 	}
 
 	.bc {
@@ -607,7 +604,7 @@
 		display: flex;
 		flex-direction: column;
 		background-color: #fff;
-		padding: 0 40rpx;
+		padding: 0 50rpx;
 	}
 
 	.close {

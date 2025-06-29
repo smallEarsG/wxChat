@@ -405,7 +405,7 @@
 	.codeNo {
 		margin-top: 10rpx;
 		text-align: center;
-		font-family: 'WConsolas_mianfeiziti';
+		/* font-family: 'WConsolas_mianfeiziti'; */
 		font-size: 30upx;
 	}
 
@@ -559,7 +559,7 @@
 		flex: 1;
 		word-wrap: break-word;
 		overflow-wrap: break-word;
-
+		overflow: auto;
 	}
 
 	.bc {
@@ -612,7 +612,7 @@
 		display: flex;
 		flex-direction: column;
 		background-color: #fff;
-		padding: 0 40rpx;
+		padding: 0 50rpx;
 	}
 
 	.close {

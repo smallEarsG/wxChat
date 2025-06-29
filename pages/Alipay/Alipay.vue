@@ -52,12 +52,6 @@
 					</view>
 				</view>
 
-			<!-- 	<view class="result-content">
-					<view class="result-item" v-for="(item, index) in resultList" :key="index">
-						<text class="item-text">{{ item.words }}</text>
-					</view>
-				</view> -->
-
 				<!-- 提取信息 -->
 				<view class="extracted-info" v-if="extractedInfo">
 					<view class="info-title">已提取信息</view>
@@ -83,36 +77,36 @@
 					<text>转账付款</text>
 				</button>
 				<button class="action-btn" @click="goCodePayChild(1)">
-					<uni-icons type="scan" size="24" color="#fff" />
-					<text>扫码付款</text>
+
+					<text>第三方付款</text>
 				</button>
 
 			</view>
 			<view class="action-buttons">
-				<button class="action-btn" @click="goCodePayChild(2)" style="margin-bottom: 20px;">
-					<!-- <uni-icons type="scan" size="24" color="#fff" /> -->
+				<!-- <button class="action-btn" @click="goCodePayChild(2)" style="margin-bottom: 20px;">
+				
 					<text>第三方付款</text>
 				</button>
 				<button class="action-btn" @click="goCodePayChild(3)">
 					<uni-icons type="moneybag" size="24" color="#fff" />
 					<text>第三方小程序</text>
-				</button>
+				</button> -->
 
 			</view>
 			<view class="action-buttons">
-				<button class="action-btn" @click="goCodePayChild(4)">
+				<!-- 	<button class="action-btn" @click="goCodePayChild(4)">
 					<text>第三方条形码(16位)</text>
 				</button>
 				<button class="action-btn" @click="goCodePayChild(5)">
 					<text>第三方条形码(32位)</text>
-				</button>
+				</button> -->
 
 			</view>
 
-			<button class="history-btn" type="default" @click="goMsg">
+			<!-- <button class="history-btn" type="default" @click="goMsg">
 				<uni-icons type="history" size="24" color="#4A90E2" />
 				<text>修改记录</text>
-			</button>
+			</button> -->
 		</view>
 
 		<!-- 加载状态 -->
@@ -170,133 +164,203 @@
 			},
 
 			extractInfoWithRegex(data) {
+				console.log("data:", data);
 				const info = {
 
-					name: '请输入机构名称', //名称
-					money: '+100.00', // 金额
-					time: '', // 转账时间
-					otherTime: '', //收款时间
-					payment: '', // 支付方式
-					orderNumber: '', //订单编号
-					// 第三方付款
-					currentState: '', // 当前状态
-					shop: '', // 商品
-					merchantName: '', // 商户名称
-					institution: '', //收款机构
-					shopNumber: ' ', // 商单号
-					desc: '', //备注
+					avatar: '',
+					name: '测试名称',
+					money: '120.00',
+					createTime: '2025-1-1 1:1:1',
+					payFun: '余额宝1',
+					desc: '转账1',
+					herAccount: '阿里云计算有限公司1',
+					orderNumber: '11111111',
+					shopNumber: '111111118'
+
 				};
 
 				data.forEach((item, index) => {
 					const words = item.words;
-
-					// 二维码付款名称
-					const nameMatch = words.match(/扫二维码付款-([^-]+)/);
-					if (nameMatch) {
-						info.name = nameMatch[1];
-						info.money = data[index + 1]?.words;
-					}
-
-					// 转账付款名称
-					const transferNameMatch = words.match(/转账-([^-]+)/);
-					if (transferNameMatch) {
-						info.name = transferNameMatch[1];
-						info.money = data[index + 1]?.words;
-					}
-
-					const payment = words.match(/支付方式/);
-					if (payment) info.payment = data[index + 1]?.words;
-
-					const sdesc = words.match(/收款方备注/);
-					if (sdesc) info.desc = data[index + 1]?.words;
-
-					const zdesc = words.match(/转账说明/);
-					if (zdesc) info.desc = data[index + 1]?.words;
-
-					const shop = words.match(/商品/);
-					if (shop) info.shop = data[index + 1]?.words;
-
-					const merchantName = words.match(/商户全称/);
-					if (merchantName) info.merchantName = data[index + 1]?.words;
-
-					const institution = words.match(/收单机构/);
-					if (institution) info.institution = data[index + 1]?.words;
-
-					const currentState = words.match(/当前状态/);
-					if (currentState) info.currentState = data[index + 1]?.words;
-					// 时间格式匹配 转账时间和收款时间
-					const timeMatch = words.match(/\d{4}年\d{1,2}月\d{1,2}日\d{1,2}[:：]\d{2}[:：]\d{2}/);
-					const temp = words.match(/\d{4}年\d{1,2}月\d{1,2}日/);
+					// 创建时间
+					const timeMatch = words.match(/\d{4}-\d{1,2}-\d{1,2}-\d{1,2}[:：]\d{2}[:：]\d{2}/);
+					const temp = words.match(/\d{4}-\d{1,2}-\d{1,2}/);
 					if (timeMatch || temp) {
 						let tempTime = '';
 						if (timeMatch) {
-							tempTime = timeMatch[0];
+							info.createTime = timeMatch[0];
 						} else {
-							tempTime = temp + ' ' + data[index + 1]?.words;
+							info.createTime = temp + ' ' + data[index + 1]?.words;
 						}
-						if (info.time !== '') {
-							info.otherTime = tempTime;
-						} else {
-							info.time = tempTime;
-						}
-					}
 
-					// 账单号
-					const orderMatch = words.match(/\d{16,32}/);
-					if (orderMatch && /转账单号/.test(data[index - 1]?.words)) {
-						if (orderMatch[0].length < 31) {
-							console.log("====", orderMatch[0].length);
-							info.orderNumber = orderMatch[0] + data[index + 1]?.words;
-						} else {
-							info.orderNumber = orderMatch[0];
-						}
-					} else if (orderMatch && /交易单号/.test(data[index - 1]?.words)) {
-						if (orderMatch[0].length < 28) {
-							console.log("====", orderMatch[0].length);
-							info.orderNumber = orderMatch[0] + data[index + 1]?.words;
-						} else {
-							info.orderNumber = orderMatch[0];
-						}
-					} else if (orderMatch && /商户单号/.test(data[index - 1]?.words)) {
-						if (orderMatch[0].length < 28) {
-							console.log("====", orderMatch[0].length);
-							info.shopNumber = orderMatch[0] + data[index + 1]?.words;
-						} else {
-							info.shopNumber = orderMatch[0];
-						}
 					}
+					const name = words.match(/账单详情/);
+					if (name) {
+						info.name = (data[index + 1]?.words ).replace(/>/g, '');
+						info.money = (data[index + 2]?.words).replace(/-/g, '');
+					}
+					
+					const payFun = words.match(/付款方式/);
+					if (payFun) info.payFun = (data[index + 1]?.words).replace(/>/g, '');
+
+					let desc = words.match(/转账备注/) 
+					let	desc2 =  words.match(/商品说明/);
+					if (desc || desc2) info.desc = data[index + 1]?.words;
+
+					let herAccount = words.match(/对方账号/) 
+					let	herAccount2 =  words.match(/收款方全称/);
+					if (herAccount || herAccount2) info.herAccount = data[index + 1]?.words;
+
+					const orderNumber = words.match(/订单号/)
+					const shopNumber = words.match(/商家订单号/);
+					if (orderNumber && shopNumber == null) {
+						console.log("=====");
+						info.orderNumber = data[index + 1]?.words;
+					}else 
+					if (shopNumber) info.shopNumber = data[index + 1]?.words;
+
 				});
 
-				// 格式化日期
-				if (info.time) {
-					info.time = info.time.replace(/日(\d)/, '日 $1').replace(/：/g, ':');
-				}
 
-				if (info.otherTime) {
-					info.otherTime = info.otherTime.replace(/日(\d)/, '日 $1').replace(/：/g, ':');
-				}
 
 				return info;
 			},
 			goCodePayChild(i) {
 				// 确保信息已提取
+				this.resultList = [{
+						"words": "8:57"
+					},
+					{
+						"words": "0.9"
+					},
+					{
+						"words": "5G"
+					},
+					{
+						"words": "K/s"
+					},
+					{
+						"words": "100"
+					},
+					{
+						"words": "<"
+					},
+					{
+						"words": "账单详情"
+					},
+					{
+						"words": "阿里云666"
+					},
+					{
+						"words": "-180.00"
+					},
+					{
+						"words": "交易成功"
+					},
+					{
+						"words": "支付时间"
+					},
+					{
+						"words": "2025-06-07"
+					},
+					{
+						"words": "13:44:54"
+					},
+					{
+						"words": "付款方式"
+					},
+					{
+						"words": "余额宝>"
+					},
+					{
+						"words": "商品说明"
+					},
+					{
+						"words": "充值：阿里云服务购买，业务交易号：CFP20"
+					},
+					{
+						"words": "2506271343401772"
+					},
+					{
+						"words": "支付奖励"
+					},
+					{
+						"words": "已领取15积分>"
+					},
+					{
+						"words": "收款方全称"
+					},
+					{
+						"words": "阿里云计算有限公司"
+					},
+					{
+						"words": "订单号"
+					},
+					{
+						"words": "20333062722001440871457322734"
+					},
+					{
+						"words": "商家订单号"
+					},
+					{
+						"words": "444444444"
+					},
+					{
+						"words": "账单管理"
+					},
+					{
+						"words": "账单分类"
+					},
+					{
+						"words": "其他>"
+					},
+					{
+						"words": "标签和备注"
+					},
+					{
+						"words": "添加>"
+					},
+					{
+						"words": "计入收支"
+					},
+					{
+						"words": "联系商家"
+					},
+					{
+						"words": "查看往来记录"
+					},
+					{
+						"words": "往来流水证明"
+					},
+					{
+						"words": "申请电子回单"
+					},
+					{
+						"words": "?"
+					},
+					{
+						"words": "对此订单有疑问"
+					}
+				]
 				if (!this.extractedInfo) {
 					this.extractedInfo = this.extractInfoWithRegex(this.resultList);
 				}
-
+				console.log(this.extractedInfo);
+				console.log(this.resultList);
 				// 复用之前的路由映射配置
 				const routeMap = {
-					0: '/pages/transfer/transfer',
-					1: '/pages/codePayChild/codePayChild',
-					2: '/pages/ThirdpartyPayment/ThirdpartyPayment', // 原默认情况
-					3: '/pages/miniThirdpartyPayment/miniThirdpartyPayment',
-					4: '/pages/barcodeThirdpartyPayment/barcodeThirdpartyPayment',
-					5: '/pages/barcodeThirdpartyPayment32/barcodeThirdpartyPayment32'
+					0: '/pages/billDetail/billDetail',
+					1: '/pages/ailpayThirdpartyPayment/ailpayThirdpartyPayment',
+					// 2: '/pages/ThirdpartyPayment/ThirdpartyPayment', // 原默认情况
+					// 3: '/pages/miniThirdpartyPayment/miniThirdpartyPayment',
+					// 4: '/pages/barcodeThirdpartyPayment/barcodeThirdpartyPayment',
+					// 5: '/pages/barcodeThirdpartyPayment32/barcodeThirdpartyPayment32'
 				};
 
 				// 获取目标路由，默认使用第三方支付页面
 				const targetRoute = routeMap[i] || routeMap[2];
-
+				if(i === 0){
+					this.extractedInfo.herAccount  =this.extractedInfo.herAccount.replace(/(\D)(\d)/, '$1 $2')
+				}
 				// 构建完整URL
 				const url = `${targetRoute}?info=${encodeURIComponent(JSON.stringify(this.extractedInfo))}`;
 

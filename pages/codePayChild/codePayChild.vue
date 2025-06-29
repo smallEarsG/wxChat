@@ -464,7 +464,13 @@
 		height: 100%;
 		object-fit: cover;
 	}
-
+.right{
+		flex:1;
+		word-wrap: break-word; 
+		overflow-wrap: break-word;
+		overflow: auto;
+	
+	}
 	.order_top {
 		display: flex;
 		flex-direction: column;
@@ -476,7 +482,7 @@
 		display: flex;
 		flex-direction: column;
 		background-color: #fff;
-		padding: 0 40rpx;
+		padding: 0 50rpx;
 	}
 
 	.close {

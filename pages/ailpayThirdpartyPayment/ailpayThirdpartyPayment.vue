@@ -15,7 +15,7 @@
 				</view>
 				<view class="name">
 					{{info.name}}
-					<uni-icons type="right" style="margin-left: 6upx;" size="13" color="#878787"></uni-icons>
+					<!-- <uni-icons type="right" style="margin-left: 6upx;" size="13" color="#878787"></uni-icons> -->
 				</view>
 				<view class="money" @click="exitInfo">
 					<view class="sub"/>
@@ -26,7 +26,7 @@
 				</view>
 				<view class="orderInfo">
 					<view class="info-item">
-						<view class="left">创建时间</view>
+						<view class="left">支付时间</view>
 						<view class="right">{{info.createTime}}</view>
 					</view>
 					<view class="info-item">
@@ -34,23 +34,28 @@
 						<view class="right" style="display: flex; align-items: center;">{{info.payFun}} <uni-icons type="right" style="margin-left: 10upx;" size="13" color="#878787"></uni-icons></view>
 					</view>
 					<view class="info-item">
-						<view class="left">转账备注</view>
+						<view class="left">商品说明</view>
 						<view class="right">{{info.desc}}</view>
 					</view>
 					<view class="info-item">
-						<view class="left">对方账号</view>
-						<view class="right">{{info.herAccount}}</view>
+						<view class="left">支付奖励</view>
+						<view class="right" style="display: flex; align-items: center;">已领取15积分 <uni-icons type="right" style="margin-left: 10upx;" size="13" color="#878787"></uni-icons></view>
 					</view>
 					<view class="info-item">
-						<view class="left">服务推荐</view>
-						<view class="right"></view>
+						<view class="left">收款方全称</view>
+						<view class="right">{{info.herAccount}}</view>
 					</view>
-					<view class="blue-tip">
+				
+<!-- 					<view class="blue-tip">
 						恭喜你有6元转账保障福利待领取! <uni-icons type="right" size="12" style="font-weight: 400;" color="#0f5086"></uni-icons>
-					</view>
+					</view> -->
 					<view class="info-item">
 						<view class="left">订单号</view>
 						<view class="right">{{info.orderNumber}}</view>
+					</view>
+					<view class="info-item">
+						<view class="left">商家订单号</view>
+						<view class="right">{{info.shopNumber}}</view>
 					</view>
 				</view>
 			</view>
@@ -58,13 +63,13 @@
 				<view class="title">
 					账单管理
 				</view>
-				<view class="yellow-tip">
+				<!-- <view class="yellow-tip">
 					本月转账红包是最大支出类目，看看花在哪里了 <uni-icons type="right" color="#b88f43" size="12"></uni-icons>
-				</view>
+				</view> -->
 				<view class="bill-item">
 					<view class="bill-item-left">账单分类</view>
 					<view class="bill-item-right">
-						转账红包 <uni-icons type="right" style="margin-left: 10upx;" color="#878787" size="12"></uni-icons>
+						其他 <uni-icons type="right" style="margin-left: 10upx;" color="#878787" size="12"></uni-icons>
 					</view>
 				</view>
 				<view class="bill-item">
@@ -82,22 +87,22 @@
 				<view class="blue_line" >
 					<view class="line-item-line">
 						<view class="line-content">
-							<image class="alipayIcon" src="/static/alipay/alipay_1.png" mode="widthFix" />
-							往来流水证明
+							<image class="alipayIcon" src="/static/alipay/alipay_0.png" mode="widthFix" />
+							联系商家
 						</view>
 						<view class="line-content">
-								<image class="alipayIcon" src="/static/alipay/alipay_2.png" mode="widthFix" />
-							申请电子回单
+								<image class="alipayIcon" src="/static/alipay/alipay_1.png" mode="widthFix" />
+								查看来往记录
 						</view>
 					</view>
 					<view class="line-item-line">
 						<view class="line-content">
 								<image class="alipayIcon" src="/static/alipay/alipay_3.png" mode="widthFix" />
-							查看来往记录
+							往来流水证明
 						</view>
 						<view class="line-content">
 								<image class="alipayIcon" src="/static/alipay/alipay_4.png" mode="widthFix" />
-							AA收款
+							申请电子回单
 						</view>
 					</view>
 					<view class="line-item-line">
@@ -105,18 +110,18 @@
 								<image class="alipayIcon" src="/static/alipay/alipay_5.png" mode="widthFix" />
 							对次订单有疑惑
 						</view>
-						<view class="line-content">
+						<!-- <view class="line-content">
 								<image class="alipayIcon" src="/static/alipay/alipay_6.png" mode="widthFix" />
 							转账凭证
-						</view>
+						</view> -->
 					</view>
 				</view>
 			</view>
 		
 		</view>
-		<view class="foor">
+		<!-- <view class="foor">
 			<view class="btn">再转一笔</view>
-		</view>
+		</view> -->
 		<uni-popup ref="popup" type="bottom" background-color="#fff" border-radius="10px">
 			<view class="roleList">
 				
@@ -176,13 +181,14 @@
 				roleList: [],
 				info:{
 					avatar:'',
-					name:'帅爆一条街(张三)',
-					money:'10,300.00',
+					name:'测试',
+					money:'1880.00',
 					createTime:'2025-6-25 16:59:17',
 					payFun:'余额宝',
 					desc:'转账',
-					herAccount:'帅爆了一条街(张三) 173******57',
-					orderNumber:'20250424200040011100870021078393'
+					herAccount:'阿里云计算有限公司',
+					orderNumber:'2025042420004001110087',
+					shopNumber:'HBX2000400111008'
 				},
 				infoKey:{
 					name:'转账用户',
@@ -191,7 +197,8 @@
 					payFun:'付款方式',
 					desc:'备注',
 					herAccount:'对方账号',
-					orderNumber:'订单号'
+					orderNumber:'订单号',
+					shopNumber:'商家订单号'
 				}
 				
 			}
@@ -355,7 +362,7 @@
 		margin-top: 20upx;
 		overflow:hidden;
 		border-radius: 20upx;
-		margin-bottom: 200upx;
+		margin-bottom: 30upx;
 	}
 	.yellow-tip,
 	.blue-tip {

@@ -313,6 +313,13 @@
 		height: 30rpx; */
 		margin-left: 10rpx;
 	}
+	.right{
+		flex:1;
+		word-wrap: break-word; 
+		overflow-wrap: break-word;
+		overflow: auto;
+	
+	}
 
 	.rightIcon {
 		display: flex;
@@ -476,7 +483,7 @@
 		display: flex;
 		flex-direction: column;
 		background-color: #fff;
-		padding: 0 40rpx;
+		padding: 0 50rpx;
 	}
 
 	.close {

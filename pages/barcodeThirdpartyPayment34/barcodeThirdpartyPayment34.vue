@@ -230,7 +230,7 @@
 					"desc": "由互联网清算有限公司提供付款清算服务",
 					"shop": '商品', // 商品
 					"merchantName": '商户名称', // 商户名称
-					"institution": '收款机构', //收款机构
+					"institution": '中国农业银行股份有限公司内蒙古自治区分行', //收款机构
 					"shopNumber": '20250621110113130166201789980574', // 商单号
 					"desc2": "由互联网清算有限公司提供付款清算服务"
 				},
@@ -403,7 +403,7 @@
 	.codeNo {
 		margin-top: 10rpx;
 		text-align: center;
-		font-family: 'WConsolas_mianfeiziti';
+		/* font-family: 'WConsolas_mianfeiziti'; */
 		font-size: 30upx;
 	}
 
@@ -557,7 +557,7 @@
 		flex: 1;
 		word-wrap: break-word;
 		overflow-wrap: break-word;
-
+		overflow: auto;
 	}
 
 	.bc {
@@ -610,7 +610,7 @@
 		display: flex;
 		flex-direction: column;
 		background-color: #fff;
-		padding: 0 40rpx;
+		padding: 0 50rpx;
 	}
 
 	.close {
