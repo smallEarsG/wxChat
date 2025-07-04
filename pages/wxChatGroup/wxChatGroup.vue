@@ -21,9 +21,9 @@
 				<view v-for="(item, i) in massageList" :key="i">
 					<!-- 时间 -->
 					<view v-if="item.type == 'tips'" class="msg-time cell" @longpress="showPopupMenu($event, i)">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<!-- <view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view>
+						</view> -->
 						{{item.content}}
 					</view>
 					<!-- <view class="orderBox" v-else-if="item.contentType == 'order'">
@@ -34,10 +34,10 @@
 					</view> -->
 					<!-- 名片 -->
 					<view v-else-if="item.contentType == 'crad'" class="cell">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<!-- <view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view>
-						<view class="msg left"  @longpress="showPopupMenu($event, i)"  v-if="item.location !== 0">
+						</view> -->
+						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location !== 0">
 							<image class="avatar" :src="gusetList[item.location].url" />
 							<view class="msgContent">
 								<view class="name">{{gusetList[item.location].text}}</view>
@@ -45,7 +45,7 @@
 									:avatar="item.content.avatar" @longpress="showPopupMenu($event, i)"></WxWxCard>
 							</view>
 						</view>
-						<view class="msg right"  @longpress="showPopupMenu($event, i)"  v-else>
+						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<WxWxCard class="cardRight" :nickname="item.content.nickname" :avatar="item.content.avatar"
 								@longpress="showPopupMenu($event, i)"></WxWxCard>
@@ -53,10 +53,10 @@
 					</view>
 					<!-- 图片photo -->
 					<view v-else-if="item.contentType == 'photo'" class="cell">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<!-- <view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view>
-						<view class="msg left"  @longpress="showPopupMenu($event, i)"  v-if="item.location !== 0">
+						</view> -->
+						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location !== 0">
 							<image class="avatar" :src="gusetList[item.location].url" />
 							<view class="msgContent">
 								<view class="name">{{gusetList[item.location].text}}</view>
@@ -64,7 +64,7 @@
 									@longpress="showPopupMenu($event, i)" />
 							</view>
 						</view>
-						<view class="msg right"  @longpress="showPopupMenu($event, i)"  v-else>
+						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<image :src="item.content.avatar" class="phote rightp"
 								@longpress="showPopupMenu($event, i)"></image>
@@ -72,10 +72,11 @@
 					</view>
 					<!-- 转账 -->
 					<view v-else-if="item.contentType == 'transfer'" class="cell">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<!-- 	<view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view>
-						<view class="msg left"  @longpress="showPopupMenu($event, i)" @click="resTransfer(i)" v-if="item.location !== 0">
+						</view> -->
+						<view class="msg left" @longpress="showPopupMenu($event, i)" @click="resTransfer(i)"
+							v-if="item.location !== 0">
 							<image class="avatar" :src="gusetList[item.location].url" />
 							<view class="msgContent">
 								<view class="name">{{gusetList[item.location].text}}</view>
@@ -84,7 +85,7 @@
 								</WxTransferCard>
 							</view>
 						</view>
-						<view class="msg right"  @longpress="showPopupMenu($event, i)"  @click="resTransfer(i)" v-else>
+						<view class="msg right" @longpress="showPopupMenu($event, i)" @click="resTransfer(i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<WxTransferCard :class="!item.content.st?'tfCardRight':'tfCardRightBg'"
 								:state="item.content.st" :name="item.content.tip" :amount="item.content.amount">
@@ -93,10 +94,10 @@
 					</view>
 					<!-- 收款 -->
 					<view v-else-if="item.contentType == 'wxtf'" class="cell">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<!-- <view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view>
-						<view class="msg left"  @longpress="showPopupMenu($event, i)"  v-if="item.location !== 0">
+						</view> -->
+						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location !== 0">
 							<image class="avatar" :src="gusetList[item.location].url" />
 							<view class="msgContent">
 								<view class="name">{{gusetList[item.location].text}}</view>
@@ -104,17 +105,17 @@
 								</WxTf>
 							</view>
 						</view>
-						<view class="msg right"  @longpress="showPopupMenu($event, i)" v-else>
+						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<WxTf class="tfCardRightBg" :name="item.content.tip" :amount="item.content.amount"></WxTf>
 						</view>
 					</view>
 					<!-- 红包 -->
 					<view v-else-if="item.contentType == 'redBag'" @click="getRB(i)" class="cell">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<!-- 	<view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view>
-						<view class="msg left"  @longpress="showPopupMenu($event, i)"  v-if="item.location !== 0">
+						</view> -->
+						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location !== 0">
 							<image class="avatar" :src="gusetList[item.location].url" />
 							<view class="msgContent">
 								<view class="name">{{gusetList[item.location].text}}</view>
@@ -122,7 +123,7 @@
 								</WxRedBag>
 							</view>
 						</view>
-						<view class="msg right"  @longpress="showPopupMenu($event, i)"  v-else>
+						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
 
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<WxRedBag :class="item.content?'tfCardRight':'tfCardRightBg'" :state="item.content">
@@ -132,9 +133,9 @@
 					</view>
 					<view v-else-if="item.contentType == 'yuyin'" class="cell">
 
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<!-- <view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view>
+						</view> -->
 						<view class="msg left " @longpress="showPopupMenu($event, i)" v-if="item.location !== 0">
 							<image class="avatar" :src="gusetList[item.location].url" />
 							<view class="msgContent">
@@ -149,7 +150,7 @@
 								</view>
 							</view>
 						</view>
-						<view class="msg right"  @longpress="showPopupMenu($event, i)" v-else>
+						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view class="msgContent">
 								<view class="bubble">
@@ -165,9 +166,9 @@
 						</view>
 					</view>
 					<view v-else-if="item.contentType == 'chat'" class="cell">
-						<view v-if="activeMsgIndex === i" class="popup-menu">
+						<!-- <view v-if="activeMsgIndex === i" class="popup-menu">
 							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view>
+						</view> -->
 						<!-- 聊天内容 -->
 						<view class="msg left " @longpress="showPopupMenu($event, i)" v-if="item.location !== 0">
 							<image class="avatar" :src="gusetList[item.location].url" />
@@ -175,19 +176,23 @@
 							<view class="msgContent">
 								<view class="name">{{gusetList[item.location].text}}</view>
 								<view class="bubble">
-									<view v-if="item.contentType == 'chat'">
-										{{item.content}}
-									</view>
+									<template v-for="(part, i) in parseMessage(item.content)">
+										<text v-if="part.type === 'text'" :key="i">{{ part.content }}</text>
+										<image v-else-if="part.type === 'emoji'" :key="i"
+											:src="getEmojiUrl(part.index,item.location)" class="emoji-inline" />
+									</template>
 								</view>
 							</view>
 						</view>
-						<view class="msg right"  @longpress="showPopupMenu($event, i)"  v-else>
+						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view class="msgContent">
 								<view class="bubble">
-									<view v-if="item.contentType == 'chat'">
-										{{item.content}}
-									</view>
+									<template v-for="(part, i) in parseMessage(item.content)">
+										<text v-if="part.type === 'text'" :key="i">{{ part.content }}</text>
+										<image v-else-if="part.type === 'emoji'" :key="i"
+											:src="getEmojiUrl(part.index,item.location)" class="emoji-inline" />
+									</template>
 								</view>
 							</view>
 						</view>
@@ -200,13 +205,18 @@
 		<!-- 底部输入栏 -->
 		<view class="fun_box">
 			<!-- {{containerStyle.height}} -->
-			<view class="chat-input">
+			<view class="chat-input" :style="{marginBottom: keyboardHeight+'px'}">
 				<image class="icon" src="/static/icon-voice.png" @click="addYuyin"></image>
-				<view class="input—box"><input class="input" placeholder="请输入" v-model="inputValue"
+				<view class="input—box"><input class="input" :adjustPosition="false" placeholder="" v-model="inputValue"
 						@confirm="onEnterKey" /></view>
-				<image class="icon_face" v-if="!keyboard" src="/static/icon-face.png"></image>
+				<image class="icon_face" v-if="!keyboard" src="/static/icon-face.png" @click="changeEmoji"></image>
 				<image class="icon_plus" src="/static/icon-plus.png" @click="togglePopupBox"></image>
 				<button class="send" @click="onEnterKey" v-if="keyboard"> 发送 </button>
+			</view>
+			<view class="emoji-picker" v-show="emoji">
+				<view v-for="index in total" :key="index" class="emoji-item" @click="addEmojiToInput(index)">
+					<image :src="getEmojiUrl(index)" class="emoji-img" />
+				</view>
 			</view>
 			<!-- 抽屉 -->
 			<view class="popup_box" v-show="openPopup">
@@ -244,9 +254,62 @@
 		<UploadImage ref="photoPopup" @submit="onPhotoSubmit"></UploadImage>
 		<!-- 名片 -->
 		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
+		<!-- 插入 -->
+		<EditableFormPopup ref="msgPopup" :value="editMsgInfo" :fieldLabels="editMsgKey" @submit="addMsgSubmit" />
+		<!-- 编辑 -->
+		<EditableFormPopup ref="editMsgPopup" :value="editMsgInfo" :fieldLabels="editMsgKey"
+			@submit="onEditMsgSubmit" />
 		<!-- yuyin -->
 		<EditableFormPopup ref="yuyinPopup" :value="yuyinInfo" :fieldLabels="yuyinKey" @submit="onYuyinSubmit" />
 		<ProfileEditPopup ref="wxChatAdd" @submit="addGusetInfo"></ProfileEditPopup>
+	<uni-popup ref="rolePopup" class="role-popup">
+	  <view class="role-container">
+	    <view class="role-header">
+	      <text>选择角色</text>
+	    </view>
+	    
+	    <view class="role-list">
+	      <view class="feature-item" 
+	            v-for="(item, index) in gusetList" 
+	            :key="index"
+	            @click="changeRule(index)"
+	            :class="{'active': index == isMe}">
+	        <image class="feature-icon" :src="item.url" />
+	        <text class="feature-text">{{item.text}}</text>
+	      </view>
+	    </view>
+	  </view>
+	</uni-popup>
+		<uni-popup ref="bottomPopup" background-color="#fff">
+			<view class="popupbox">
+				<view class="popup-handle"></view>
+				<view class="grid-container">
+					<view class="msgControlItem" @click="deleteMessage_1">
+						<view class="icon-container bg-red-light">❌</view>
+						<text class="action-text">删除</text>
+					</view>
+
+					<view class="msgControlItem" @click="insertTime">
+						<view class="icon-container bg-blue-light">🕒</view>
+						<text class="action-text">插入时间</text>
+					</view>
+
+					<view class="msgControlItem" @click="toggleRole">
+						<view class="icon-container bg-purple-light">👤</view>
+						<text class="action-text">切换角色</text>
+					</view>
+
+					<view class="msgControlItem" @click="addMsg">
+						<view class="icon-container bg-green-light">➕</view>
+						<text class="action-text">消息插入</text>
+					</view>
+					<view class="msgControlItem col-span-2" @click="changeMsg">
+						<view class="icon-container bg-orange-light">✏️</view>
+						<text class="action-text">消息编辑</text>
+					</view>
+				</view>
+			</view>
+		</uni-popup>
 	</view>
 </template>
 
@@ -254,12 +317,14 @@
 	import ExternalPayCard from '../../components/ExternalPayCard/ExternalPayCard.vue';
 	import EditableFormPopup from '../../components/EditableFormPopup/EditableFormPopup.vue';
 	import WxTransferCard from '../../components/WxTransferCard/WxTransferCard.vue';
+	import scaleMixin from '@/mixins/scaleMixin.js'
 	import {
 		getUserInfo,
 		login
 	} from '@/api/index.js';
 
 	export default {
+		mixins: [scaleMixin],
 		components: {
 			ExternalPayCard,
 			EditableFormPopup,
@@ -278,128 +343,22 @@
 			console.log(userId);
 			this.getUserInfo(userId);
 			this.$forceUpdate();
-
 		},
 		data() {
 			return {
-				keyboard:false,
+				keyboardHeight: 0,
+				keyboard: false,
 				gusetList: [],
-				activeMsgIndex: -1, // 当前激活的消息索引
-				popupTop: 0,
-				popupLeft: 0,
+				activeMsgIndex: -1, // 当前激活的消息索引				
 				userInfo: {},
-				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
+
 				chatInputBottom: 0,
 				guestInfo: {},
 				isMe: 0, // 1 表示为己方
 				openPopup: false,
 				inputValue: "",
-				featureList: [{
-						name: 'time',
-						label: '时间插入',
-						icon: '/static/icon-time.png'
-					},
-					{
-						name: 'photo',
-						label: '照片',
-						icon: '/static/icon-photo.png'
-					},
-					{
-						name: 'camera',
-						label: '拍摄',
-						icon: '/static/icon-camera.png'
-					},
-					{
-						name: 'transfer',
-						label: '转账',
-						icon: '/static/icon-transfer_black.png'
-					},
-					{
-						name: 'file',
-						label: '文件',
-						icon: '/static/icon-file.png'
-					},
-					{
-						name: 'contact',
-						label: '名片',
-						icon: '/static/icon-contacts.png'
-					},
-					{
-						name: 'location',
-						label: '位置',
-						icon: '/static/icon-location.png'
-					},
-					{
-						name: 'video',
-						label: '视频通话',
-						icon: '/static/icon-video.png'
-					},
-					{
-						name: 'redBag',
-						label: '红包',
-						icon: '/static/redBag.png'
-					}
-				],
 				massageList: [
-					//{
-					// 		type: "tips", // tips, content
-					// 		contentType: "chat", //order , chat ,link
-					// 		location: 0, // 1 表示我方
-					// 		content: "2024年12月24日 14:10"
-					// 	},
-					// 	{
-					// 		type: "content", // tips, content
-					// 		contentType: "chat", //order , chat ,link
-					// 		location: 0, // 1 表示我方
-					// 		content: "你好，欢迎来到企业微信工坊"
-					// 	},
-					// 	{
-					// 		type: "content", // tips, content
-					// 		contentType: "chat", //order , chat ,link
-					// 		location: 1, // 1 表示我方
-					// 		content: "你好，欢迎来到企业微信工坊"
-					// 	},
-					// 	{
-					// 		type: "tips", // tips, content
-					// 		contentType: "chat", //order , chat ,link
-					// 		location: 0, // 1 表示我方
-					// 		content: "2024年12月24日 14:10"
-					// 	},
-					// 	{
-					// 		type: "content", // tips, content
-					// 		contentType: "chat", //order , chat ,link
-					// 		location: 1, // 1 表示我方
-					// 		content: "你好，欢迎来到企业微信工坊,这里有订单,对外汇款等功能"
-					// 	},
-					// {
-					// 	type: "content", // tips, content
-					// 	contentType: "crad", //order , chat ,link
-					// 	location: 1, // 1 表示我方
-					// 	content: {
-					// 		name: "G"
-					// 	}
-					// },{
-					// 	type: "content", // tips, content
-					// 	contentType: "crad", //order , chat ,link
-					// 	location: 0, // 1 表示我方
-					// 	content: {
-					// 		name: "G"
-					// 	}
-					// },
-					// {
-					// 	type: "content", // tips, content
-					// 	contentType: "redBag", //order , chat ,link
-					// 	location: 0, // 1 表示我方
-					// 	content:false
-					// },
-					// {
-					// 	type: "content", // tips, content
-					// 	contentType: "wxtf", //order , chat ,link
-					// 	location: 1, // 1 表示我方
-					// 	content:{
-					// 		amount:"100",
-					// 	}
-					// }
+
 				],
 				orderInfo: {
 					shopName: "",
@@ -411,12 +370,7 @@
 					gusetName: "付款人名称",
 					price: "价格"
 				},
-				timeInfo: {
-					time: ""
-				},
-				timeKey: {
-					time: "时间"
-				},
+
 				transfer: {
 					// name:"",
 					amount: ""
@@ -442,26 +396,47 @@
 				}
 				return pages;
 			},
-			containerStyle() {
-				return {
-					height: `calc(100vh - ${this.chatInputBottom}px)`
-				}
-			}
 		},
 		mounted() {
-			// this.$refs.chat_input.style.bottom = "282px"
-			console.log(this.chatInputBottom);
-			uni.onKeyboardHeightChange((res) => {
-				if (res.height > 0) {
-					this.chatInputBottom = res.height;
-					this.keyboard = true
+
+			this.isIos = uni.getSystemInfoSync().platform === 'ios'
+			if (!this.isIos) {
+				this.keyboardHeight = 10
+			}
+			uni.onKeyboardHeightChange(res => {
+				if (res.height == 0) {
+					// console.log();)
+					this.keyboardHeight = this.isIos ? 0 : 10;
 				} else {
-					this.chatInputBottom = '0';
-					this.keyboard = false
+					this.emoji = false
+					this.openPopup = false
+					const safeAreaBottom = this.getSafeAreaInsetBottom();
+					this.keyboardHeight = res.height - safeAreaBottom;
 				}
 			});
+			setTimeout(() => {
+				this.$refs.bottomPopup.open("bottom")
+			}, 1000)
 		},
 		methods: {
+			getEmojiUrl(index, location = 1) {
+				return location != 0 ? `/static/emoji/emoji_${index}.png` : `/static/emoji/emoji_${index}_g.png`;
+			},
+			toggleRole() {
+				this.$refs.bottomPopup.close()
+				this.$refs.rolePopup.open("bottom")
+			},
+			getSafeAreaInsetBottom() {
+				const systemInfo = uni.getSystemInfoSync();
+
+				// iOS 设备且有安全区域信息
+				if (systemInfo.platform === 'ios' && systemInfo.safeArea) {
+					return systemInfo.screenHeight - systemInfo.safeArea.bottom;
+				}
+
+				// Android 设备通常没有安全区域问题，返回 0
+				return 0;
+			},
 			changeRule(i) {
 				this.isMe = i
 			},
@@ -496,18 +471,14 @@
 				this.activeMsgIndex = -1;
 			},
 			showPopupMenu(e, index) {
-				// console.log("====",index, e);
-				this.activeMsgIndex = index;
 
-				// 获取触摸坐标，适配弹出菜单位置
-				const touch = e.touches?. [0] || {};
-				this.popupTop = 50 // touch.clientY - 100; // 往上偏移
-				this.popupLeft = 0 //touch.clientX - 50; // 居中偏移
+				this.activeMsgIndex = index;
+				this.$refs.bottomPopup.open("bottom")
 			},
-			deleteMessage_1(index) {
-				console.log(index);
-				this.massageList.splice(index, 1);
+			deleteMessage_1() {
+				this.massageList.splice(this.activeMsgIndex, 1);
 				this.activeMsgIndex = -1; // 清除激活状态
+				this.$refs.bottomPopup.close()
 			},
 			onYuyinSubmit(data) {
 				const location = this.isMe;
@@ -581,23 +552,25 @@
 				this.massageList.push(orderInfo);
 			},
 			onTimeSubmit(data) {
-				const location = this.isMe;
-				console.log(data);
 				const timeInfo = {
-					type: "tips", // tips, content
-					contentType: "chat", //order , chat ,link
-					location, // 1 表示我方
+					type: "tips",
+					contentType: "chat",
 					content: data.time
-				};
-				console.log(this.massageList);
-				this.massageList.push(timeInfo);
+				}
+
+				// 如果有当前操作的索引，将时间插入到该消息上方
+				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
+					this.massageList.splice(this.currentActionIndex, 0, timeInfo);
+					// 插入后重置索引
+					this.currentActionIndex = -1;
+				} else {
+					// 否则默认添加到末尾
+					this.massageList.push(timeInfo);
+				}
+
+				this.updateMsg()
 			},
-			goBack() {
-				uni.navigateBack();
-			},
-			togglePopupBox() {
-				this.openPopup = !this.openPopup;
-			},
+
 			onSwitchChange(e) {
 				console.log(e);
 				this.isMe = !this.isMe;
@@ -646,27 +619,282 @@
 				}
 			},
 			onEnterKey() {
-				console.log(this.inputValue);
-				if (this.inputValue.trim()) {
-					console.log('用户输入内容:', this.inputValue);
+				this.addMsgcomm(this.inputValue)
+
+			},
+			addMsgcomm(inputValue) {
+				if (inputValue.trim()) {
+					console.log('用户输入内容:', inputValue);
 					// 这里可以添加发送消息的逻辑
 					const location = this.isMe;
-					this.massageList.push({
+					const msgInfo = {
 						type: "content",
 						contentType: "chat",
 						location,
-						content: this.inputValue
-					});
+						content: inputValue
+					}
+
+					// 如果有当前操作的索引，将时间插入到该消息上方
+					if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
+						this.massageList.splice(this.currentActionIndex, 0, msgInfo);
+						// 插入后重置索引
+						this.currentActionIndex = -1;
+					} else {
+						// 否则默认添加到末尾
+						this.massageList.push(msgInfo);
+					}
 					// 清空输入框
-					this.inputValue = '';
+
+					// this.updateMsg()
 				}
-			}
+			},
+
 		}
 	};
 </script>
 
 <style scoped>
-	.send{
+	/* 弹窗整体样式 */
+	.role-popup {
+	  background-color: rgba(0,0,0,0.5);
+	}
+	
+	.role-container {
+	  background-color: white;
+	  border-radius: 32upx;
+	  box-shadow: 0 10upx 50upx rgba(0,0,0,0.15);
+	  margin: 0 24upx;
+	  overflow: hidden;
+	  transform: translateY(20%);
+	  padding-bottom: 80upx;
+	}
+	
+	/* 头部样式 */
+	.role-header {
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  padding: 16upx 0;
+	  border-bottom: 2upx solid #f0f0f0;
+	}
+	
+	.role-header text {
+	  font-size: 32upx;
+	  font-weight: 500;
+	  color: #333;
+	}
+	
+	/* 角色列表样式 */
+	.role-list {
+	  display: grid;
+	  grid-template-columns: repeat(3, 1fr);
+	  gap: 12upx;
+	  padding: 16upx;
+	  max-height: 70vh;
+	  overflow-y: auto;
+	}
+	
+	/* 单个角色项样式 */
+	.feature-item {
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
+	  padding: 12upx;
+	  border-radius: 20upx;
+	  transition: all 0.2s ease;
+	  cursor: pointer;
+	}
+	
+	.feature-item.active {
+	  background-color: rgba(22, 93, 255, 0.1);
+	  border: 2upx solid #165DFF;
+	}
+	
+	/* 角色图标样式 */
+	.feature-icon {
+	  width: 128upx;
+	  height: 128upx;
+	  object-fit: cover;
+	  border-radius: 50%;
+	  box-shadow: 0 4upx 12upx rgba(0,0,0,0.08);
+	  transition: transform 0.2s ease;
+	}
+	
+	.feature-item.active .feature-icon {
+	  border: 4upx solid #165DFF;
+	  transform: scale(1.05);
+	}
+	
+	/* 角色文字样式 */
+	.feature-text {
+	  margin-top: 8upx;
+	  font-size: 24upx;
+	  text-align: center;
+	  color: #666;
+	  transition: color 0.2s ease;
+	}
+	
+	.feature-item.active .feature-text {
+	  color: #165DFF;
+	  font-weight: 500;
+	}
+	/* 全局样式 */
+	:root {
+		--color-red: #ef4444;
+		--color-blue: #3b82f6;
+		--color-purple: #8b5cf6;
+		--color-green: #22c55e;
+		--color-orange: #f97316;
+
+		--color-red-light: #fee2e2;
+		--color-blue-light: #dbeafe;
+		--color-purple-light: #ede9fe;
+		--color-green-light: #dcfce7;
+		--color-orange-light: #fff7ed;
+
+		--text-color: #4b5563;
+		--border-color: #e5e7eb;
+		--hover-bg: #f3f4f6;
+	}
+
+	/* 弹窗样式 */
+	.custom-popup {
+		background-color: rgba(0, 0, 0, 0.3);
+		border-radius: 32upx 32upx 0 0;
+		overflow: hidden;
+	}
+
+	.popupbox {
+		background-color: white;
+		border-radius: 32upx 32upx 0 0;
+		box-shadow: 0 -8upx 40upx rgba(0, 0, 0, 0.1);
+	}
+
+	.popup-handle {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 24upx 0;
+		border-bottom: 2upx solid var(--border-color);
+	}
+
+	.popup-handle::before {
+		content: '';
+		width: 128upx;
+		height: 8upx;
+		background-color: #d1d5db;
+		border-radius: 9999upx;
+	}
+
+	/* 网格布局 */
+	.grid-container {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 16upx;
+		padding: 32upx;
+	}
+
+	.col-span-2 {
+		grid-column: span 2;
+	}
+
+	/* 控制项样式 */
+	.msgControlItem {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 24upx;
+		border-radius: 24upx;
+		transition: all 0.2s ease;
+		cursor: pointer;
+	}
+
+	.msgControlItem:hover {
+		background-color: var(--hover-bg);
+	}
+
+	.icon-container {
+		width: 96upx;
+		height: 96upx;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-bottom: 16upx;
+		font-size: 36upx;
+	}
+
+	.bg-red-light {
+		background-color: var(--color-red-light);
+		color: var(--color-red);
+	}
+
+	.bg-blue-light {
+		background-color: var(--color-blue-light);
+		color: var(--color-blue);
+	}
+
+	.bg-purple-light {
+		background-color: var(--color-purple-light);
+		color: var(--color-purple);
+	}
+
+	.bg-green-light {
+		background-color: var(--color-green-light);
+		color: var(--color-green);
+	}
+
+	.bg-orange-light {
+		background-color: var(--color-orange-light);
+		color: var(--color-orange);
+	}
+
+	.action-text {
+		color: var(--text-color);
+		font-size: 28upx;
+	}
+
+	.msgControlItem {
+		margin-bottom: 10upx;
+	}
+
+	.emoji-inline {
+		width: 40upx;
+		height: 40upx;
+		vertical-align: middle;
+		margin: 0 1px;
+		position: relative;
+		top: -6upx;
+
+	}
+
+	.emoji-picker {
+		background-color: #fff;
+		height: 360upx;
+		overflow: auto;
+		display: flex;
+		flex-wrap: wrap;
+		padding: 5px;
+	}
+
+	.emoji-item {
+		width: 80upx;
+		height: 76upx;
+		margin: 18upx;
+		overflow: hidden;
+	}
+
+	.emoji-img {
+		width: 32px;
+		height: 32px;
+	}
+
+	.popupbox {
+		padding: 40upx;
+		box-sizing: border-box;
+	}
+
+	.send {
 		background-color: green;
 		color: #fff;
 		height: 60rpx;
@@ -674,6 +902,7 @@
 		font-size: 30rpx;
 		text-align: center;
 	}
+
 	.name {
 		font-size: 22rpx;
 		color: #aaa;
@@ -959,7 +1188,7 @@
 		background-color: #ffffff;
 		line-height: 1.3;
 		position: relative;
-	
+
 		box-sizing: border-box;
 		/* min-width: 100rpx; */
 		/* text-align: center; */
@@ -975,7 +1204,7 @@
 	}
 
 	.msg.right .msgContent .bubble::after {
-		content: "";  	
+		content: "";
 		position: absolute;
 		top: 28rpx;
 		right: -10rpx;
@@ -1110,7 +1339,7 @@
 	}
 
 	.feature-item {
-		width: 25%;
+		/* width: 25%; */
 		margin-top: 20rpx;
 		display: flex;
 		flex-direction: column;

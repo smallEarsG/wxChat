@@ -40,7 +40,7 @@
 			</view>
 			<view class="roleList">
 				<uni-swipe-action>
-					<uni-swipe-action-item v-for="item in msgList" :right-options="options" :auto-close="false"
+					<uni-swipe-action-item msgsclass="wipe"  v-for="item in msgList" :right-options="options" :auto-close="false"
 						@click="bindClick(item,$event)">
 
 						<view class="content-box" @click="goChat(item)">
@@ -64,8 +64,6 @@
 										{{msgDeal(item.content)}}
 									</view>
 								</view>
-								<view class="xline" style="position: absolute;bottom: 0;" />
-
 							</view>
 							
 						</view>
@@ -150,7 +148,7 @@
 				msgInfo: {
 					avatar: '',
 					name: '',
-					createdAt: '8:16',
+					createdAt: '上午 8:16',
 					type: 'chat',
 					chatIndex: 0,
 					description: ''
@@ -185,6 +183,43 @@
 			}
 		},
 		methods: {
+			parseCreatedAt(str) {
+			  const now = new Date();
+			  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+			
+			  if (/^上午|下午/.test(str)) {
+			    const isPM = str.startsWith('下午');
+			    const time = str.replace(/上午|下午/, '').trim();
+			    let [hour, minute] = time.split(':').map(Number);
+			    if (isPM && hour < 12) hour += 12;
+			    return new Date(today.getFullYear(), today.getMonth(), today.getDate(), hour, minute);
+			  }
+			
+			  if (str === '昨天') {
+			    const yesterday = new Date(today);
+			    yesterday.setDate(today.getDate() - 1);
+			    return yesterday;
+			  }
+			
+			  if (str === '前天') {
+			    const dayBefore = new Date(today);
+			    dayBefore.setDate(today.getDate() - 2);
+			    return dayBefore;
+			  }
+			
+			  if (/^\d+月\d+日$/.test(str)) {
+			    const [month, day] = str.match(/\d+/g).map(Number);
+			    return new Date(now.getFullYear(), month - 1, day);
+			  }
+			
+			  if (/^\d+年\d+月\d+日$/.test(str)) {
+			    const [year, month, day] = str.match(/\d+/g).map(Number);
+			    return new Date(year, month - 1, day);
+			  }
+			
+			  // 默认处理失败时返回最早时间，确保放最前
+			  return new Date(0);
+			},
 			openIndexPopup(index){
 				this.selectItem = index
 				this.$refs.indexPopup.open()
@@ -278,7 +313,8 @@
 			async getMessageList() {
 
 				const res = await getConversationsByUser(this.userId, 'chat')
-				this.msgList = res.data
+				
+				this.msgList = res.data.sort((a, b) => this.parseCreatedAt(b.createdAt) - this.parseCreatedAt(a.createdAt));
 			},
 			goQuery() {
 				uni.navigateTo({
@@ -296,7 +332,7 @@
 				this.$refs.wxChatPopup.open({
 					avatarUrl: '',
 					name: '',
-					createdAt: '8:15',
+					createdAt: '上午 8:15',
 					type: 'chat',
 					chatIndex: 0,
 					description: '@微信'
@@ -382,7 +418,7 @@
 
 <style>
 	.content {
-		overflow: auto;
+		overflow-y: auto;
 		background-color: #fff;
 		flex: 1;
 		/* padding-bottom: 122rpx; */
@@ -520,6 +556,13 @@
 		height: 152rpx;
 		
 	}
+	.roleList{
+		padding-bottom: 120rpx;
+		/* flex:1 */
+	}
+	/* .msgswipe{
+		padding-bottom: 120rpx;
+	} */
 
 	.msg_img {
 		position: relative;
@@ -626,6 +669,7 @@
 		background-color: #fafbfd;
 		display: flex;
 		color: #53585c;
+		z-index: 2;
 		padding-bottom: env(safe-area-inset-bottom); /* 防止内容被挡，但背景照样铺到底 */
 	}
 

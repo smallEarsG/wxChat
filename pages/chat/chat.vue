@@ -411,9 +411,9 @@
 					<image class="icon" :style="{ width: rpx(60), height: rpx(60) }"  src="/static/icon-voice.png" ></image>
 					<view class="input—box" :style="{  height: rpx(80) }" ><textarea  class="input" :adjustPosition="false" v-model="inputValue" @confirm="onEnterKey"
 							placeholder-class /></view>
-					<image class="icon_face"  :style="{ width: rpx(60), height: rpx(60) }" v-if="inputValue.length == 0" src="/static/icon-face.png" @click="changeEmoji">
+					<image class="icon_face"  :style="{ width: rpx(60), height: rpx(60) }"  src="/static/icon-face.png" @click="changeEmoji">
 					</image>
-					<image class="icon_plus"  :style="{ width: rpx(68), height: rpx(68) }"  src="/static/icon-plus.png" @click="togglePopupBox"></image>
+					<image class="icon_plus"  :style="{ width: rpx(68), height: rpx(68) }"  v-if="inputValue.length == 0" src="/static/icon-plus.png" @click="togglePopupBox"></image>
 					<button class="send" @click="onEnterKey" v-if="inputValue.length>0"> 发送 </button>
 				</view>
 				<view class="emoji-picker" v-show="emoji">
@@ -462,8 +462,7 @@
 				<!-- 消息编辑弹窗 -->
 				<EditableFormPopup ref="editMsgPopup" :value="editMsgInfo" :fieldLabels="editMsgKey"
 					@submit="onEditMsgSubmit" />
-				<!-- <EditableFormPopup ref="editMsgPopup" :value="editMsgInfo" :fieldLabels="editMsgKey"
-					@submit="onEditMsgSubmit" /> -->
+
 				<!-- 时间编辑 -->
 				<EditableFormPopup ref="videoPopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onVideoSubmit" />
 				<!-- 背景修改 -->
@@ -563,64 +562,16 @@
 				currentFontSize: 16, // 默认字体大小
 				scrollTop: 0,
 				contentbg: "null",
-				total: 108,
-				emoji: false,
-				currentActionIndex: -1, // 添加当前操作的消息索引
-				activeMsgIndex: -1, // 当前激活的消息索引
+			
+				
 				keyboardHeight: 0,
 				userInfo: {},
-				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
+				
 				guestInfo: {},
 				isMe: false,
 				openPopup: false,
 				inputValue: "",
-				featureList: [{
-						name: 'order',
-						label: '订单',
-						icon: '/static/icon-order.png'
-					},
-					{
-						name: 'time',
-						label: '时间插入',
-						icon: '/static/icon-time.png'
-					},
-					{
-						name: 'photo',
-						label: '照片',
-						icon: '/static/icon-photo.png'
-					},
-					{
-						name: 'transfer',
-						label: '转账',
-						icon: '/static/icon-transfer_black.png'
-					},
-					{
-						name: 'file',
-						label: '文件',
-						icon: '/static/icon-file.png'
-					},
-					{
-						name: 'contact',
-						label: '名片',
-						icon: '/static/icon-contacts.png'
-					},
-					{
-						name: 'location',
-						label: '位置',
-						icon: '/static/icon-location.png'
-					},
-					{
-						name: 'video',
-						label: '视频通话',
-						icon: '/static/icon-video.png'
-					},
-					{
-						name: 'redBag',
-						label: '红包',
-						icon: '/static/redBag.png'
-					}
-
-				],
+				
 				massageList: [
 
 				],
@@ -634,26 +585,10 @@
 					gusetName: "付款人名称",
 					price: "价格"
 				},
-				timeInfo: {
-					time: ""
-				},
-				timeKey: {
-					time: "时间"
-				},
-				msgInfo: {
-					msg: ""
-				},
-				msgKey: {
-					msg: "消息"
-				},
+				
 				// 消息编辑相关数据
 				editMsgIndex: -1, // 编辑的消息索引
-				editMsgInfo: {
-					msg: "11"
-				},
-				editMsgKey: {
-					msg: "编辑消息"
-				},
+				
 				transfer: {
 					name: "",
 					amount: ""
@@ -706,17 +641,7 @@
 			this.scrollToBottom()
 		},
 		methods: {
-			 getSafeAreaInsetBottom() {
-			   const systemInfo = uni.getSystemInfoSync();
-			     
-			     // iOS 设备且有安全区域信息
-			     if (systemInfo.platform === 'ios' && systemInfo.safeArea) {
-			       return systemInfo.screenHeight - systemInfo.safeArea.bottom;
-			     }
-			     
-			     // Android 设备通常没有安全区域问题，返回 0
-			     return 0;
-			},
+			
 			onScaleChange(e) {
 			  const scale = e.detail.value
 			  // setScale(this.scale)
@@ -788,15 +713,8 @@
 				this.popupVisible = false;
 				this.updateMsg()
 			},
-			addMsg(index) {
-				this.currentActionIndex = index;
-				this.$refs.msgPopup.open()
-				this.activeMsgIndex = -1; // 清除激活状态
-			},
-			addMsgSubmit(data) {
-				console.log(data.msg);
-				this.addMsgcomm(data.msg)
-			},
+		
+			
 			showPopupMenu(e, index) {
 				// 获取触摸坐标，适配弹出菜单位置
 				const touch = e.touches?.[0] || {};
@@ -975,50 +893,9 @@
 
 				this.updateMsg()
 			},
-			goBack() {
-				uni.navigateBack();
-			},
-			changeEmoji() {
-				this.openPopup = false
-				this.emoji = !this.emoji
-			},
-			// 添加表情到输入框的方法
-			addEmojiToInput(index) {
-				// 构建表情标签，例如[smile]
-				this.inputValue += `[emoji_${index}]`;
-			},
-			parseMessage(msg) {
-				const result = [];
-				const regex = /\[emoji_(\d+)\]/g;
-				let lastIndex = 0;
-				let match;
 
-				while ((match = regex.exec(msg)) !== null) {
-					if (match.index > lastIndex) {
-						result.push({
-							type: 'text',
-							content: msg.substring(lastIndex, match.index)
-						});
-					}
-					result.push({
-						type: 'emoji',
-						index: parseInt(match[1])
-					});
-					lastIndex = regex.lastIndex;
-				}
-
-				if (lastIndex < msg.length) {
-					result.push({
-						type: 'text',
-						content: msg.substring(lastIndex)
-					});
-				}
-				return result;
-			},
-			togglePopupBox() {
-				this.openPopup = !this.openPopup;
-				this.emoji = false
-			},
+		
+			
 			onSwitchChange(e) {
 				console.log(e);
 				this.isMe = !this.isMe;
@@ -1100,24 +977,8 @@
 					this.updateMsg()
 				}
 			},
-			// 新增时间插入功能
-			insertTime(index) {
-				this.currentActionIndex = index;
-				this.$refs.timePopup.open()
-				this.activeMsgIndex = -1;
-				// 显示时间确认弹窗
-				this.timePopupVisible = true;
-			},
 
-			// 取消插入时间
-			cancelInsertTime() {
-				this.timePopupVisible = false;
-				this.activeMsgIndex = -1;
-				this.popupVisible = false;
-			},
-			getEmojiUrl(index, location = 0) {
-				return location == 0 ? `/static/emoji/emoji_${index}.png` : `/static/emoji/emoji_${index}_blue.png`;
-			},
+			
 			// 新增角色切换功能
 			toggleRole(index) {
 				// 获取当前消息
@@ -1140,43 +1001,10 @@
 				this.popupVisible = false;
 			},
 			// 消息编辑功能
-			changeMsg(index) {
-				// 保存当前编辑的消息索引
-				this.editMsgIndex = index;
-
-				// 获取当前消息内容
-				// this.editMsgInfo.msg =;
-				this.editMsgInfo = {
-					...this.editMsgInfo,
-					msg: this.massageList[index].content
-				}; // 更新数据
-				// 打开编辑弹窗
-				this.$refs.editMsgPopup.open();
-
-				// 关闭弹出菜单
-				this.activeMsgIndex = -1;
-				this.popupVisible = false;
-			},
+			
 
 			// 消息编辑提交
-			onEditMsgSubmit(data) {
-				if (this.editMsgIndex !== -1 && data.msg.trim()) {
-					// 更新消息内容
-					this.massageList[this.editMsgIndex].content = data.msg;
-
-					// 更新消息
-					this.updateMsg();
-
-					// 显示成功提示
-					uni.showToast({
-						title: '消息编辑成功',
-						icon: 'success'
-					});
-				}
-
-				// 重置编辑索引
-				this.editMsgIndex = -1;
-			}
+			
 		}
 	};
 </script>

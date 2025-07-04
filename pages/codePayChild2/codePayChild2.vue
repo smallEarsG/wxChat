@@ -48,15 +48,8 @@
 						</view>
 						<view class="right rightIcon">
 							{{info.payment}}
-							<uni-icons
-							
-							v-if=" info.payment == '零钱通'"
-							  type="info" 
-							  size="18" 
-							  color="#999" 
-							  
-							  class="input-icon gthIcon" 
-							/>
+							<uni-icons v-if=" info.payment == '零钱通'" type="info" size="18" color="#999"
+								class="input-icon gthIcon" />
 							<!-- <image v-if=" info.payment == '零钱通'" class="gthIcon" src="/static/gthIcon.png"></image> -->
 						</view>
 					</view>
@@ -101,7 +94,7 @@
 						</view>
 						对订单有疑惑
 					</view>
-					<view class="se_item">
+					<view class="se_item" v-if="isGroup" @longpress="showGroup">
 						<view class="se_icon ">
 							<image class="skIcon" src="/static/skIcon.png" mode=""></image>
 						</view>
@@ -138,8 +131,8 @@
 			</view> -->
 				<view class="list_rl">
 					<uni-swipe-action v-if="roleList.length>0">
-						<uni-swipe-action-item v-for="(item,index) in roleList" :right-options="options2" :auto-close="false"
-							@click="bindClick(index)">
+						<uni-swipe-action-item v-for="(item,index) in roleList" :right-options="options2"
+							:auto-close="false" @click="bindClick(index)">
 
 							<view class="content-box" @click="changeRl(item.avatar)">
 								<uni-list-chat :avatar-circle="true" :title="item.nickname" :avatar="item.avatar"
@@ -167,13 +160,14 @@
 	export default {
 		data() {
 			return {
+				isGroup: true,
 				options2: [{
 						text: '删除',
 						style: {
 							backgroundColor: '#F56C6C'
 						}
 					}
-				
+
 				],
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				roleList: [],
@@ -187,7 +181,7 @@
 					"payment": "零钱通",
 					"currentState": "对方已收钱",
 					"desc": "转账时间",
-				
+
 				},
 				infoKey: {
 					"time": "付款时间",
@@ -210,11 +204,15 @@
 				...temp
 			}
 			console.log(this.info.name);
-			const list =  uni.getStorageSync('roleList')
-			if(list) this.roleList = list
+			const list = uni.getStorageSync('roleList')
+			if (list) this.roleList = list
 		},
 		methods: {
-			openAddPopup(){
+			showGroup() {
+				console.log("===1");
+				this.isGroup = false
+			},
+			openAddPopup() {
 				this.$refs.cradPopup.open()
 			},
 			bindClick(index) {
@@ -225,18 +223,18 @@
 				})
 				this.saveRoleList()
 			},
-			changeRl(url){
+			changeRl(url) {
 				// console.log(url);
 				this.info.url = url
 				this.saveTflist()
 			},
-			saveRoleList(){
+			saveRoleList() {
 				uni.setStorage({
 					key: 'roleList',
 					data: this.roleList
 				})
 			},
-		
+
 			async onCradSubmitz(data) {
 				console.log(data);
 				const baseImg = await eadLocalFileToBase64(data.avatar)
@@ -297,28 +295,30 @@
 </script>
 
 <style scoped>
-	.list_rl{
+	.list_rl {
 		flex: 1;
 		overflow: auto;
 	}
+
 	.roleList {
 		display: flex;
 		flex-direction: column;
 		width: 600rpx;
 		height: 800rpx;
 	}
-	
+
 	.gthIcon {
-	/* 	width: 30rpx;
+		/* 	width: 30rpx;
 		height: 30rpx; */
 		margin-left: 10rpx;
 	}
-	.right{
-		flex:1;
-		word-wrap: break-word; 
+
+	.right {
+		flex: 1;
+		word-wrap: break-word;
 		overflow-wrap: break-word;
 		overflow: auto;
-	
+
 	}
 
 	.rightIcon {

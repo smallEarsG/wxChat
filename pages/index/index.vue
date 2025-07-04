@@ -1,8 +1,11 @@
 <template>
 	<view class="container">
 		<!-- 顶部标题区域 -->
-
-
+	<view class="w-full max-w-4xl mb-8">
+			<!-- <text class="title-text">功能管理中心 </text> -->
+			<text class="subtitle-text">免责声明，仅供娱乐，切莫违法</text>
+			<text class="subtitle-text">免责声明，仅供娱乐，违法自负</text>
+		</view>
 		<!-- 卡片式按钮区域 -->
 		<view class="w-full max-w-4xl grid-container">
 			<!-- 企业聊天 -->
@@ -14,21 +17,21 @@
 				<text class="card-subtitle">快速生成企业自定义聊天记录</text>
 			</view>
 
-			<!-- 微信聊天 -->
+			<!-- w-x聊天 -->
 			<view class="card" @click="goToWxChat">
 				<view class="icon-container bg-green-100">
 					<text class="text-green-600 text-2xl font-bold">👥</text>
 				</view>
-				<text class="card-title">微信聊天</text>
-				<text class="card-subtitle">快速生成微信自定义聊天记录</text>
+				<text class="card-title">w-x聊天</text>
+				<text class="card-subtitle">快速生成w-x自定义聊天记录</text>
 			</view>
 
-			<!-- 微信群聊 -->
+			<!-- w-x群聊 -->
 			<view class="card" @click="goToWxChatGroup">
 				<view class="icon-container bg-purple-100">
 					<text class="text-purple-600 text-2xl font-bold">👨‍👩‍👧‍👦</text>
 				</view>
-				<text class="card-title">微信群聊</text>
+				<text class="card-title">w-x群聊</text>
 				<text class="card-subtitle">自定义群聊信息，恶搞专用</text>
 			</view>
 
@@ -41,13 +44,13 @@
 				<text class="card-subtitle">企业收款转账记录，快速建立信任背书</text>
 			</view>
 
-			<!-- 微信支付记录 -->
+			<!-- w-x支付记录 -->
 			<view class="card" @click="goToWxChatPay">
 				<view class="icon-container bg-red-100">
 					<text class="text-red-600 text-2xl font-bold">💰</text>
 				</view>
-				<text class="card-title">微信支付记录</text>
-				<text class="card-subtitle">快速生成微信支付交易历史</text>
+				<text class="card-title">w-x支付记录</text>
+				<text class="card-subtitle">快速生成w-x支付交易历史</text>
 			</view>
 
 			<!-- 获客助手 -->
@@ -64,16 +67,16 @@
 				<view class="icon-container bg-indigo-100">
 					<text class="text-indigo-600 text-2xl font-bold">📄</text>
 				</view>
-				<text class="card-title">微信付款记录</text>
+				<text class="card-title">w-x付款记录</text>
 				<text class="card-subtitle">快速扫描生成付款记录，自动录入订单号，以假乱真，自定义金额和时间</text>
 			</view>
-			<!-- 微信支付记录 -->
+			<!-- w-x支付记录 -->
 			<view class="card" @click="goToAlipay">
 				<view class="icon-container bg-red-100">
 					<text class="text-red-600 text-2xl font-bold">💰</text>
 				</view>
-				<text class="card-title">支付宝付款记录</text>
-				<text class="card-subtitle">快速生成支付宝支付记录</text>
+				<text class="card-title">z-x-b付款</text>
+				<text class="card-subtitle">免责声明，仅供娱乐，切莫违法</text>
 			</view>
 			<!-- 定制功能 -->
 			<view class="card">
@@ -89,7 +92,7 @@
 			<text class="subtitle-text">免责声明，仅供娱乐，切莫违法</text>
 			<text class="subtitle-text">免责声明，仅供娱乐，违法自负</text>
 		</view>
-		
+
 
 		<pfePopup ref="wxChatGroupPopup" @submit="onSubmitWxGroup"></pfePopup>
 	</view>
@@ -250,7 +253,7 @@
 					url: '/pages/weChatPay/weChatPay'
 				});
 			},
-			goToAlipay(){
+			goToAlipay() {
 				
 				if (isMemberExpired(this.guestInfo.memberExpireAt)) {
 					// 试用次数用完后开始需要充值会员
@@ -264,7 +267,7 @@
 						updateUseFeature(this.guestInfo.id)
 					}
 				}
-				
+
 				uni.navigateTo({
 					url: '/pages/Alipay/Alipay'
 				});

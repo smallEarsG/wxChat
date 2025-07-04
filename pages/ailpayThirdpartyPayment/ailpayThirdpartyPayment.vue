@@ -230,7 +230,7 @@
 					...this.info,
 					...data
 				}
-				this.info.url = baseImg
+				this.info.avatar = baseImg
 				// this.saveTflist()
 			},
 			exitInfo() {
@@ -258,7 +258,7 @@
 					avatar: baseImg
 				})
 				this.saveRoleList()
-				this.info.url = baseImg
+				this.info.avatar = baseImg
 				this.saveTflist()
 			},
 		}
