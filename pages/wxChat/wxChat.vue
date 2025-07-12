@@ -168,7 +168,7 @@
 		<!-- 底部输入栏 -->
 		<view class="fun_box">
 			<!-- {{containerStyle.height}} -->
-			<view class="chat-input">
+			<view class="chat-input" >
 				<image class="icon" src="/static/icon-voice.png" @click="addYuyin"></image>
 				<view class="input—box"><input class="input" placeholder="" v-model="inputValue"
 						@confirm="onEnterKey" /></view>
@@ -955,7 +955,7 @@
 		display: flex;
 		flex-direction: column;
 		flex-shrink: 0;
-		max-height: calc(100vh - 100rpx);
+		/* max-height: calc(100vh - 100rpx); */
 		/* 减去头部的高度 */
 		position: relative;
 		z-index: 50;

@@ -1313,8 +1313,8 @@
 	}
 
 	.backimg {
-		width: 48upx;
-		height: 48upx;
+		width: 44rpx;
+		height: 48rpx;
 		position: relative;
 		/* top: 2upx; */
 		margin-left: 16upx;
@@ -1563,12 +1563,9 @@
 	}
 
 	.phote {
-		width: 200upx;
-		height: 200upx;
-		object-fit: cover;
-		/* margin-left: 10upx; */
-		/* border-radius: 16upx; */
-		/* background-color: #3086ff; */
+		max-width: 440upx;
+		width: 240upx;
+		height: auto;
 	}
 
 	.rightp {

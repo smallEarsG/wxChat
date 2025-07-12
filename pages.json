@@ -15,7 +15,12 @@
                 "navigationBarTitleText": "登录",
 				 "safeAreaInsetBottom": false,
                 "enablePullDownRefresh": false,
-				"navigationStyle": "custom"
+				"navigationStyle": "custom",
+				"app-plus": {
+				          "safearea": {
+				            "bottom": false
+				          }
+				        }
 			
             }
             
@@ -33,7 +38,8 @@
 		{
 		      "path": "pages/mine/mine",
 		      "style": {
-		        "navigationBarTitleText": "我的"
+		        "navigationBarTitleText": "我的",
+				"navigationStyle": "custom"
 		      }
 		    }
         ,{
@@ -99,7 +105,9 @@
         	"style" : 
         	{
 				
-        		"navigationBarTitleText" : "图文识别"
+        		"navigationBarTitleText" : "图文识别",
+				 "safeAreaInsetBottom": false,
+				 "enablePullDownRefresh": false
         	}
         },
         {
@@ -107,6 +115,7 @@
         	"style" : 
         	{
 				"navigationStyle": "custom",
+				
 				"enablePullDownRefresh": false,
         		"navigationBarTitleText" : ""
         	}
@@ -268,6 +277,15 @@
 				"enablePullDownRefresh": false,
 				"navigationStyle": "custom"
         	}
+        },
+        {
+        	"path" : "pages/chatGrop/chatGrop",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : "",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+        	}
         }
     ],
 	"tabBar": {
@@ -279,13 +297,13 @@
 	    "list": [
 	      {
 	        "pagePath": "pages/index/index",
-	        "text": "主页",
+	        "text": "",
 	        "iconPath": "/static/icon-home.png",
 	        "selectedIconPath": "/static/icon-home-active.png"
 	      },
 	      {
 	        "pagePath": "pages/mine/mine",
-	        "text": "我的",
+	        "text": "",
 	        "iconPath": "/static/icon-mine.png",
 	        "selectedIconPath": "/static/icon-mine-active.png"
 	      }

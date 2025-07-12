@@ -1,9 +1,8 @@
 <template>
-	<!-- :style="{bottom: '-'+chatInputBottom+'px'}" -->
 	<view class="chat-page">
 
 		<!-- 顶部栏 -->
-		<view class="custom-header" :style="{ paddingTop: statusBarHeight + 'px' }">
+		<view class="custom-header" :style="{ marginTop: statusBarHeight + 'px' }">
 			<view class="left" @click="goBack">
 				<uni-icons type="left" size="25"></uni-icons>
 			</view>
@@ -21,22 +20,12 @@
 				<view v-for="(item, i) in massageList" :key="i">
 					<!-- 时间 -->
 					<view v-if="item.type == 'tips'" class="msg-time cell" @longpress="showPopupMenu($event, i)">
-						<!-- <view v-if="activeMsgIndex === i" class="popup-menu">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view> -->
 						{{item.content}}
 					</view>
-					<!-- <view class="orderBox" v-else-if="item.contentType == 'order'">
-						<view class="msg right">
-							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<ExternalPayCard :orderInfo="item.content" @longpress="showPopupMenu($event, i)" />
-						</view>
-					</view> -->
+
 					<!-- 名片 -->
 					<view v-else-if="item.contentType == 'crad'" class="cell">
-						<!-- <view v-if="activeMsgIndex === i" class="popup-menu">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view> -->
+
 						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location !== 0">
 							<image class="avatar" :src="gusetList[item.location].url" />
 							<view class="msgContent">
@@ -53,28 +42,23 @@
 					</view>
 					<!-- 图片photo -->
 					<view v-else-if="item.contentType == 'photo'" class="cell">
-						<!-- <view v-if="activeMsgIndex === i" class="popup-menu">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view> -->
 						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location !== 0">
 							<image class="avatar" :src="gusetList[item.location].url" />
 							<view class="msgContent">
 								<view class="name">{{gusetList[item.location].text}}</view>
-								<image :src="item.content.avatar" class="phote leftp"
+								<image :src="item.content.avatar"  mode="widthFix" class="phote leftp"
 									@longpress="showPopupMenu($event, i)" />
 							</view>
 						</view>
 						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<image :src="item.content.avatar" class="phote rightp"
+							<image :src="item.content.avatar" mode="widthFix" class="phote rightp"
 								@longpress="showPopupMenu($event, i)"></image>
 						</view>
 					</view>
 					<!-- 转账 -->
 					<view v-else-if="item.contentType == 'transfer'" class="cell">
-						<!-- 	<view v-if="activeMsgIndex === i" class="popup-menu">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view> -->
+
 						<view class="msg left" @longpress="showPopupMenu($event, i)" @click="resTransfer(i)"
 							v-if="item.location !== 0">
 							<image class="avatar" :src="gusetList[item.location].url" />
@@ -94,9 +78,7 @@
 					</view>
 					<!-- 收款 -->
 					<view v-else-if="item.contentType == 'wxtf'" class="cell">
-						<!-- <view v-if="activeMsgIndex === i" class="popup-menu">
-							<view class="menu-item" @click="deleteMessage_1(i)">删除</view>
-						</view> -->
+
 						<view class="msg left" @longpress="showPopupMenu($event, i)" v-if="item.location !== 0">
 							<image class="avatar" :src="gusetList[item.location].url" />
 							<view class="msgContent">
@@ -200,51 +182,51 @@
 
 				</view>
 			</scroll-view>
-		</view>
-
-		<!-- 底部输入栏 -->
-		<view class="fun_box">
-			<!-- {{containerStyle.height}} -->
-			<view class="chat-input" :style="{marginBottom: keyboardHeight+'px'}">
-				<image class="icon" src="/static/icon-voice.png" @click="addYuyin"></image>
-				<view class="input—box"><input class="input" :adjustPosition="false" placeholder="" v-model="inputValue"
-						@confirm="onEnterKey" /></view>
-				<image class="icon_face" v-if="!keyboard" src="/static/icon-face.png" @click="changeEmoji"></image>
-				<image class="icon_plus" src="/static/icon-plus.png" @click="togglePopupBox"></image>
-				<button class="send" @click="onEnterKey" v-if="keyboard"> 发送 </button>
-			</view>
-			<view class="emoji-picker" v-show="emoji">
-				<view v-for="index in total" :key="index" class="emoji-item" @click="addEmojiToInput(index)">
-					<image :src="getEmojiUrl(index)" class="emoji-img" />
+			<!-- 底部输入栏 -->
+			<view class="fun_box">
+				<view class="chat-input" :style="{marginBottom: keyboardHeight+'px'}">
+					<image class="icon" src="/static/icon-voice.png" @click="addYuyin"></image>
+					<view class="input—box"><input class="input" :adjustPosition="false" placeholder="" v-model="inputValue"
+							@confirm="onEnterKey" /></view>
+					<image class="icon_face" v-if="!keyboard" src="/static/icon-face.png" @click="changeEmoji"></image>
+					<image class="icon_plus" src="/static/icon-plus.png" @click="togglePopupBox"></image>
+					<button class="send" @click="onEnterKey" v-if="keyboard"> 发送 </button>
+				</view>
+				<view class="emoji-picker" v-show="emoji">
+					<view v-for="index in total" :key="index" class="emoji-item" @click="addEmojiToInput(index)">
+						<image :src="getEmojiUrl(index)" class="emoji-img" />
+					</view>
+				</view>
+				<!-- 抽屉 -->
+				<view class="popup_box" v-show="openPopup">
+					<swiper class="drawer-swiper" indicator-dots circular>
+						<swiper-item>
+							<view class="feature-grid">
+								<view class="feature-item" v-for="(item,index) in gusetList" @click="changeRule(index)">
+									<image class="feature-icon" :class="index == isMe?'boxsh':''" :src="item.url" />
+									<text class="feature-text">{{item.text}} </text>
+								</view>
+								<view class="feature-item" @click="addGuset">
+									<image class="feature-icon" src="/static/icon-plus.png" />
+									<text class="feature-text">添加角色 </text>
+								</view>
+							</view>
+						</swiper-item>
+						<swiper-item v-for="(page, i) in featurePages" :key="i">
+							<view class="feature-grid">
+								<view v-for="item in page" :key="item.name" class="feature-item-fun"
+									@click="onSelect(item.name)">
+									<image class="feature-icon-fun" :src="item.icon" />
+									<text class="feature-text">{{ item.label }}</text>
+								</view>
+							</view>
+						</swiper-item>
+					</swiper>
 				</view>
 			</view>
-			<!-- 抽屉 -->
-			<view class="popup_box" v-show="openPopup">
-				<swiper class="drawer-swiper" indicator-dots circular>
-					<swiper-item>
-						<view class="feature-grid">
-							<view class="feature-item" v-for="(item,index) in gusetList" @click="changeRule(index)">
-								<image class="feature-icon" :class="index == isMe?'boxsh':''" :src="item.url" />
-								<text class="feature-text">{{item.text}} </text>
-							</view>
-							<view class="feature-item" @click="addGuset">
-								<image class="feature-icon" src="/static/icon-plus.png" />
-								<text class="feature-text">添加角色 </text>
-							</view>
-						</view>
-					</swiper-item>
-					<swiper-item v-for="(page, i) in featurePages" :key="i">
-						<view class="feature-grid">
-							<view v-for="item in page" :key="item.name" class="feature-item"
-								@click="onSelect(item.name)">
-								<image class="feature-icon" :src="item.icon" />
-								<text class="feature-text">{{ item.label }}</text>
-							</view>
-						</view>
-					</swiper-item>
-				</swiper>
-			</view>
 		</view>
+
+		
 		<!-- 定义弹出层 -->
 		<EditableFormPopup ref="timePopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onTimeSubmit" />
 		<!-- 转账 -->
@@ -272,8 +254,8 @@
 	      <view class="feature-item" 
 	            v-for="(item, index) in gusetList" 
 	            :key="index"
-	            @click="changeRule(index)"
-	            :class="{'active': index == isMe}">
+	            @click="changeMsgRule(index)"
+	            :class="{'active': index == massageList[currentActionIndex].location}">
 	        <image class="feature-icon" :src="item.url" />
 	        <text class="feature-text">{{item.text}}</text>
 	      </view>
@@ -358,7 +340,12 @@
 				openPopup: false,
 				inputValue: "",
 				massageList: [
-
+					{
+					 type: "content", // tips, content
+					contentType: "chat", //order , chat ,link
+					location:0, // 1 表示我方
+					content: "0000",
+					}
 				],
 				orderInfo: {
 					shopName: "",
@@ -414,17 +401,19 @@
 					this.keyboardHeight = res.height - safeAreaBottom;
 				}
 			});
-			setTimeout(() => {
-				this.$refs.bottomPopup.open("bottom")
-			}, 1000)
+			// setTimeout(() => {
+			// 	this.$refs.bottomPopup.open("bottom")
+			// }, 1000)
 		},
 		methods: {
 			getEmojiUrl(index, location = 1) {
 				return location != 0 ? `/static/emoji/emoji_${index}.png` : `/static/emoji/emoji_${index}_g.png`;
 			},
 			toggleRole() {
+				this.currentActionIndex = this.activeMsgIndex;
 				this.$refs.bottomPopup.close()
 				this.$refs.rolePopup.open("bottom")
+				this.activeMsgIndex = -1;
 			},
 			getSafeAreaInsetBottom() {
 				const systemInfo = uni.getSystemInfoSync();
@@ -439,6 +428,9 @@
 			},
 			changeRule(i) {
 				this.isMe = i
+			},
+			changeMsgRule(i){
+				this.massageList[this.currentActionIndex].location = i
 			},
 			addGusetInfo(data) {
 				console.log(data);
@@ -620,7 +612,7 @@
 			},
 			onEnterKey() {
 				this.addMsgcomm(this.inputValue)
-
+				
 			},
 			addMsgcomm(inputValue) {
 				if (inputValue.trim()) {
@@ -644,7 +636,7 @@
 						this.massageList.push(msgInfo);
 					}
 					// 清空输入框
-
+					 this.inputValue = ''
 					// this.updateMsg()
 				}
 			},
@@ -717,6 +709,14 @@
 	  object-fit: cover;
 	  border-radius: 50%;
 	  box-shadow: 0 4upx 12upx rgba(0,0,0,0.08);
+	  transition: transform 0.2s ease;
+	}
+	.feature-icon-fun {
+	  width: 80upx;
+	  height: 80upx;
+	  object-fit: cover;
+	  /* border-radius: 50%; */
+	  /* box-shadow: 0 4upx 12upx rgba(0,0,0,0.08); */
 	  transition: transform 0.2s ease;
 	}
 	
@@ -1054,9 +1054,11 @@
 	}
 
 	.phote {
-		width: 200rpx;
-		height: 200rpx;
-		background-color: #3086ff;
+		max-width: 440upx;
+		width: 240upx;
+		height: auto;
+		/* height: 200rpx; */
+		/* background-color: #3086ff; */
 	}
 
 	.rightp {
@@ -1074,7 +1076,7 @@
 		overflow: hidden;
 		padding-top: 4rpx;
 		/* 为固定的头部留出空间 */
-		padding-bottom: 20rpx;
+		/* padding-bottom: 20rpx; */
 		box-sizing: border-box;
 	}
 
@@ -1089,15 +1091,10 @@
 		justify-content: space-between;
 		align-items: center;
 		height: 100rpx;
-		padding: 0 30rpx;
+		padding: 10upx 30rpx;
 		border-bottom: 2rpx solid #e0e0e0;
-		/*  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-color: #eaeaea;
-  z-index: 100;
-  /* box-sizing: border-box; */
+		/* box-sizing: border-box; */
+		box-sizing: content-box;
 	}
 
 	.title {
@@ -1242,6 +1239,8 @@
 		/* 减去头部的高度 */
 		position: relative;
 		z-index: 50;
+		/* padding-bottom: 20rpx; */
+		background-color: #f5f5f5;
 	}
 
 	/* 输入框 */
@@ -1345,7 +1344,14 @@
 		flex-direction: column;
 		align-items: center;
 	}
-
+	
+	.feature-item-fun{
+		width: 25%;
+		margin-top: 20rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
 	.feature-icon {
 		width: 80rpx;
 		height: 80rpx;

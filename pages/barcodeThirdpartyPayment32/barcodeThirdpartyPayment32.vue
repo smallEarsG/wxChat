@@ -2,9 +2,10 @@
 	<view class="container">
 		<view class="nav" @click="goBack" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<uni-icons class="close" type="closeempty" color="#000" size="22"></uni-icons>
+			<view class="allOrder" v-if="info.order">全部账单</view>
 		</view>
 		<view class="content">
-			<view class="order">
+			<view class="order" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<view class="order_top">
 					<view class="avatar" @click="changeRole">
 						<image :src="info.url||'/static/logo.png'"></image>
@@ -124,7 +125,7 @@
 
 
 			</view>
-			<view class="serivce">
+			<view class="serivce" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<view class="se_title">
 					账单服务
 				</view>
@@ -234,6 +235,8 @@
 					"shopNumber": ' 002225062015305809035155', // 商单号
 					"desc2": "由互联网清算有限公司提供付款清算服务",
 					"payDesc":'支付说明',
+					"padd":60,
+					"order":false
 				},
 				infoKey: {
 					"time": "付款时间",
@@ -250,6 +253,8 @@
 					"desc": "收款机构备注",
 					"desc2": "支付方式备注",
 					"payDesc":'支付说明',
+					"padd":"边距",
+					"order":"全部账单"
 				},
 				barCodeUrl: ''
 			}
@@ -437,7 +442,7 @@
 	.serivce {
 		margin-top: 20rpx;
 		background-color: #fff;
-		padding: 0 40rpx;
+		padding: 0 60rpx;
 		box-sizing: border-box;
 	}
 
@@ -552,7 +557,7 @@
 
 	.left {
 		color: #878787;
-		width: 80px;
+		width: 170rpx;
 	}
 
 	.right {
@@ -612,7 +617,7 @@
 		display: flex;
 		flex-direction: column;
 		background-color: #fff;
-		padding: 0 50rpx;
+		padding: 0 60rpx;
 	}
 
 	.close {
@@ -625,15 +630,22 @@
 	}
 
 	.nav {
+		height: 86rpx;
 		background-color: #fff;
+		position: relative;
 	}
-
+	.allOrder{
+		position: absolute;
+		right: 40upx;
+		font-size: 36upx;
+		bottom:  10upx;
+	}
 	.container {
 		background-color: #eaeaea;
 		display: flex;
 		flex-direction: column;
-		/* height: 100vh;
-		overflow: hidden; */
+		height: 100vh;
+		overflow: hidden;
 	}
 
 	.content {

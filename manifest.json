@@ -2,13 +2,25 @@
     "name" : "销售模板生成器",
     "appid" : "__UNI__0052531",
     "description" : "",
-    "versionName" : "1.5.1",
-    "versionCode" : 151,
+    "versionName" : "1.5.3",
+    "versionCode" : 153,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
         "compatible" : {
             "fontSize" : 0 // 禁用系统字体缩放，保证 upx 计算准确
+        },
+        "statusbar" : {
+            "immersed" : "supportedDevice"
+        },
+        "safearea" : {
+            // 底部安全区域配置，仅iOS平台生效  
+            "bottom" : {
+                // offset 底部安全区域偏移
+                // "none" 表示不空出安全区域
+                // "auto" 自动计算空出安全区域
+                "offset" : "none"
+            }
         },
         "softinputMode" : "adjustResize",
         "usingComponents" : true,
@@ -31,21 +43,19 @@
             "android" : {
                 "permissions" : [
                     "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
                     "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>",
                     "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
-                    "<uses-permission android:name=\"android.permission.READ_LOGS\"/>",
-                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
-                    "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
-                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
                     "<uses-permission android:name=\"android.permission.CAMERA\"/>",
-                    "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\"/>",
-                    "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>",
-                    "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
-                    "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
                     "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
                     "<uses-feature android:name=\"android.hardware.camera\"/>",
-                    "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>",
-                    "<uses-permission android:name=\"android.permission.INTERNET\"/>"
+                    "<uses-permission android:name=\"android.permission.READ_LOGS\"/>",
+                    "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
                 ],
                 "abiFilters" : [ "armeabi-v7a", "arm64-v8a" ]
             },
@@ -141,7 +151,7 @@
             "proxy" : {
                 "/pawlapi" : {
                     "target" : "http://106.15.137.235:8080/api",
-                    // "target" : "http://localhost:8081/api",
+                    // "target" : "http://localhost:8080/api",
                     // "target" : "http://localhost:8081/api",
                     "changeOrigin" : true,
                     "pathRewrite" : {

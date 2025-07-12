@@ -2,9 +2,10 @@
 	<view class="container">
 		<view class="nav" @click="goBack" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<uni-icons class="close" type="closeempty" color="#000" size="22"></uni-icons>
+			<view class="allOrder" v-if="info.order">全部账单</view>
 		</view>
 		<view class="content">
-			<view class="order">
+			<view class="order" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<view class="order_top">
 					<view class="avatar" @click="changeRole">
 						<image :src="info.url||'/static/logo.png'"></image>
@@ -124,7 +125,7 @@
 
 
 			</view>
-			<view class="serivce">
+			<view class="serivce" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<view class="se_title">
 					账单服务
 				</view>
@@ -143,20 +144,7 @@
 							发起群收款
 						</view>
 					</view>
-				<!-- 	<view class="serivce_bx">
-						<view class="se_item">
-							<view class="se_icon ">
-								<image class="startIcon" src="/static/qiw/tpIcon_2.png" mode=""></image>
-							</view>
-							在此商户的交易
-						</view>
-							<view class="se_item">
-							<view class="se_icon ">
-								<image class="transferIcon" src="/static/transferIcon.png" mode=""></image>
-							</view>
-							查看往来转账
-						</view>
-					</view> -->
+				
 				</view>
 
 			</view>
@@ -231,6 +219,7 @@
 					"shopNumber": ' 7895004260588973', // 商单号
 					"desc2": "由互联网清算有限公司提供付款清算服务",
 					"payDesc":'支付说明',
+					
 				},
 				infoKey: {
 					"time": "付款时间",
@@ -246,7 +235,9 @@
 					"institution": '收款机构', //收款机构
 					"shopNumber": ' 商户单号', // 商单号
 					"desc": "收款机构备注",
-					"desc2": "支付方式备注"
+					"desc2": "支付方式备注",
+					"padd":"边距",
+					"order":"全部账单"
 				},
 				barCodeUrl: ''
 			}
@@ -420,7 +411,7 @@
 		justify-content: flex-end;
 		flex-direction: column;
 		color: #a2a2a2;
-		min-height: 170rpx;
+		min-height: 160rpx;
 		padding-bottom: 60rpx;
 		/* position: absolute;
 	bottom: 0rpx; */
@@ -429,7 +420,7 @@
 	.serivce {
 		margin-top: 20rpx;
 		background-color: #fff;
-		padding: 0 40rpx;
+		padding: 0 60rpx;
 		box-sizing: border-box;
 	}
 
@@ -544,7 +535,7 @@
 
 	.left {
 		color: #878787;
-		width: 80px;
+		width: 170rpx;
 	}
 
 	.right {
@@ -604,7 +595,7 @@
 		display: flex;
 		flex-direction: column;
 		background-color: #fff;
-		padding: 0 50rpx;
+		padding: 0 60rpx;
 	}
 
 	.close {
@@ -617,15 +608,22 @@
 	}
 
 	.nav {
+		height: 86rpx;
 		background-color: #fff;
+		position: relative;
 	}
-
+	.allOrder{
+		position: absolute;
+		right: 40upx;
+		font-size: 36upx;
+		bottom:  10upx;
+	}
 	.container {
 		background-color: #eaeaea;
 		display: flex;
 		flex-direction: column;
-		/* height: 100vh;
-		overflow: hidden; */
+		height: 100vh;
+		overflow: hidden;
 	}
 
 	.content {

@@ -534,6 +534,8 @@
 		background-color: #f8f9fa;
 		display: flex;
 		flex-direction: column;
+		overflow: hidden;
+		padding-bottom: env(safe-area-inset-bottom); /* 防止内容被挡，但背景照样铺到底 */
 	}
 
 	/* 顶部导航 */

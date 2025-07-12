@@ -1,7 +1,7 @@
 <template>
 	<view class="container">
 		<!-- 顶部标题区域 -->
-	<view class="w-full max-w-4xl mb-8">
+		<view class="w-full max-w-4xl mb-8">
 			<!-- <text class="title-text">功能管理中心 </text> -->
 			<text class="subtitle-text">免责声明，仅供娱乐，切莫违法</text>
 			<text class="subtitle-text">免责声明，仅供娱乐，违法自负</text>
@@ -34,7 +34,13 @@
 				<text class="card-title">w-x群聊</text>
 				<text class="card-subtitle">自定义群聊信息，恶搞专用</text>
 			</view>
-
+			<view class="card" @click="goToChatGroup">
+				<view class="icon-container bg-purple-100">
+					<text class="text-purple-600 text-2xl font-bold">👨‍👩‍👧‍👦</text>
+				</view>
+				<text class="card-title">企业群聊</text>
+				<text class="card-subtitle">自定义群聊信息，恶搞专用</text>
+			</view>
 			<!-- 企业转账记录 -->
 			<view class="card" @click="goToRecords">
 				<view class="icon-container bg-orange-100">
@@ -95,6 +101,7 @@
 
 
 		<pfePopup ref="wxChatGroupPopup" @submit="onSubmitWxGroup"></pfePopup>
+		<pfePopup ref="ChatGroupPopup" @submit="onSubmitGroup"></pfePopup>
 	</view>
 </template>
 
@@ -126,7 +133,7 @@
 				})
 			}
 			// 查询用户使用次数 以及是否是VIP
-			this.getUserInfo(userId)
+			 userId && this.getUserInfo(userId)
 		},
 		methods: {
 
@@ -192,6 +199,21 @@
 				}
 				this.$refs.wxChatGroupPopup.open()
 			},
+			goToChatGroup(){
+				if (isMemberExpired(this.guestInfo.memberExpireAt)) {
+					// 试用次数用完后开始需要充值会员
+					if (this.guestInfo.tryCount == 0) {
+						uni.showToast({
+							title: '使用次数已用完请充值会员',
+							icon: 'none'
+						});
+						return
+					} else {
+						updateUseFeature(this.guestInfo.id)
+					}
+				}
+				this.$refs.ChatGroupPopup.open()
+			},
 			onSubmitWxGroup(data) {
 				if (isMemberExpired(this.guestInfo.memberExpireAt)) {
 					// 试用次数用完后开始需要充值会员
@@ -209,7 +231,11 @@
 					url: '/pages/wxChatGroup/wxChatGroup?guestInfo=' + encodeURIComponent(JSON.stringify(data))
 				});
 			},
-
+			onSubmitGroup(data){
+				uni.navigateTo({
+					url: '/pages/chatGrop/chatGrop?guestInfo=' + encodeURIComponent(JSON.stringify(data))
+				});
+			},
 			onSubmit(data) {
 
 				uni.navigateTo({
@@ -254,7 +280,7 @@
 				});
 			},
 			goToAlipay() {
-				
+
 				if (isMemberExpired(this.guestInfo.memberExpireAt)) {
 					// 试用次数用完后开始需要充值会员
 					if (this.guestInfo.tryCount == 0) {

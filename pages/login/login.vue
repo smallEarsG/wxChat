@@ -156,7 +156,7 @@ export default {
       } catch (error) {
         console.error('登录失败', error);
         uni.showToast({
-          title: '网络错误，请重试',
+          title: error,
           icon: 'none'
         });
       }

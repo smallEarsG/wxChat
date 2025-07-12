@@ -20,7 +20,29 @@
                 color="#999" 
                 class="input-icon" 
               />
+              <!-- 根据字段类型显示不同的输入组件 -->
+              <view v-if="key === 'padd'" class="slider-container">
+                <slider 
+                  v-model="formData[key]" 
+                  min="0" 
+                  max="100" 
+                  show-value
+                  activeColor="#007aff"
+                  backgroundColor="#e6e6e6"
+                  :class="{ 'input-error': errorFields[key] }"
+                  @change="handleSliderChange(key, $event)"
+                />
+              </view>
+              <view v-else-if="key === 'order'" class="switch-container">
+                <switch 
+                  v-model="formData[key]" 
+                  color="#007aff"
+                  :class="{ 'input-error': errorFields[key] }"
+                  @change="handleSwitchChange(key, $event)"
+                />
+              </view>
               <input 
+                v-else
                 v-model="formData[key]" 
                 class="form-input" 
                 :placeholder="`请输入${label}`"
@@ -73,8 +95,12 @@ export default {
     value: {
       immediate: true,
       handler(newVal) {
-		
-        this.formData = { ...newVal };
+        // 确保数据类型正确
+        this.formData = {
+          ...newVal,
+          padd: typeof newVal.padd === 'number' ? newVal.padd : 50,
+          order: typeof newVal.order === 'boolean' ? newVal.order : false
+        };
         this.errorFields = {};
       }
     }
@@ -97,19 +123,29 @@ export default {
         date: 'calendar',
         message: 'message',
         note: 'edit',
-        description: 'edit'
+        description: 'edit',
+        padd: 'progress',
+        order: 'switch'
       };
       
       // 优先使用传入的图标映射
       return this.fieldIcons[key] || defaultIcons[key] || 'info';
     },
+    handleSliderChange(key, event) {
+      // 确保滑块值是数值类型
+      this.formData[key] = Number(event.mp.detail.value);
+    },
+    handleSwitchChange(key, event) {
+      // 确保开关值是布尔类型
+      this.formData[key] = Boolean(event.mp.detail.value);
+    },
     validateForm() {
       let isValid = true;
       this.errorFields = {};
       
-	  // 去掉过滤
+      // 对非开关和滑块字段进行空值校验
       // for (const key in this.fieldLabels) {
-      //   if (!this.formData[key] || this.formData[key].toString().trim() === '') {
+      //   if (key !== 'order' && key !== 'padd' && (!this.formData[key] || this.formData[key].toString().trim() === '')) {
       //     this.errorFields[key] = true;
       //     isValid = false;
       //   }
@@ -118,7 +154,9 @@ export default {
       return isValid;
     },
     submit() {
+      console.log('提交表单数据:', this.formData); // 调试输出
       if (this.validateForm()) {
+        console.log('表单验证通过，发射提交事件'); // 调试输出
         this.$emit('submit', { ...this.formData });
         this.$refs.popup.close();
       } else {
@@ -221,6 +259,22 @@ export default {
   outline: none;
 }
 
+/* 滑块容器样式 */
+.slider-container {
+  padding: 24rpx 24rpx 24rpx 68rpx;
+  height: 88rpx;
+  box-sizing: border-box;
+}
+
+/* 开关容器样式 */
+.switch-container {
+  padding: 24rpx 24rpx 24rpx 68rpx;
+  height: 88rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
 /* 错误状态样式 */
 .input-error {
   border-color: #ff5252;
@@ -281,5 +335,4 @@ export default {
 .btn-submit:active {
   background-color: #0052a8;
 }
-</style>
-    
+</style>    

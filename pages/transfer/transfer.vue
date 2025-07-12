@@ -2,9 +2,10 @@
 	<view class="container">
 		<view class="nav" @click="goBack" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<uni-icons class="close" type="closeempty" color="#000" size="22"></uni-icons>
+			<view class="allOrder" v-if="info.order">全部账单</view>
 		</view>
 		<view class="content">
-			<view class="order">
+			<view class="order" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<view class="order_top">
 					<view class="avatar" @click="changeRole">
 						<image :src="info.url||'/static/paySe.png'"></image>
@@ -77,7 +78,7 @@
 
 
 			</view>
-			<view class="serivce">
+			<view class="serivce" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<view class="se_title">
 					账单服务
 				</view>
@@ -127,10 +128,7 @@
 		</view>
 		<uni-popup ref="popup" type="bottom" background-color="#fff" border-radius="10px">
 			<view class="roleList">
-				<!-- <view class=""  v-for="itme in roleList" >
-				<uni-list-chat :avatar-circle="true" :title="itme.nickname" :avatar="itme.avatar"
-												:note="itme.description"></uni-list-chat>
-				</view> -->
+
 				<view class="list_rl">
 					<uni-swipe-action v-if="roleList.length>0">
 						<uni-swipe-action-item v-for="(item,index) in roleList" :right-options="options2" :auto-close="false"
@@ -182,6 +180,8 @@
 					"payment": "零钱通",
 					"currentState": "对方已收钱",
 					"desc": "转账时间",
+					"padd":60,
+					"order":false
 				},
 				infoKey: {
 					"time": "付款时间",
@@ -192,6 +192,8 @@
 					"currentState": '支付状态',
 					"payment": '支付方式',
 					"desc": "备注",
+					"padd":"边距",
+					"order":"全部账单"
 				}
 			}
 		},
@@ -344,7 +346,7 @@
 	.serivce {
 		margin-top: 20rpx;
 		background-color: #fff;
-		padding: 0 40rpx;
+		padding: 0 60rpx;
 		box-sizing: border-box;
 	}
 
@@ -459,7 +461,7 @@
 
 	.left {
 		color: #9b9b9b;
-		width: 80px;
+		width: 170rpx;
 	}
 
 	.item {
@@ -520,13 +522,22 @@
 
 	.nav {
 		background-color: #fff;
+		height: 86rpx;
+		position: relative;
+	}
+	.allOrder{
+		position: absolute;
+		right: 40upx;
+		font-size: 36upx;
+		bottom:  10upx;
 	}
 
 	.container {
 		background-color: #eaeaea;
 		display: flex;
 		flex-direction: column;
-		height: 100vh;
+		 overflow: auto;
+		 height: 100vh;
 	}
 
 	.content {

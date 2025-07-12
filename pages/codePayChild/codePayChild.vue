@@ -2,13 +2,12 @@
 	<view class="container">
 		<view class="nav" @click="goBack" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<uni-icons class="close" type="closeempty" color="#000" size="22"></uni-icons>
-
+			<view class="allOrder" v-if="info.order">全部账单</view>
 		</view>
 
 		<view class="content">
-			<!-- <view class="line_b" /> -->
-
-			<view class="order">
+		
+			<view class="order" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 
 				<view class="order_top">
 					<view class="avatar" @click="changeRole">
@@ -18,7 +17,6 @@
 						扫二维码收款-{{info.name}}
 					</view>
 					<view class="num" @click="exitInfo">
-						<!-- view class="sub" /> -->
 						{{info.money}}
 					</view>
 					<view class="line" />
@@ -57,17 +55,10 @@
 							  
 							  class="input-icon gthIcon" 
 							/>
-							<!-- <image v-if=" info.payment == '零钱通'" class="gthIcon" src="/static/gthIcon.png"></image> -->
+						
 						</view>
 					</view>
-				<!-- 	<view class="item">
-						<view class="left">
-							转账时间
-						</view>
-						<view class="right">
-							{{info.time}}
-						</view>
-					</view> -->
+
 					<view class="item" v-if="info.otherTime">
 						<view class="left">
 							收款时间
@@ -89,53 +80,14 @@
 
 
 			</view>
-		<!-- 	<view class="serivce">
-				<view class="se_title">
-					账单服务
-				</view>
-
-				<view class="serivce_bx">
-					<view class="se_item">
-						<view class="se_icon ">
-							<image class="wticon" src="/static/wticon.png" mode=""></image>
-						</view>
-						对订单有疑惑
-					</view>
-					<view class="se_item">
-						<view class="se_icon ">
-							<image class="skIcon" src="/static/skIcon.png" mode=""></image>
-						</view>
-						发起群收款
-					</view>
-				</view>
-			</view>
-			<view class="serivce">
-				<view class="se_title">
-					账单服务
-				</view>
-				<view class="serivce_bx">
-					<view class="se_item">
-						<view class="se_icon ">
-							<image class="cordIcon" src="/static/cordIcon.png" mode=""></image>
-						</view>
-						收款方名片
-					</view>
-					<view class="se_item">
-
-					</view>
-				</view>
-			</view> -->
-
+		
 			<view class="footer">
 				本服务由财付通提供
 			</view>
 		</view>
 		<uni-popup ref="popup" type="bottom" background-color="#fff" border-radius="10px">
 			<view class="roleList">
-				<!-- <view class=""  v-for="itme in roleList" >
-			<uni-list-chat :avatar-circle="true" :title="itme.nickname" :avatar="itme.avatar"
-											:note="itme.description"></uni-list-chat>
-			</view> -->
+		
 				<view class="list_rl">
 					<uni-swipe-action v-if="roleList.length>0">
 						<uni-swipe-action-item v-for="(item,index) in roleList" :right-options="options2" :auto-close="false"
@@ -187,6 +139,8 @@
 					"payment": "零钱通",
 					"currentState": "对方已收钱",
 					"desc": "转账时间",
+					"padd":60,
+					"order":false
 				
 				},
 				infoKey: {
@@ -198,6 +152,8 @@
 					"currentState": '支付状态',
 					"payment": '支付方式',
 					"desc": "备注",
+					"padd":"边距",
+					"order":"全部账单",
 				}
 			}
 		},
@@ -281,6 +237,7 @@
 				uni.setStorageSync('tfList', list);
 			},
 			onOrderSubmit(data) {
+				console.log(data);
 				this.info = {
 					...data
 				}
@@ -421,7 +378,7 @@
 
 	.left {
 		color: #9b9b9b;
-		width: 80px;
+		width: 170rpx;
 	}
 
 	.item {
@@ -482,7 +439,7 @@
 		display: flex;
 		flex-direction: column;
 		background-color: #fff;
-		padding: 0 50rpx;
+		padding: 0 60rpx;
 	}
 
 	.close {
@@ -500,9 +457,14 @@
 		/* background-color: #5c6e96; */
 		background-color: #fff;
 		/* overflow: hidden; */
-
+		position: relative;
 	}
-
+	.allOrder{
+		position: absolute;
+		right: 40upx;
+		font-size: 36upx;
+		bottom:  10upx;
+	}
 	.container {
 		background-color: #eaeaea;
 		display: flex;

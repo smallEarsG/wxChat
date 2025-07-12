@@ -40,23 +40,14 @@ export function request({
 				'Authorization': uni.getStorageSync('token') || ''
 			},
 			success: (res) => {
-				if (res.statusCode === 200) {
-					resolve(res.data)
-				} else {
-					console.log(res);
-					uni.showToast({
-						title: res.data.message || '接口异常',
-						icon: 'none'
-					})
-					reject(res)
-				}
+				resolve(res.data)
 			},
 			fail: (err) => {
-				uni.showToast({
-					title: '网络异常',
-					icon: 'none'
+				resolve({
+					code: 500,
+					message: '网络异常',
+					error: err
 				})
-				reject(err)
 			}
 		})
 	})
@@ -151,7 +142,10 @@ export function Filerequest(filePath, userId) {
 							title: '解析响应失败',
 							icon: 'none'
 						});
-						reject({ message: '解析响应失败', error: e });
+						reject({
+							message: '解析响应失败',
+							error: e
+						});
 					}
 				} else {
 					console.error("上传失败", res);
@@ -159,7 +153,10 @@ export function Filerequest(filePath, userId) {
 						title: '上传失败',
 						icon: 'none'
 					});
-					reject({ message: '上传失败', status: res.statusCode });
+					reject({
+						message: '上传失败',
+						status: res.statusCode
+					});
 				}
 			},
 			fail: (err) => {
@@ -218,7 +215,7 @@ export function request_m({
 			url: BASE_URL + url,
 			method,
 			sslVerify: false,
-			data:  data,
+			data: data,
 			header: {
 				'Content-Type': 'application/json',
 				'Authorization': uni.getStorageSync('token') || ''
