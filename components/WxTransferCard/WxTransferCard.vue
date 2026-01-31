@@ -1,0 +1,126 @@
+<template>
+  <view class="transfer-card" :class="state?'f3bg':'f9bg'">
+    <view class="content">
+      <view class="left-icon">
+        <image class="icon"  :src="state?'/static/images/tf_2.png':'/static/images/tf_1.png'" />
+      </view>
+      <view class="info">
+        <view class="title"><span style="font-size: 48rpx;margin-right: -8rpx;position: relative;top:-2rpx">￥</span>{{ amount }}</view>
+        <view class="desc">{{getDescText()}}</view>
+      </view>
+    </view>
+	<view class="line" />
+    <view class="bottom-bar">
+      <view class="left">微信转账</view>
+    </view>
+  </view>
+</template>
+
+<script>
+export default {
+  name: 'TransferCard',
+  props: {
+	state:{type:Boolean},
+    name: { type: String, },
+    amount: { type: [Number, String], required: true },
+    isRight: { type: Boolean, default: false }
+  },
+  methods:{
+	onLongPress(){
+		this.$emit('longpress', { amount: this.amount, state: this.state, name: this.name })
+	},
+	getDescText(){
+		// 在右边且没收款时显示"你发起了一笔转账"
+		if(this.isRight && !this.state){
+			return '你发起了一笔转账';
+		}
+		// 其他情况保持原有逻辑
+		return this.state ? '已被接收' : this.name;
+	}
+  }
+}
+</script>
+
+<style scoped>
+	.f3bg{
+		background-color:#fce1c3
+	}
+	.f9bg{
+		  background-color: #f99d3b;
+	}
+.transfer-card {
+  /* background-color: #f99d3b; */
+  color: #fff;
+  border-radius: 16rpx;
+  /* overflow: hidden; */
+  width: 430rpx;
+  position: relative;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1);
+  /* margin-left: 14rpx; */
+  box-sizing: border-box;
+}
+.line{
+		width: 90%;
+		height: 2rpx;
+		margin-bottom: 6rpx;
+		transform: scaleY(0.1);
+		margin: 0 auto;
+		background-color: #fff;
+	}
+.content {
+  display: flex;
+  padding: 20rpx 30rpx 18rpx;
+  align-items: center;
+}
+.left-icon{
+	border-radius: 50%;
+	/* border: #fff 5rpx solid ; */
+	margin-right: 10rpx;
+	/* padding: 10rpx; */
+	box-sizing: border-box;
+	/* height: 100%; */
+	 display: flex;
+	 text-align: center;
+	 align-items: center;
+}
+.left-icon .icon {
+  width: 70rpx;
+  height: 70rpx;
+  /* background-color: red; */
+  
+}
+.left-icon .icon_{
+	width: 64rpx;
+	height: 64rpx;
+}
+.info {
+  flex: 1;
+  
+}
+.title {
+  font-size: 34rpx;
+  font-weight: 500;
+  font-family: 'WeChat Sans Std';
+  display: flex;
+  /* align-items: flex-start; */
+  /* line-height: ; */
+  margin-bottom: -12rpx;
+}
+.amount {
+  font-size: 32rpx;
+  /* font-weight: bold; */
+}
+.desc {
+  font-size: 24rpx;
+  opacity: 0.9;
+  /* line-height: 1.2; */
+  /* margin-top: 2rpx; */
+}
+.bottom-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 10rpx 30rpx 10rpx;
+  font-size: 22rpx;
+  color: rgba(243, 243, 243, 0.9);
+}
+</style>

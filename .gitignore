@@ -1,0 +1,32 @@
+# =====================
+# UniApp / HBuilderX
+# =====================
+.unpackage/
+dist/
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# HBuilderX
+.hbuilderx/
+.project
+.settings/
+
+# =====================
+# Platforms
+# =====================
+/dist/dev/mp-weixin/
+/dist/dev/app-plus/
+/platforms/
+
+# =====================
+# IDE / OS
+# =====================
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
