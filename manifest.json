@@ -146,9 +146,9 @@
             "proxy" : {
                 "/pawlapi" : {
                     // "target" : "http://106.15.137.235:9090/api",
-                    "target" : "http://106.15.137.235:8080/api",
+                    // "target" : "http://106.15.137.235:8080/api",
                     // "target" : "http://localhost:9090/api",
-                    // "target" : "http://localhost:9092/api",
+                    "target" : "http://localhost:9092/api",
                     "changeOrigin" : true,
                     "pathRewrite" : {
                         "^/pawlapi" : ""

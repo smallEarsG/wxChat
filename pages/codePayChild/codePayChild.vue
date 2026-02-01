@@ -94,7 +94,6 @@
 					<uni-swipe-action v-if="roleList.length>0">
 						<uni-swipe-action-item v-for="(item,index) in roleList" :right-options="options2" :auto-close="false"
 							@click="bindClick(index)">
-
 							<view class="content-box" @click="changeRl(item.avatar)">
 								<uni-list-chat :avatar-circle="true" :title="item.nickname" :avatar="item.avatar"
 									:note="item.description" :clickable="true"
@@ -118,6 +117,8 @@
 	import {
 		eadLocalFileToBase64
 	} from "../../utils/tool.js"
+	import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill } from '@/api/index.js'
+	
 	export default {
 		data() {
 			return {
@@ -131,6 +132,7 @@
 				],
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				roleList: [],
+				id:null,
 				info: {
 					"url": "",
 					"name": "转给G",
@@ -167,18 +169,59 @@
 			}
 		},
 		onLoad(options) {
-
-			console.log(decodeURIComponent(options.info));
+		if(options.info){
 			const temp = JSON.parse(decodeURIComponent(options.info))
 			this.info = {
 				...this.info,
 				...temp
 			}
-			console.log(this.info.name);
-			const list =  uni.getStorageSync('roleList')
-			if(list) this.roleList = list
+		}	
+			// 从云端获取头像列表
+			this.loadAvatarList()
 		},
 		methods: {
+			// 从云端加载头像列表
+			async loadAvatarList() {
+				
+				try {
+					const userId = uni.getStorageSync('userId');
+					if (!userId) {
+						uni.showToast({
+							title: '用户未登录',
+							icon: 'none'
+						});
+						this.roleList = [];
+						return;
+					}
+					
+					// 从云端获取头像列表
+					const result = await getAvatarList(userId, 'wechat');
+					// 处理返回的数据格式
+					let avatarList = [];
+					if (result && result.data && Array.isArray(result.data)) {
+						avatarList = result.data;
+					} else if (Array.isArray(result)) {
+						avatarList = result;
+					}
+					
+					console.log(result.data,"===result=====",avatarList);
+					// 转换为 roleList 格式
+					this.roleList = avatarList.map(item => ({
+						
+						avatar: item.avatarUrl || item.avatar,
+						nickname: item.name || '',
+						description: item.description || '@微信',
+						id: item.id
+					}));
+				} catch (error) {
+					console.error('加载头像列表失败:', error);
+					uni.showToast({
+						title: '加载头像列表失败',
+						icon: 'none'
+					});
+					this.roleList = [];
+				}
+			},
 			// 从文件读取 tfList，并迁移 localStorage 中的数据
 			getTfListFromFile() {
 				try {
@@ -303,37 +346,110 @@
 			openAddPopup(){
 				this.$refs.cradPopup.open()
 			},
-			bindClick(index) {
-				this.roleList.splice(index, 1)
-				uni.showToast({
-					title: '删除成功',
-					icon: 'none'
-				})
-				this.saveRoleList()
+			async bindClick(index) {
+				// 获取要删除的头像项
+				const item = this.roleList[index];
+				if (!item) {
+					return;
+				}
+				
+				// 如果有 id，调用删除接口
+				if (item.id) {
+					try {
+						uni.showLoading({ title: '删除中...', mask: true });
+						await deleteAvatar(item.id);
+						uni.hideLoading();
+						
+						// 删除成功后刷新列表
+						await this.loadAvatarList();
+						
+						uni.showToast({
+							title: '删除成功',
+							icon: 'success'
+						});
+					} catch (error) {
+						console.error('删除头像失败:', error);
+						uni.hideLoading();
+						uni.showToast({
+							title: error.message || '删除失败，请重试',
+							icon: 'none'
+						});
+					}
+				} else {
+					// 如果没有 id，可能是旧数据，直接从列表中移除
+					this.roleList.splice(index, 1);
+					uni.showToast({
+						title: '删除成功',
+						icon: 'success'
+					});
+				}
 			},
-			changeRl(url){
+			async changeRl(url){
 				// console.log(url);
+				// 如果头像不是网络地址（是本地路径），需要先上传到云端
+				const isLocalPath = url && !url.startsWith('http://') && !url.startsWith('https://');
+				
+				if (isLocalPath) {
+					try {
+						uni.showLoading({ title: '上传头像中...', mask: true });
+						
+						const userId = uni.getStorageSync('userId');
+						if (!userId) {
+							throw new Error('用户未登录');
+						}
+						
+						// 上传头像到云端
+						const result = await uploadAvatar(url, userId, 'wechat', this.info.name || '');
+						url = result.avatarUrl;
+						
+						uni.hideLoading();
+					} catch (error) {
+						console.error('上传头像失败:', error);
+						uni.hideLoading();
+						uni.showToast({
+							title: error.message || '上传头像失败，请重试',
+							icon: 'none'
+						});
+						return;
+					}
+				}
+				
 				this.info.url = url
 				this.saveTflist()
 			},
-			saveRoleList(){
-				uni.setStorage({
-					key: 'roleList',
-					data: this.roleList
-				})
-			},
-		
 			async onCradSubmitz(data) {
-				console.log(data);
-				const baseImg = await eadLocalFileToBase64(data.avatar)
-
-				this.roleList.push({
-					...data,
-					avatar: baseImg
-				})
-				this.saveRoleList()
-				this.info.url = baseImg
-				this.saveTflist()
+				console.log("=======", data);
+				
+				// 头像一定是云端的，直接使用
+				const avatarUrl = data.avatar;
+				
+				// 将当前使用的头像保存到云端
+				try {
+					const userId = uni.getStorageSync('userId');
+					if (!userId) {
+						throw new Error('用户未登录');
+					}
+					
+					await createAvatar({
+						userId: userId,
+						module: 'wechat',
+						avatarUrl: avatarUrl,
+						name: data.nickname || this.info.name || ''
+					});
+					
+					// 重新加载云端列表以确保数据同步
+					await this.loadAvatarList();
+				} catch (error) {
+					console.error('保存头像到云端失败:', error);
+					uni.showToast({
+						title: error.message || '保存头像失败，请重试',
+						icon: 'none'
+					});
+					return;
+				}
+				
+				this.info.url = avatarUrl;
+				this.saveTflist();
 			},
 			changeRole() {
 				if (this.roleList.length > 0) {
@@ -342,7 +458,45 @@
 					this.$refs.cradPopup.open()
 				}
 			},
-			saveTflist() {
+			async saveTflist() {
+				// 如果 id 为 null，调用创建账单接口
+				if (this.id === null || this.id === undefined) {
+					try {
+						const userId = uni.getStorageSync('userId');
+						if (!userId) {
+							console.warn('用户未登录，跳过创建账单');
+						} else {
+							// 判断账单类型：根据金额正负判断是收入还是支出
+							const money = parseFloat(this.info.money) || 0;
+							const billType = money >= 0 ? 'income' : 'expense';
+							
+							// 将 info 转换为 JSON 字符串作为账单详情
+							const billDetail = JSON.stringify(this.info);
+							
+							// 调用创建账单接口
+							const billData = {
+								platform: 'wechat',
+								billType: billType,
+								billDetail: billDetail,
+								createUserId: userId,
+								remark: this.info.desc || this.info.name || ''
+							};
+							
+							const result = await createBill(billData);
+							
+							// 如果创建成功，保存返回的 id
+							if (result && result.data && result.data.id) {
+								this.id = result.data.id;
+							}
+							
+							console.log('账单创建成功:', result);
+						}
+					} catch (error) {
+						console.error('创建账单失败:', error);
+						// 不阻止流程继续，仅记录错误
+					}
+				}
+				
 				// 从文件获取现有列表
 				let list = this.getTfListFromFile();
 
@@ -355,12 +509,16 @@
 				if (index < 0) {
 					list.push({
 						type: 1,
-						info: this.info
+						info: this.info,
+						id: this.id
 					});
 				}
 				// 如果存在，更新原有元素的info部分
 				else {
 					list[index].info = this.info;
+					if (this.id) {
+						list[index].id = this.id;
+					}
 				}
 
 				// 保存到文件

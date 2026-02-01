@@ -167,6 +167,8 @@
 	import {
 		eadLocalFileToBase64
 	} from "../../utils/tool.js"
+	import { uploadAvatar } from '@/api/index.js'
+	
 	export default {
 		data() {
 			return {
@@ -239,8 +241,36 @@
 				})
 				this.saveRoleList()
 			},
-			changeRl(url) {
+			async changeRl(url) {
 				// console.log(url);
+				// 如果头像不是网络地址（是本地路径），需要先上传到云端
+				const isLocalPath = url && !url.startsWith('http://') && !url.startsWith('https://');
+				
+				if (isLocalPath) {
+					try {
+						uni.showLoading({ title: '上传头像中...', mask: true });
+						
+						const userId = uni.getStorageSync('userId');
+						if (!userId) {
+							throw new Error('用户未登录');
+						}
+						
+						// 上传头像到云端
+						const result = await uploadAvatar(url, userId, 'shop', this.info.name || '');
+						url = result.avatarUrl;
+						
+						uni.hideLoading();
+					} catch (error) {
+						console.error('上传头像失败:', error);
+						uni.hideLoading();
+						uni.showToast({
+							title: error.message || '上传头像失败，请重试',
+							icon: 'none'
+						});
+						return;
+					}
+				}
+				
 				this.info.url = url
 				this.saveTflist()
 			},
@@ -253,14 +283,48 @@
 
 			async onCradSubmitz(data) {
 				console.log(data);
-				const baseImg = await eadLocalFileToBase64(data.avatar)
+				
+				// 如果头像不是网络地址（是本地路径），需要先上传到云端
+				let avatarUrl = data.avatar;
+				const isLocalPath = avatarUrl && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://');
+				
+				if (isLocalPath) {
+					try {
+						uni.showLoading({ title: '上传头像中...', mask: true });
+						
+						const userId = uni.getStorageSync('userId');
+						if (!userId) {
+							throw new Error('用户未登录');
+						}
+						
+						// 上传头像到云端
+						const result = await uploadAvatar(avatarUrl, userId, 'shop', data.nickname || '');
+						avatarUrl = result.avatarUrl;
+						
+						uni.hideLoading();
+					} catch (error) {
+						console.error('上传头像失败:', error);
+						uni.hideLoading();
+						uni.showToast({
+							title: error.message || '上传头像失败，请重试',
+							icon: 'none'
+						});
+						return;
+					}
+				}
+				
+				// 如果已经是网络地址，直接使用；否则转换为 base64（兼容旧逻辑）
+				let finalAvatar = avatarUrl;
+				if (!avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://')) {
+					finalAvatar = await eadLocalFileToBase64(avatarUrl);
+				}
 
 				this.roleList.push({
 					...data,
-					avatar: baseImg
+					avatar: finalAvatar
 				})
 				this.saveRoleList()
-				this.info.url = baseImg
+				this.info.url = finalAvatar
 				this.saveTflist()
 			},
 			changeRole() {

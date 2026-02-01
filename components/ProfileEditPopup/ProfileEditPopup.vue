@@ -32,13 +32,16 @@
 </template>
 
 <script>
+import { uploadAvatar } from '@/api/index.js'
+
 export default {
   name: 'ProfileEditPopup',
   data() {
     return {
       avatar: '',
       nickname: '',
-      description: '@微信'
+      description: '@微信',
+      isUploading: false
     };
   },
   methods: {
@@ -104,12 +107,47 @@ export default {
         }
       });
     },
-    submit() {
+    async submit() {
       if (!this.nickname.trim()) {
         return uni.showToast({ title: '昵称不能为空', icon: 'none' });
       }
+      
+      // 如果头像不是网络地址（是本地路径），需要先上传到云端
+      let avatarUrl = this.avatar;
+      
+      // 判断是否为本地路径（不是 http/https 开头）
+      const isLocalPath = avatarUrl && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://');
+      
+      if (isLocalPath) {
+        try {
+          this.isUploading = true;
+          uni.showLoading({ title: '上传头像中...', mask: true });
+          
+          const userId = uni.getStorageSync('userId');
+          if (!userId) {
+            throw new Error('用户未登录');
+          }
+          
+          // 上传头像到云端
+          const result = await uploadAvatar(avatarUrl, userId, 'user', this.nickname);
+          avatarUrl = result.avatarUrl;
+          
+          uni.hideLoading();
+          this.isUploading = false;
+        } catch (error) {
+          console.error('上传头像失败:', error);
+          uni.hideLoading();
+          this.isUploading = false;
+          uni.showToast({
+            title: error.message || '上传头像失败，请重试',
+            icon: 'none'
+          });
+          return;
+        }
+      }
+      
       this.$emit('submit', {
-        avatar: this.avatar,
+        avatar: avatarUrl,
         nickname: this.nickname,
         description: this.description
       });

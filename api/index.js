@@ -13,6 +13,12 @@ export const logout = (userId) => request({ url: '/user/logout/'+userId, method:
 export const activateMember = (userId,time) => request({ url: '/user/activate-member/'+userId+"/"+time, method: 'POST' })
 export const selectInfoFormPhone = (phone) => request({ url: '/user/phone/'+phone, method: 'GET' })
 
+// 导出头像相关接口
+export * from './avatars.js'
+
+// 导出账单相关接口
+export * from './bills.js'
+
 
 
 
