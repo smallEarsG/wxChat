@@ -92,9 +92,9 @@ export default {
 		background-size: 180px 120px;
 		background-position: 0 0;
 	}
-	.order_info {
+	/* .order_info {
 		
 		font-family: 'heiti';
-	}
+	} */
 
 </style>

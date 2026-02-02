@@ -33,6 +33,8 @@
 </template>
 
 <script>
+	import { queryBillList, deleteBill } from '@/api/index.js'
+	
 	export default {
 		data() {
 			return {
@@ -71,144 +73,71 @@
 				]
 			}
 		},
-		onLoad(){
-		  this.list= this.getTfListFromFile()
-		  console.log(this.list);
+		async onLoad(){
+		  // 从云端获取账单列表
+		  await this.loadBillList();
 		},
 		methods: {
-			// 从文件读取 tfList，并迁移 localStorage 中的数据
-			getTfListFromFile() {
+			// 从云端加载账单列表
+			async loadBillList() {
 				try {
-					const fs = uni.getFileSystemManager();
-					const filePath = plus.io.convertLocalFileSystemURL('_doc/data.json');
-					
-					let fileList = [];
-					let hasFile = false;
-					
-					// 尝试从文件读取
-					try {
-						const fileContent = fs.readFileSync(filePath, 'utf8');
-						if (fileContent && fileContent.trim()) {
-							fileList = JSON.parse(fileContent);
-							hasFile = true;
-						}
-					} catch (readError) {
-						// 文件不存在或读取失败
-						console.log('文件不存在或读取失败，准备迁移数据');
-					}
-					
-					// 尝试从 localStorage 读取旧数据
-					let storageList = [];
-					try {
-						const storageData = uni.getStorageSync('tfList');
-						if (storageData) {
-							if (typeof storageData === 'string') {
-								storageList = JSON.parse(storageData);
-							} else if (Array.isArray(storageData)) {
-								storageList = storageData;
-							}
-						}
-					} catch (e) {
-						console.log('读取 localStorage 失败:', e);
-					}
-					
-					// 如果文件不存在或为空，但 localStorage 有数据，则迁移
-					if (!hasFile && storageList.length > 0) {
-						console.log('检测到 localStorage 中有旧数据，开始迁移到文件...');
-						this.saveTfListToFile(storageList);
-						// 迁移完成后删除 localStorage 中的旧数据
-						try {
-							uni.removeStorageSync('tfList');
-							console.log('已删除 localStorage 中的旧数据');
-						} catch (e) {
-							console.log('删除 localStorage 失败:', e);
-						}
-						console.log('数据迁移完成，已保存到文件');
-						return storageList;
-					}
-					
-					// 如果文件存在但 localStorage 也有数据，合并数据（去重）
-					if (hasFile && storageList.length > 0) {
-						console.log('检测到文件和 localStorage 都有数据，合并数据...');
-						// 合并数据，以订单号为唯一标识去重
-						const mergedList = [...fileList];
-						storageList.forEach(storageItem => {
-							if (storageItem && storageItem.info) {
-								const orderNumber = storageItem.info.orderNumber || storageItem.info.shopNumber;
-								if (orderNumber) {
-									const exists = mergedList.some(fileItem => {
-										if (fileItem && fileItem.info) {
-											return (fileItem.info.orderNumber === orderNumber || 
-											        fileItem.info.shopNumber === orderNumber);
-										}
-										return false;
-									});
-									if (!exists) {
-										mergedList.push(storageItem);
-									}
-								}
-							}
+					const userId = uni.getStorageSync('userId');
+					if (!userId) {
+						uni.showToast({
+							title: '用户未登录',
+							icon: 'none'
 						});
-						// 保存合并后的数据到文件
-						this.saveTfListToFile(mergedList);
-						// 合并完成后删除 localStorage 中的旧数据
+						this.list = [];
+						return;
+					}
+					
+					// 从云端获取账单列表
+					const result = await queryBillList(userId, 'wechat');
+					
+					// 处理返回的数据格式
+					let billList = [];
+					if (result && result.data && Array.isArray(result.data)) {
+						billList = result.data;
+					} else if (Array.isArray(result)) {
+						billList = result;
+					}
+					
+					// 转换为页面需要的格式
+					this.list = billList.map(bill => {
+						// 解析 billDetail JSON 字符串
+						let info = {};
 						try {
-							uni.removeStorageSync('tfList');
-							console.log('已删除 localStorage 中的旧数据');
-						} catch (e) {
-							console.log('删除 localStorage 失败:', e);
-						}
-						console.log('数据合并完成');
-						return mergedList;
-					}
-					
-					// 如果文件存在，返回文件数据
-					if (hasFile) {
-						return fileList;
-					}
-					
-					return [];
-				} catch (error) {
-					console.error('读取文件失败:', error);
-					// 降级到旧存储方式
-					try {
-						return uni.getStorageSync('tfList') || [];
-					} catch (e) {
-						return [];
-					}
-				}
-			},
-			// 保存 tfList 到文件
-			saveTfListToFile(list) {
-				try {
-					const fs = uni.getFileSystemManager();
-					const filePath = plus.io.convertLocalFileSystemURL('_doc/data.json');
-					
-					fs.writeFile({
-						filePath: filePath,
-						data: JSON.stringify(list),
-						encoding: 'utf8',
-						success: () => {
-							console.log('记录已保存到文件');
-						},
-						fail: (err) => {
-							console.error('保存文件失败:', err);
-							// 降级到旧存储方式
-							try {
-								uni.setStorageSync('tfList', list);
-							} catch (e) {
-								console.error('降级存储也失败:', e);
+							if (bill.billDetail) {
+								info = JSON.parse(bill.billDetail);
 							}
+						} catch (e) {
+							console.error('解析账单详情失败:', e);
+							info = {};
 						}
+						
+						// billType 从接口返回可能是字符串，如 "6"
+						const billType = bill && bill.billType !== undefined ? bill.billType : undefined;
+						const typeNum = typeof billType === 'number' ? billType : parseInt(String(billType || ''), 10);
+						const type = Number.isFinite(typeNum) ? typeNum : 1;
+						
+						return {
+							type: type,
+							info: {
+								...info,
+								id: bill.id, // 保存账单ID，用于后续操作/跳转
+								billType: billType // 保存账单类型，用于 goPage 按类型跳转
+							}
+						};
 					});
+					
+					console.log('账单列表加载成功:', this.list);
 				} catch (error) {
-					console.error('保存文件异常:', error);
-					// 降级到旧存储方式
-					try {
-						uni.setStorageSync('tfList', list);
-					} catch (e) {
-						console.error('降级存储也失败:', e);
-					}
+					console.error('加载账单列表失败:', error);
+					uni.showToast({
+						title: '加载账单列表失败',
+						icon: 'none'
+					});
+					this.list = [];
 				}
 			},
 			// 返回上一页
@@ -216,10 +145,54 @@
 				uni.navigateBack();
 			},
 			
-			bindClick(index){
-				this.list.splice(index,1)
-				this.saveTfListToFile(this.list);
-			},
+		async bindClick(index){
+			const item = this.list[index];
+			if (!item || !item.info || !item.info.id) {
+				uni.showToast({
+					title: '账单ID不存在',
+					icon: 'none'
+				});
+				return;
+			}
+			
+			const billId = item.info.id;
+			
+			try {
+				// 调用删除接口
+				const result = await deleteBill(billId);
+				
+				// 检查响应结果
+				if (result && result.code === 200) {
+					// 删除成功，从列表中移除
+					this.list.splice(index, 1);
+					uni.showToast({
+						title: '删除成功',
+						icon: 'success'
+					});
+				} else {
+					// 处理其他错误情况
+					const message = result?.message || '删除失败';
+					uni.showToast({
+						title: message,
+						icon: 'none'
+					});
+				}
+			} catch (error) {
+				console.error('删除账单失败:', error);
+				// 处理 404 或其他错误
+				if (error.response && error.response.status === 404) {
+					uni.showToast({
+						title: '账单不存在',
+						icon: 'none'
+					});
+				} else {
+					uni.showToast({
+						title: '删除失败，请重试',
+						icon: 'none'
+					});
+				}
+			}
+		},
 			isTransfer(index) {
 			    switch(index) {
 			        case 0: return '转账';
@@ -235,29 +208,34 @@
 			    }
 			},
 			goPage(item) {
-			    const { type, info } = item;
-			    
-			    // 路由映射配置，参考 codePay.vue 的完整实现
-			    const routeMap = {
-			        0: '/pages/transfer/transfer',
-			        1: '/pages/codePayChild/codePayChild',
-			        2: '/pages/ThirdpartyPayment/ThirdpartyPayment', // 原默认情况
-			        3: '/pages/miniThirdpartyPayment/miniThirdpartyPayment',
-			        4: '/pages/barcodeThirdpartyPayment/barcodeThirdpartyPayment',
-			        5: '/pages/barcodeThirdpartyPayment32/barcodeThirdpartyPayment32',
-					6: '/pages/codePayChild2/codePayChild2',
-					7: '/pages/barcodeThirdpartyPayment34/barcodeThirdpartyPayment34',
-					8: '/pages/miniThirdpartyPaymentCode/miniThirdpartyPaymentCode',
-			    };
-			
-			    // 获取目标路由，默认使用第三方支付页面（与 codePay.vue 保持一致）
-			    const targetRoute = routeMap[type] || routeMap[2];
-			    
-			    // 构建完整URL
-			    const url = `${targetRoute}?info=${encodeURIComponent(JSON.stringify(info))}`;
-			    
-			    // 导航到目标页面
-			    uni.navigateTo({ url });
+				const info = item && item.info ? item.info : null;
+				if (!info || !info.id) {
+					uni.showToast({ title: '账单ID不存在', icon: 'none' });
+					return;
+				}
+
+				// billType 从接口返回可能是字符串，如 "6"
+				const billType = info.billType;
+				const typeNum = typeof billType === 'number' ? billType : parseInt(String(billType || ''), 10);
+
+				// billType -> 页面路由映射（与你当前的 billType 数字约定一致）
+				const routeMap = {
+					1: '/pages/transfer/transfer',
+					2: '/pages/codePayChild/codePayChild',
+					3: '/pages/codePayChild2/codePayChild2',
+					4: '/pages/ThirdpartyPayment/ThirdpartyPayment',
+					5: '/pages/miniThirdpartyPayment/miniThirdpartyPayment',
+					6: '/pages/barcodeThirdpartyPayment/barcodeThirdpartyPayment',
+					7: '/pages/barcodeThirdpartyPayment32/barcodeThirdpartyPayment32',
+					8: '/pages/barcodeThirdpartyPayment34/barcodeThirdpartyPayment34',
+					9: '/pages/miniThirdpartyPaymentCode/miniThirdpartyPaymentCode',
+					10: '/pages/ThirdpartyMerchant/ThirdpartyMerchant'
+				};
+
+				const targetRoute = routeMap[typeNum] || routeMap[4];
+				// 只传 billId，让目标页用 GET /erp-bill/{id} 拉取并回填（避免 URL 过长/包含 base64）
+				const url = `${targetRoute}?billId=${encodeURIComponent(String(info.id))}`;
+				uni.navigateTo({ url });
 			}
 		}
 	}

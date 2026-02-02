@@ -117,7 +117,7 @@
 	import {
 		eadLocalFileToBase64
 	} from "../../utils/tool.js"
-	import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill } from '@/api/index.js'
+	import { uploadAvatar, getAvatarList, createAvatar } from '@/api/index.js'
 	
 	export default {
 		data() {
@@ -132,7 +132,6 @@
 				],
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				roleList: [],
-				id:null,
 				info: {
 					"url": "",
 					"name": "转给G",
@@ -204,10 +203,8 @@
 						avatarList = result;
 					}
 					
-					console.log(result.data,"===result=====",avatarList);
 					// 转换为 roleList 格式
 					this.roleList = avatarList.map(item => ({
-						
 						avatar: item.avatarUrl || item.avatar,
 						nickname: item.name || '',
 						description: item.description || '@微信',
@@ -346,43 +343,14 @@
 			openAddPopup(){
 				this.$refs.cradPopup.open()
 			},
-			async bindClick(index) {
-				// 获取要删除的头像项
-				const item = this.roleList[index];
-				if (!item) {
-					return;
-				}
-				
-				// 如果有 id，调用删除接口
-				if (item.id) {
-					try {
-						uni.showLoading({ title: '删除中...', mask: true });
-						await deleteAvatar(item.id);
-						uni.hideLoading();
-						
-						// 删除成功后刷新列表
-						await this.loadAvatarList();
-						
-						uni.showToast({
-							title: '删除成功',
-							icon: 'success'
-						});
-					} catch (error) {
-						console.error('删除头像失败:', error);
-						uni.hideLoading();
-						uni.showToast({
-							title: error.message || '删除失败，请重试',
-							icon: 'none'
-						});
-					}
-				} else {
-					// 如果没有 id，可能是旧数据，直接从列表中移除
-					this.roleList.splice(index, 1);
-					uni.showToast({
-						title: '删除成功',
-						icon: 'success'
-					});
-				}
+			bindClick(index) {
+				// 从列表中移除（仅从内存中移除，云端数据需要调用删除API）
+				this.roleList.splice(index, 1)
+				uni.showToast({
+					title: '删除成功',
+					icon: 'none'
+				})
+				// 注意：如果需要同步到云端，需要调用删除头像的API
 			},
 			async changeRl(url){
 				// console.log(url);
@@ -458,45 +426,7 @@
 					this.$refs.cradPopup.open()
 				}
 			},
-			async saveTflist() {
-				// 如果 id 为 null，调用创建账单接口
-				if (this.id === null || this.id === undefined) {
-					try {
-						const userId = uni.getStorageSync('userId');
-						if (!userId) {
-							console.warn('用户未登录，跳过创建账单');
-						} else {
-							// 判断账单类型：根据金额正负判断是收入还是支出
-							const money = parseFloat(this.info.money) || 0;
-							const billType = money >= 0 ? 'income' : 'expense';
-							
-							// 将 info 转换为 JSON 字符串作为账单详情
-							const billDetail = JSON.stringify(this.info);
-							
-							// 调用创建账单接口
-							const billData = {
-								platform: 'wechat',
-								billType: billType,
-								billDetail: billDetail,
-								createUserId: userId,
-								remark: this.info.desc || this.info.name || ''
-							};
-							
-							const result = await createBill(billData);
-							
-							// 如果创建成功，保存返回的 id
-							if (result && result.data && result.data.id) {
-								this.id = result.data.id;
-							}
-							
-							console.log('账单创建成功:', result);
-						}
-					} catch (error) {
-						console.error('创建账单失败:', error);
-						// 不阻止流程继续，仅记录错误
-					}
-				}
-				
+			saveTflist() {
 				// 从文件获取现有列表
 				let list = this.getTfListFromFile();
 
@@ -509,16 +439,12 @@
 				if (index < 0) {
 					list.push({
 						type: 1,
-						info: this.info,
-						id: this.id
+						info: this.info
 					});
 				}
 				// 如果存在，更新原有元素的info部分
 				else {
 					list[index].info = this.info;
-					if (this.id) {
-						list[index].id = this.id;
-					}
 				}
 
 				// 保存到文件

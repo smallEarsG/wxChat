@@ -44,7 +44,7 @@
 							{{info.desc}}
 						</view>
 					</view>
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
+					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }" v-if="info.message!=''&&info.message!=null">
 						<view class="left">
 							付款方留言
 						</view>
@@ -167,7 +167,7 @@
 	import {
 		eadLocalFileToBase64
 	} from "../../utils/tool.js"
-	import { uploadAvatar } from '@/api/index.js'
+	import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
 	
 	export default {
 		data() {
@@ -183,6 +183,7 @@
 				],
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				roleList: [],
+				id: null,
 				info: {
 					"url": "",
 					"name": "转给G",
@@ -213,17 +214,27 @@
 				}
 			}
 		},
-		onLoad(options) {
-
-			console.log(decodeURIComponent(options.info));
-			const temp = JSON.parse(decodeURIComponent(options.info))
-			this.info = {
-				...this.info,
-				...temp
+		async onLoad(options) {
+			const rawId = options && (options.billId || options.id);
+			if (rawId !== undefined && rawId !== null && rawId !== '') {
+				this.id = rawId
+				try {
+					const res = await getBillById(this.id);
+					const bill = res && res.data ? res.data : res;
+					if (bill && bill.billDetail) {
+						const detail = typeof bill.billDetail === 'string' ? JSON.parse(bill.billDetail) : bill.billDetail;
+						this.info = { ...this.info, ...(detail || {}) };
+					}
+				} catch (e) {
+					uni.showToast({ title: '账单不存在', icon: 'none' });
+					setTimeout(() => uni.navigateBack(), 300);
+					return;
+				}
+			} else if (options && options.info) {
+				const temp = JSON.parse(decodeURIComponent(options.info));
+				this.info = { ...this.info, ...temp };
 			}
-			console.log(this.info.name);
-			const list = uni.getStorageSync('roleList')
-			if (list) this.roleList = list
+			this.loadAvatarList();
 		},
 		methods: {
 			showGroup() {
@@ -233,13 +244,24 @@
 			openAddPopup() {
 				this.$refs.cradPopup.open()
 			},
-			bindClick(index) {
-				this.roleList.splice(index, 1)
-				uni.showToast({
-					title: '删除成功',
-					icon: 'none'
-				})
-				this.saveRoleList()
+			async bindClick(index) {
+				const item = this.roleList[index];
+				if (!item) return;
+				if (item.id) {
+					try {
+						uni.showLoading({ title: '删除中...', mask: true });
+						await deleteAvatar(item.id);
+						uni.hideLoading();
+						await this.loadAvatarList();
+						uni.showToast({ title: '删除成功', icon: 'success' });
+					} catch (e) {
+						uni.hideLoading();
+						uni.showToast({ title: e.message || '删除失败，请重试', icon: 'none' });
+					}
+				} else {
+					this.roleList.splice(index, 1);
+					uni.showToast({ title: '删除成功', icon: 'success' });
+				}
 			},
 			async changeRl(url) {
 				// console.log(url);
@@ -256,7 +278,7 @@
 						}
 						
 						// 上传头像到云端
-						const result = await uploadAvatar(url, userId, 'shop', this.info.name || '');
+						const result = await uploadAvatar(url, userId, 'wechat', this.info.name || '');
 						url = result.avatarUrl;
 						
 						uni.hideLoading();
@@ -272,60 +294,89 @@
 				}
 				
 				this.info.url = url
-				this.saveTflist()
+				this.saveBill()
 			},
-			saveRoleList() {
-				uni.setStorage({
-					key: 'roleList',
-					data: this.roleList
-				})
+			// 云端头像列表（cloudOnly）
+			async loadAvatarList() {
+				try {
+					const userId = uni.getStorageSync('userId');
+					if (!userId) {
+						uni.showToast({ title: '用户未登录', icon: 'none' });
+						this.roleList = [];
+						return;
+					}
+					const result = await getAvatarList(userId, 'wechat');
+					const avatarList = (result && result.data && Array.isArray(result.data)) ? result.data : (Array.isArray(result) ? result : []);
+					this.roleList = avatarList.map(item => ({
+						avatar: item.avatarUrl || item.avatar,
+						nickname: item.name || '',
+						description: item.description || '@微信',
+						id: item.id
+					}));
+				} catch (e) {
+					console.error('加载头像列表失败:', e);
+					uni.showToast({ title: '加载头像列表失败', icon: 'none' });
+					this.roleList = [];
+				}
+			},
+
+			// 云端保存账单（create/update）
+			async saveBill() {
+				try {
+					const userId = uni.getStorageSync('userId');
+					if (!userId) {
+						console.warn('用户未登录，跳过保存账单');
+						return;
+					}
+					const billDetail = JSON.stringify(this.info || {});
+					if (this.id === null || this.id === undefined) {
+						const billData = {
+							platform: 'wechat',
+							billType: 3, // 扫码付款
+							billDetail,
+							createUserId: userId,
+							remark: this.info.desc || this.info.name || ''
+						};
+						const result = await createBill(billData);
+						if (result && result.data && result.data.id) this.id = result.data.id;
+					} else {
+						await updateBill(this.id, { billDetail });
+					}
+				} catch (e) {
+					console.error('保存账单失败:', e);
+				}
 			},
 
 			async onCradSubmitz(data) {
-				console.log(data);
-				
-				// 如果头像不是网络地址（是本地路径），需要先上传到云端
 				let avatarUrl = data.avatar;
 				const isLocalPath = avatarUrl && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://');
-				
 				if (isLocalPath) {
 					try {
 						uni.showLoading({ title: '上传头像中...', mask: true });
-						
 						const userId = uni.getStorageSync('userId');
-						if (!userId) {
-							throw new Error('用户未登录');
-						}
-						
-						// 上传头像到云端
-						const result = await uploadAvatar(avatarUrl, userId, 'shop', data.nickname || '');
+						if (!userId) throw new Error('用户未登录');
+						const result = await uploadAvatar(avatarUrl, userId, 'wechat', data.nickname || '');
 						avatarUrl = result.avatarUrl;
-						
 						uni.hideLoading();
-					} catch (error) {
-						console.error('上传头像失败:', error);
+					} catch (e) {
 						uni.hideLoading();
-						uni.showToast({
-							title: error.message || '上传头像失败，请重试',
-							icon: 'none'
-						});
+						uni.showToast({ title: e.message || '上传头像失败，请重试', icon: 'none' });
 						return;
 					}
 				}
-				
-				// 如果已经是网络地址，直接使用；否则转换为 base64（兼容旧逻辑）
-				let finalAvatar = avatarUrl;
-				if (!avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://')) {
-					finalAvatar = await eadLocalFileToBase64(avatarUrl);
+
+				try {
+					const userId = uni.getStorageSync('userId');
+					if (!userId) throw new Error('用户未登录');
+					await createAvatar({ userId, module: 'wechat', avatarUrl, name: data.nickname || this.info.name || '' });
+					await this.loadAvatarList();
+				} catch (e) {
+					uni.showToast({ title: e.message || '保存头像失败，请重试', icon: 'none' });
+					return;
 				}
 
-				this.roleList.push({
-					...data,
-					avatar: finalAvatar
-				})
-				this.saveRoleList()
-				this.info.url = finalAvatar
-				this.saveTflist()
+				this.info.url = avatarUrl;
+				this.saveBill();
 			},
 			changeRole() {
 				if (this.roleList.length > 0) {
@@ -334,103 +385,11 @@
 					this.$refs.cradPopup.open()
 				}
 			},
-			// 从文件读取 tfList
-			getTfListFromFile() {
-				try {
-					const fs = uni.getFileSystemManager();
-					const filePath = plus.io.convertLocalFileSystemURL('_doc/data.json');
-					
-					try {
-						const fileContent = fs.readFileSync(filePath, 'utf8');
-						if (fileContent) {
-							return JSON.parse(fileContent);
-						}
-					} catch (readError) {
-						// 文件不存在或读取失败，尝试从旧存储迁移
-						try {
-							const oldList = uni.getStorageSync('tfList') || [];
-							if (oldList.length > 0) {
-								// 迁移旧数据到文件
-								this.saveTfListToFile(oldList);
-								return oldList;
-							}
-						} catch (e) {
-							console.log('迁移数据失败:', e);
-						}
-					}
-					return [];
-				} catch (error) {
-					console.error('读取文件失败:', error);
-					// 降级到旧存储方式
-					try {
-						return uni.getStorageSync('tfList') || [];
-					} catch (e) {
-						return [];
-					}
-				}
-			},
-			// 保存 tfList 到文件
-			saveTfListToFile(list) {
-				try {
-					const fs = uni.getFileSystemManager();
-					const filePath = plus.io.convertLocalFileSystemURL('_doc/data.json');
-					
-					fs.writeFile({
-						filePath: filePath,
-						data: JSON.stringify(list),
-						encoding: 'utf8',
-						success: () => {
-							console.log('记录已保存到文件');
-						},
-						fail: (err) => {
-							console.error('保存文件失败:', err);
-							// 降级到旧存储方式
-							try {
-								uni.setStorageSync('tfList', list);
-							} catch (e) {
-								console.error('降级存储也失败:', e);
-							}
-						}
-					});
-				} catch (error) {
-					console.error('保存文件异常:', error);
-					// 降级到旧存储方式
-					try {
-						uni.setStorageSync('tfList', list);
-					} catch (e) {
-						console.error('降级存储也失败:', e);
-					}
-				}
-			},
-			saveTflist() {
-				// 从文件获取现有列表
-				let list = this.getTfListFromFile();
-
-				// 查找订单号匹配的元素
-				const index = list.findIndex(item => {
-					return item.info.orderNumber === this.info.orderNumber;
-				});
-
-				// 如果不存在，添加新元素
-				if (index < 0) {
-					list.push({
-						type: 6,
-						info: this.info
-					});
-				}
-				// 如果存在，更新原有元素的info部分
-				else {
-					list[index].info = this.info;
-				}
-
-				// 保存到文件
-				this.saveTfListToFile(list);
-			},
 			onOrderSubmit(data) {
 				this.info = {
 					...data
 				}
-				this.saveTflist()
+				this.saveBill()
 			},
 			exitInfo() {
 				this.$refs.orderPopup.open()

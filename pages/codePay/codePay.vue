@@ -229,6 +229,7 @@
 	import {
 		login
 	} from '../../api';
+	import { createBill } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -418,7 +419,7 @@
 
 				return info;
 			},
-			goCodePayChild(i) {
+			async goCodePayChild(i) {
 				// 复用之前的路由映射配置
 				const routeMap = {
 					0: '/pages/transfer/transfer',
@@ -446,8 +447,38 @@
 					if (!this.extractedInfo) {
 						this.extractedInfo = this.extractInfoWithRegex(this.resultList);
 					}
-					// 传递识别到的数据
-					url = `${targetRoute}?info=${encodeURIComponent(JSON.stringify(this.extractedInfo))}`;
+					// 扫描后先创建账单，拿到 billId（避免 URL 过长/包含 base64）
+					try {
+						const userId = uni.getStorageSync('userId');
+						if (!userId) throw new Error('用户未登录');
+
+						const billTypeMap = {
+							0: 1,  // transfer
+							1: 2,  // codePayChild
+							2: 4,  // ThirdpartyPayment
+							3: 5,  // miniThirdpartyPayment
+							4: 6,  // barcode16
+							5: 7,  // barcode32
+							6: 3,  // codePayChild2
+							7: 8,  // barcode34
+							8: 9,  // miniThirdpartyPaymentCode
+							9: 10, // ThirdpartyMerchant
+						};
+						const billType = billTypeMap[i] || 4;
+						const billData = {
+							platform: 'wechat',
+							billType,
+							billDetail: JSON.stringify(this.extractedInfo || {}),
+							createUserId: userId,
+							remark: this.extractedInfo?.desc || this.extractedInfo?.name || ''
+						};
+						const result = await createBill(billData);
+						const billId = result?.data?.id || result?.id;
+						url = billId ? `${targetRoute}?billId=${encodeURIComponent(String(billId))}` : `${targetRoute}?info=${encodeURIComponent(JSON.stringify(this.extractedInfo))}`;
+					} catch (e) {
+						// 创建失败则降级为原有传 info
+						url = `${targetRoute}?info=${encodeURIComponent(JSON.stringify(this.extractedInfo))}`;
+					}
 				} else {
 					// 如果没有扫描，不传递数据，让目标页面使用默认数据
 					url = targetRoute;
