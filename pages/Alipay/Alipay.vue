@@ -121,7 +121,8 @@
 
 <script>
 	import {
-		login
+		login,
+		createBill
 	} from '../../api';
 
 	export default {
@@ -161,224 +162,6 @@
 				uni.navigateTo({
 					url: '/pages/AlipayRecord/AlipayRecord'
 				});
-			},
-
-			// 从文件读取 tfList，并迁移 localStorage 中的数据
-			getTfListFromFile() {
-				try {
-					const fs = uni.getFileSystemManager();
-					const filePath = plus.io.convertLocalFileSystemURL('_doc/data.json');
-					
-					let fileList = [];
-					let hasFile = false;
-					
-					// 尝试从文件读取
-					try {
-						const fileContent = fs.readFileSync(filePath, 'utf8');
-						if (fileContent && fileContent.trim()) {
-							fileList = JSON.parse(fileContent);
-							hasFile = true;
-						}
-					} catch (readError) {
-						// 文件不存在或读取失败
-						console.log('文件不存在或读取失败，准备迁移数据');
-					}
-					
-					// 尝试从 localStorage 读取旧数据
-					let storageList = [];
-					try {
-						const storageData = uni.getStorageSync('tfList');
-						if (storageData) {
-							if (typeof storageData === 'string') {
-								storageList = JSON.parse(storageData);
-							} else if (Array.isArray(storageData)) {
-								storageList = storageData;
-							}
-						}
-					} catch (e) {
-						console.log('读取 localStorage 失败:', e);
-					}
-					
-					// 如果文件不存在或为空，但 localStorage 有数据，则迁移
-					if (!hasFile && storageList.length > 0) {
-						console.log('检测到 localStorage 中有旧数据，开始迁移到文件...');
-						this.saveTfListToFile(storageList);
-						// 迁移完成后删除 localStorage 中的旧数据
-						try {
-							uni.removeStorageSync('tfList');
-							console.log('已删除 localStorage 中的旧数据');
-						} catch (e) {
-							console.log('删除 localStorage 失败:', e);
-						}
-						console.log('数据迁移完成，已保存到文件');
-						return storageList;
-					}
-					
-					// 如果文件存在但 localStorage 也有数据，合并数据（去重）
-					if (hasFile && storageList.length > 0) {
-						console.log('检测到文件和 localStorage 都有数据，合并数据...');
-						// 合并数据，以订单号为唯一标识去重
-						const mergedList = [...fileList];
-						storageList.forEach(storageItem => {
-							if (storageItem && storageItem.info) {
-								const orderNumber = storageItem.info.orderNumber || storageItem.info.shopNumber;
-								if (orderNumber) {
-									const exists = mergedList.some(fileItem => {
-										if (fileItem && fileItem.info) {
-											return (fileItem.info.orderNumber === orderNumber || 
-											        fileItem.info.shopNumber === orderNumber);
-										}
-										return false;
-									});
-									if (!exists) {
-										mergedList.push(storageItem);
-									}
-								}
-							}
-						});
-						// 保存合并后的数据到文件
-						this.saveTfListToFile(mergedList);
-						// 合并完成后删除 localStorage 中的旧数据
-						try {
-							uni.removeStorageSync('tfList');
-							console.log('已删除 localStorage 中的旧数据');
-						} catch (e) {
-							console.log('删除 localStorage 失败:', e);
-						}
-						console.log('数据合并完成');
-						return mergedList;
-					}
-					
-					// 如果文件存在，返回文件数据
-					if (hasFile) {
-						return fileList;
-					}
-					
-					return [];
-				} catch (error) {
-					console.error('读取文件失败:', error);
-					// 降级到旧存储方式
-					try {
-						return uni.getStorageSync('tfList') || [];
-					} catch (e) {
-						return [];
-					}
-				}
-			},
-			// 保存 tfList 到文件
-			saveTfListToFile(list) {
-				try {
-					const fs = uni.getFileSystemManager();
-					const filePath = plus.io.convertLocalFileSystemURL('_doc/data.json');
-					
-					fs.writeFile({
-						filePath: filePath,
-						data: JSON.stringify(list),
-						encoding: 'utf8',
-						success: () => {
-							console.log('记录已保存到文件');
-						},
-						fail: (err) => {
-							console.error('保存文件失败:', err);
-							// 降级到旧存储方式
-							try {
-								uni.setStorageSync('tfList', list);
-							} catch (e) {
-								console.error('降级存储也失败:', e);
-							}
-						}
-					});
-				} catch (error) {
-					console.error('保存文件异常:', error);
-					// 降级到旧存储方式
-					try {
-						uni.setStorageSync('tfList', list);
-					} catch (e) {
-						console.error('降级存储也失败:', e);
-					}
-				}
-			},
-			// 保存识别记录到持久化存储
-			async saveRecord() {
-				if (!this.extractedInfo) {
-					return;
-				}
-
-				try {
-					// 从文件获取现有的记录列表
-					let list = this.getTfListFromFile();
-					
-					// 如果存储的是字符串，需要解析
-					if (typeof list === 'string') {
-						try {
-							list = JSON.parse(list);
-						} catch (e) {
-							list = [];
-						}
-					}
-
-					// 确保 list 是数组
-					if (!Array.isArray(list)) {
-						list = [];
-					}
-
-					// 将图片转换为 base64（如果还没有转换）
-					let imageBase64 = '';
-					if (this.imagePath) {
-						try {
-							const base64Data = await this.readImageAsBase64(this.imagePath);
-							imageBase64 = `data:image/jpeg;base64,${base64Data}`;
-						} catch (error) {
-							console.error('图片转换失败:', error);
-							// 如果转换失败，使用空字符串
-							imageBase64 = '';
-						}
-					}
-
-					// 准备要保存的信息
-					const infoToSave = {
-						...this.extractedInfo,
-						url: imageBase64 || this.extractedInfo.avatar || '',
-						time: this.extractedInfo.createTime || new Date().toLocaleString('zh-CN')
-					};
-
-					// 检查是否已存在相同订单号的记录
-					const orderNumber = infoToSave.orderNumber || infoToSave.shopNumber;
-					let existingIndex = -1;
-					
-					if (orderNumber) {
-						existingIndex = list.findIndex(item => {
-							return item.info && (
-								item.info.orderNumber === orderNumber || 
-								item.info.shopNumber === orderNumber
-							);
-						});
-					}
-
-					// 如果存在，更新原有记录；否则添加新记录
-					if (existingIndex >= 0) {
-						list[existingIndex].info = infoToSave;
-					} else {
-						// 添加新记录，type 2 表示第三方支付（支付宝）
-						list.push({
-							type: 2,
-							info: infoToSave
-						});
-					}
-
-					// 保存到文件
-					this.saveTfListToFile(list);
-					
-					console.log('记录已保存:', infoToSave);
-					console.log('保存后的完整列表:', list);
-					console.log('保存的列表长度:', list.length);
-				} catch (error) {
-					console.error('保存记录失败:', error);
-					uni.showToast({
-						title: '保存记录失败',
-						icon: 'none'
-					});
-				}
 			},
 
 			extractInfoWithRegex(data) {
@@ -442,15 +225,17 @@
 
 				return info;
 			},
-			goCodePayChild(i) {
+			// OCR 结果 -> 创建云端账单 -> 带 billId 跳转模板页
+			async goCodePayChild(i) {
 				// 确保信息已提取
-				
 				if (!this.extractedInfo) {
 					this.extractedInfo = this.extractInfoWithRegex(this.resultList);
 				}
-				console.log(this.extractedInfo);
+				const info = this.extractedInfo || {};
+				console.log(info);
 				console.log(this.resultList);
-				// 复用之前的路由映射配置
+
+				// 模板路由映射
 				const routeMap = {
 					0: '/pages/billDetail/billDetail',
 					1: '/pages/ailpayThirdpartyPayment/ailpayThirdpartyPayment',
@@ -459,19 +244,48 @@
 					4: '/pages/billDetail3/billDetail3',
 					5: '/pages/ailpayThirdpartyPaymentAnd6/alipayThirdpartyPaymentAnd6' // 模版六
 				};
-
-				// 获取目标路由，默认使用第三方支付页面
 				const targetRoute = routeMap[i] || routeMap[2];
-				if(i === 0){
-					this.extractedInfo.herAccount  =this.extractedInfo.herAccount.replace(/(\D)(\d)/, '$1 $2')
-				}
-				// 构建完整URL
-				const url = `${targetRoute}?info=${encodeURIComponent(JSON.stringify(this.extractedInfo))}`;
 
-				// 导航到目标页面
-				uni.navigateTo({
-					url
-				});
+				// billType = 1~6
+				const billType = i + 1;
+
+				try {
+					const userId = uni.getStorageSync('userId');
+					let billId = null;
+
+					if (userId) {
+						const billDetail = JSON.stringify(info);
+						const billData = {
+							platform: 'alipay',
+							billType,
+							billDetail,
+							createUserId: userId,
+							remark: info.desc || info.name || ''
+						};
+						const result = await createBill(billData);
+						billId = result?.data?.id || result?.id || null;
+					}
+
+					// 模板一：格式化一下对方账号显示
+					if (i === 0 && info.herAccount) {
+						info.herAccount = info.herAccount.replace(/(\D)(\d)/, '$1 $2');
+					}
+
+					let url;
+					if (billId) {
+						// 优先使用 billId，详情页自己 GET /erp-bill/{id}
+						url = `${targetRoute}?billId=${encodeURIComponent(String(billId))}`;
+					} else {
+						// 未登录或创建失败，降级为直接传 info
+						url = `${targetRoute}?info=${encodeURIComponent(JSON.stringify(info))}`;
+					}
+
+					uni.navigateTo({ url });
+				} catch (e) {
+					console.error('创建账单或跳转失败:', e);
+					const url = `${targetRoute}?info=${encodeURIComponent(JSON.stringify(info))}`;
+					uni.navigateTo({ url });
+				}
 			},
 
 			// 选择图片
@@ -656,7 +470,7 @@
 				throw new Error('无法在当前环境读取文件，请确保使用自定义基座并配置了文件权限');
 			},
 
-			// 处理识别结果
+			// 处理识别结果（仅保存在内存，列表页从云端账单获取）
 			async handleOcrResult(result) {
 				console.log(result.words_result);
 				this.resultList = result.words_result || [];
@@ -672,8 +486,6 @@
 						title: '识别成功',
 						icon: 'success'
 					});
-					// 识别成功后自动保存记录
-					await this.saveRecord();
 				}
 			}
 		}

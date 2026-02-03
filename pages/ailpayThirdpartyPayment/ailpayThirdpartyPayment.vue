@@ -192,7 +192,7 @@
 					...this.info,
 					...temp,
 				};
-			}
+				}
 			
 			const list = uni.getStorageSync('roleList');
 			if (list) this.roleList = list;
@@ -318,7 +318,7 @@
 			},
 			// 保存到账单服务（create 或 update）
 			async saveBillToServer() {
-				try {
+					try {
 					const userId = uni.getStorageSync('userId');
 					if (!userId) {
 						console.warn('用户未登录，跳过保存账单');
@@ -339,14 +339,14 @@
 						const result = await createBill(billData);
 						if (result && result.data && result.data.id) {
 							this.id = result.data.id;
-						}
+										}
 					} else {
 						const updateData = {
 							billDetail
 						};
 						await updateBill(this.id, updateData);
 					}
-				} catch (e) {
+						} catch (e) {
 					console.error('保存账单失败:', e);
 				}
 			},

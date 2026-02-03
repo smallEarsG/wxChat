@@ -36,6 +36,12 @@ import { uploadAvatar } from '@/api/index.js'
 
 export default {
   name: 'ProfileEditPopup',
+  props: {
+    module: {
+      type: String,
+      default: 'user' // 默认使用 'user'，支付宝页面可以传入 'alipay'
+    }
+  },
   data() {
     return {
       avatar: '',
@@ -128,8 +134,8 @@ export default {
             throw new Error('用户未登录');
           }
           
-          // 上传头像到云端
-          const result = await uploadAvatar(avatarUrl, userId, 'user', this.nickname);
+          // 上传头像到云端（使用 props 传入的 module）
+          const result = await uploadAvatar(avatarUrl, userId, this.module, this.nickname);
           avatarUrl = result.avatarUrl;
           
           uni.hideLoading();

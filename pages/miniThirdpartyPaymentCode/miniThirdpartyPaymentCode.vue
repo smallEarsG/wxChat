@@ -203,10 +203,6 @@
 </template>
 
 <script>
-	import {
-		eadLocalFileToBase64,
-		generateBarcodeBase64
-	} from "../../utils/tool.js"
 	import BarcodeGenerator from '@/components/BarcodeGenerator/BarcodeGenerator.vue'
 
 	export default {
@@ -289,102 +285,8 @@
 					data: this.roleList
 				})
 			},
-			// 从文件读取 tfList
-			getTfListFromFile() {
-				try {
-					const fs = uni.getFileSystemManager();
-					const filePath = plus.io.convertLocalFileSystemURL('_doc/data.json');
-					
-					try {
-						const fileContent = fs.readFileSync(filePath, 'utf8');
-						if (fileContent) {
-							return JSON.parse(fileContent);
-						}
-					} catch (readError) {
-						// 文件不存在或读取失败，尝试从旧存储迁移
-						try {
-							const oldList = uni.getStorageSync('tfList') || [];
-							if (oldList.length > 0) {
-								// 迁移旧数据到文件
-								this.saveTfListToFile(oldList);
-								return oldList;
-							}
-						} catch (e) {
-							console.log('迁移数据失败:', e);
-						}
-					}
-					return [];
-				} catch (error) {
-					console.error('读取文件失败:', error);
-					// 降级到旧存储方式
-					try {
-						return uni.getStorageSync('tfList') || [];
-					} catch (e) {
-						return [];
-					}
-				}
-			},
-			// 保存 tfList 到文件
-			saveTfListToFile(list) {
-				try {
-					const fs = uni.getFileSystemManager();
-					const filePath = plus.io.convertLocalFileSystemURL('_doc/data.json');
-					
-					fs.writeFile({
-						filePath: filePath,
-						data: JSON.stringify(list),
-						encoding: 'utf8',
-						success: () => {
-							console.log('记录已保存到文件');
-						},
-						fail: (err) => {
-							console.error('保存文件失败:', err);
-							// 降级到旧存储方式
-							try {
-								uni.setStorageSync('tfList', list);
-							} catch (e) {
-								console.error('降级存储也失败:', e);
-							}
-						}
-					});
-				} catch (error) {
-					console.error('保存文件异常:', error);
-					// 降级到旧存储方式
-					try {
-						uni.setStorageSync('tfList', list);
-					} catch (e) {
-						console.error('降级存储也失败:', e);
-					}
-				}
-			},
-			saveTflist() {
-				// 从文件获取现有列表
-				let list = this.getTfListFromFile();
-
-				// 查找订单号匹配的元素
-				const index = list.findIndex(item => {
-					return item.info.orderNumber === this.info.orderNumber;
-				});
-
-				// 如果不存在，添加新元素
-				if (index < 0) {
-					list.push({
-						type: 8,
-						info: this.info
-					});
-				}
-				// 如果存在，更新原有元素的info部分
-				else {
-					list[index].info = this.info;
-				}
-
-				// 保存到文件
-				this.saveTfListToFile(list);
-			},
 			changeRl(url) {
-				// console.log(url);
 				this.info.url = url
-				this.saveTflist()
 			},
 			openAddPopup() {
 				this.$refs.cradPopup.open()
@@ -406,26 +308,21 @@
 				}
 			},
 			async onCradSubmitz(data) {
-				console.log(data);
-				const baseImg = await eadLocalFileToBase64(data.avatar)
-
+				// 头像在 ProfileEditPopup 内已处理，这里直接使用返回的地址
 				this.roleList.push({
 					...data,
-					avatar: baseImg
+					avatar: data.avatar
 				})
 				this.saveRoleList()
-				this.info.url = baseImg
-				this.saveTflist()
+				this.info.url = data.avatar
 			},
 			onOrderSubmit(data) {
-				console.log(data);
 				const baseImg = this.info.url
 				this.info = {
 					...this.info,
 					...data
 				}
 				this.info.url = baseImg
-				this.saveTflist()
 			},
 			exitInfo() {
 				this.$refs.orderPopup.open()

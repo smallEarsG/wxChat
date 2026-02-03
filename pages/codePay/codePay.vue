@@ -250,7 +250,7 @@
 				}
 			};
 		},
-		onLoad() {
+		onShow() {
 			// 检查是否首次进入
 			this.checkFirstTime();
 		},

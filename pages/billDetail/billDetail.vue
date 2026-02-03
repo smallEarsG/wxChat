@@ -126,7 +126,7 @@
 				
 				<view class="list_rl">
 					<uni-swipe-action v-if="roleList.length>0">
-						<uni-swipe-action-item v-for="(item,index) in roleList" :right-options="options2" :auto-close="false"
+						<uni-swipe-action-item v-for="(item,index) in roleList" :key="item.id || index" :right-options="options2" :auto-close="false"
 							@click="bindClick(index)">
 		
 							<view class="content-box" @click="changeRl(item.avatar)">
@@ -144,18 +144,15 @@
 			</view>
 		</uni-popup>
 		<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
-		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
+		<ProfileEditPopup ref="cradPopup" module="alipay" @submit="onCradSubmitz"></ProfileEditPopup>
 		<BillEditPopup ref="billEditPopup" :value="billData" @submit="onBillEditSubmit" />
 	</view>
 </template>
 
 <script>
-	import {
-		eadLocalFileToBase64,
-		generateBarcodeBase64
-	} from "../../utils/tool.js"
+	// 已移除 eadLocalFileToBase64 和 generateBarcodeBase64，改用云端接口
 	import BillEditPopup from "../../components/BillEditPopup/BillEditPopup.vue"
-	import { getBillById, createBill, updateBill, getAvatarList, uploadAvatar } from "@/api"
+	import { getBillById, createBill, updateBill, getAvatarList, uploadAvatar, createAvatar, deleteAvatar } from "@/api"
 	
 	export default {
 		components: {
@@ -267,13 +264,36 @@
 			goBack() {
 				uni.navigateBack();
 			},
-			bindClick(index) {
-				this.roleList.splice(index, 1)
-				uni.showToast({
-					title: '删除成功',
-					icon: 'none'
-				})
-				this.saveRoleList()
+			async bindClick(index) {
+				const item = this.roleList[index];
+				if (!item) return;
+				
+				if (item.id) {
+					try {
+						uni.showLoading({ title: '删除中...', mask: true });
+						await deleteAvatar(item.id);
+						await this.loadAvatarList();
+						uni.hideLoading();
+						uni.showToast({
+							title: '删除成功',
+							icon: 'success'
+						});
+					} catch (error) {
+						console.error('删除头像失败:', error);
+						uni.hideLoading();
+						uni.showToast({
+							title: error.message || '删除失败，请重试',
+							icon: 'none'
+						});
+					}
+				} else {
+					this.roleList.splice(index, 1);
+					this.saveRoleList();
+					uni.showToast({
+						title: '删除成功',
+						icon: 'success'
+					});
+				}
 			},
 			async changeRl(url) {
 				// 如为本地路径，先上传头像到云端
@@ -329,6 +349,7 @@
 							remark: this.info.desc || this.info.name || ''
 						};
 						const result = await createBill(billData);
+						console.log(result,"=====");
 						if (result && result.data && result.data.id) {
 							this.id = result.data.id;
 						}
@@ -359,15 +380,52 @@
 				})
 			},
 			async onCradSubmitz(data) {
-				const baseImg = await eadLocalFileToBase64(data.avatar)
-			
-				this.roleList.push({
-					...data,
-					avatar: baseImg
-				})
-				this.saveRoleList()
-				this.info.avatar = baseImg
-				this.saveBillToServer()
+				console.log(data,"=====");
+				try {
+					uni.showLoading({ title: '保存中...', mask: true });
+					
+					const userId = uni.getStorageSync('userId');
+					if (!userId) {
+						throw new Error('用户未登录');
+					}
+					
+					// 如果头像是本地路径，先上传到云端
+					let avatarUrl = data.avatar;
+					const isLocalPath = avatarUrl && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://');
+					
+					if (isLocalPath) {
+						const uploadResult = await uploadAvatar(avatarUrl, userId, 'alipay', data.nickname || this.info.name || '');
+						avatarUrl = uploadResult.avatarUrl;
+					}
+					
+					// 创建头像记录到云端
+					await createAvatar({
+						userId: userId,
+						module: 'alipay',
+						avatarUrl: avatarUrl,
+						name: data.nickname || this.info.name || ''
+					});
+					
+					// 刷新头像列表
+					await this.loadAvatarList();
+					
+					// 更新当前账单的头像
+					this.info.avatar = avatarUrl;
+					await this.saveBillToServer();
+					
+					uni.hideLoading();
+					uni.showToast({
+						title: '保存成功',
+						icon: 'success'
+					});
+				} catch (error) {
+					console.error('保存头像失败:', error);
+					uni.hideLoading();
+					uni.showToast({
+						title: error.message || '保存失败，请重试',
+						icon: 'none'
+					});
+				}
 			},
 			
 			openBillEdit() {

@@ -117,7 +117,7 @@
 	import {
 		eadLocalFileToBase64
 	} from "../../utils/tool.js"
-	import { uploadAvatar, getAvatarList, createAvatar } from '@/api/index.js'
+	import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
 	
 	export default {
 		data() {
@@ -132,6 +132,7 @@
 				],
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				roleList: [],
+				id: null,
 				info: {
 					"url": "",
 					"name": "转给G",
@@ -167,16 +168,27 @@
 				return this.info.fontSize / 100;
 			}
 		},
-		onLoad(options) {
-		if(options.info){
-			const temp = JSON.parse(decodeURIComponent(options.info))
-			this.info = {
-				...this.info,
-				...temp
+		async onLoad(options) {
+			const rawId = options && (options.billId || options.id);
+			if (rawId !== undefined && rawId !== null && rawId !== '') {
+				this.id = rawId
+				try {
+					const res = await getBillById(this.id);
+					const bill = res && res.data ? res.data : res;
+					if (bill && bill.billDetail) {
+						const detail = typeof bill.billDetail === 'string' ? JSON.parse(bill.billDetail) : bill.billDetail;
+						this.info = { ...this.info, ...(detail || {}) };
+					}
+				} catch (e) {
+					uni.showToast({ title: '账单不存在', icon: 'none' });
+					setTimeout(() => uni.navigateBack(), 300);
+					return;
+				}
+			} else if (options && options.info) {
+				const temp = JSON.parse(decodeURIComponent(options.info));
+				this.info = { ...this.info, ...temp };
 			}
-		}	
-			// 从云端获取头像列表
-			this.loadAvatarList()
+			this.loadAvatarList();
 		},
 		methods: {
 			// 从云端加载头像列表
@@ -219,138 +231,53 @@
 					this.roleList = [];
 				}
 			},
-			// 从文件读取 tfList，并迁移 localStorage 中的数据
-			getTfListFromFile() {
+			// 云端保存账单（create/update）
+			async saveBill() {
 				try {
-					const fs = uni.getFileSystemManager();
-					const filePath = plus.io.convertLocalFileSystemURL('_doc/data.json');
-					
-					let fileList = [];
-					let hasFile = false;
-					
-					// 尝试从文件读取
-					try {
-						const fileContent = fs.readFileSync(filePath, 'utf8');
-						if (fileContent && fileContent.trim()) {
-							fileList = JSON.parse(fileContent);
-							hasFile = true;
-						}
-					} catch (readError) {
-						// 文件不存在或读取失败
-						console.log('文件不存在或读取失败，准备迁移数据');
+					const userId = uni.getStorageSync('userId');
+					if (!userId) {
+						console.warn('用户未登录，跳过保存账单');
+						return;
 					}
-					
-					// 尝试从 localStorage 读取旧数据
-					let storageList = [];
-					try {
-						const storageData = uni.getStorageSync('tfList');
-						if (storageData) {
-							if (typeof storageData === 'string') {
-								storageList = JSON.parse(storageData);
-							} else if (Array.isArray(storageData)) {
-								storageList = storageData;
-							}
-						}
-					} catch (e) {
-						console.log('读取 localStorage 失败:', e);
+					const billDetail = JSON.stringify(this.info || {});
+					if (this.id === null || this.id === undefined) {
+						const billData = {
+							platform: 'wechat',
+							billType: 2, // 二维码收款
+							billDetail,
+							createUserId: userId,
+							remark: this.info.desc || this.info.name || ''
+						};
+						const result = await createBill(billData);
+						if (result && result.data && result.data.id) this.id = result.data.id;
+					} else {
+						await updateBill(this.id, { billDetail });
 					}
-					
-					// 如果文件不存在或为空，但 localStorage 有数据，则迁移
-					if (!hasFile && storageList.length > 0) {
-						console.log('检测到 localStorage 中有旧数据，开始迁移到文件...');
-						this.saveTfListToFile(storageList);
-						console.log('数据迁移完成，已保存到文件');
-						return storageList;
-					}
-					
-					// 如果文件存在但 localStorage 也有数据，合并数据（去重）
-					if (hasFile && storageList.length > 0) {
-						console.log('检测到文件和 localStorage 都有数据，合并数据...');
-						// 合并数据，以订单号为唯一标识去重
-						const mergedList = [...fileList];
-						storageList.forEach(storageItem => {
-							if (storageItem && storageItem.info) {
-								const orderNumber = storageItem.info.orderNumber || storageItem.info.shopNumber;
-								if (orderNumber) {
-									const exists = mergedList.some(fileItem => {
-										if (fileItem && fileItem.info) {
-											return (fileItem.info.orderNumber === orderNumber || 
-											        fileItem.info.shopNumber === orderNumber);
-										}
-										return false;
-									});
-									if (!exists) {
-										mergedList.push(storageItem);
-									}
-								}
-							}
-						});
-						// 保存合并后的数据到文件
-						this.saveTfListToFile(mergedList);
-						console.log('数据合并完成');
-						return mergedList;
-					}
-					
-					// 如果文件存在，返回文件数据
-					if (hasFile) {
-						return fileList;
-					}
-					
-					return [];
-				} catch (error) {
-					console.error('读取文件失败:', error);
-					// 降级到旧存储方式
-					try {
-						return uni.getStorageSync('tfList') || [];
-					} catch (e) {
-						return [];
-					}
-				}
-			},
-			// 保存 tfList 到文件
-			saveTfListToFile(list) {
-				try {
-					const fs = uni.getFileSystemManager();
-					const filePath = plus.io.convertLocalFileSystemURL('_doc/data.json');
-					
-					fs.writeFile({
-						filePath: filePath,
-						data: JSON.stringify(list),
-						encoding: 'utf8',
-						success: () => {
-							console.log('记录已保存到文件');
-						},
-						fail: (err) => {
-							console.error('保存文件失败:', err);
-							// 降级到旧存储方式
-							try {
-								uni.setStorageSync('tfList', list);
-							} catch (e) {
-								console.error('降级存储也失败:', e);
-							}
-						}
-					});
-				} catch (error) {
-					console.error('保存文件异常:', error);
-					// 降级到旧存储方式
-					try {
-						uni.setStorageSync('tfList', list);
-					} catch (e) {
-						console.error('降级存储也失败:', e);
-					}
+				} catch (e) {
+					console.error('保存账单失败:', e);
 				}
 			},
 			openAddPopup(){
 				this.$refs.cradPopup.open()
 			},
-			bindClick(index) {
-				// 从列表中移除（仅从内存中移除，云端数据需要调用删除API）
-				this.roleList.splice(index, 1)
-				uni.showToast({
-					title: '删除成功',
-					icon: 'none'
-				})
-				// 注意：如果需要同步到云端，需要调用删除头像的API
+			async bindClick(index) {
+				const item = this.roleList[index];
+				if (!item) return;
+				if (item.id) {
+					try {
+						uni.showLoading({ title: '删除中...', mask: true });
+						await deleteAvatar(item.id);
+						uni.hideLoading();
+						await this.loadAvatarList();
+						uni.showToast({ title: '删除成功', icon: 'success' });
+					} catch (e) {
+						uni.hideLoading();
+						uni.showToast({ title: e.message || '删除失败，请重试', icon: 'none' });
+					}
+				} else {
+					this.roleList.splice(index, 1);
+					uni.showToast({ title: '删除成功', icon: 'success' });
+				}
 			},
 			async changeRl(url){
 				// console.log(url);
@@ -383,41 +310,38 @@
 				}
 				
 				this.info.url = url
-				this.saveTflist()
+				this.saveBill()
 			},
 			async onCradSubmitz(data) {
-				console.log("=======", data);
-				
-				// 头像一定是云端的，直接使用
-				const avatarUrl = data.avatar;
-				
-				// 将当前使用的头像保存到云端
+				let avatarUrl = data.avatar;
+				const isLocalPath = avatarUrl && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://');
+				if (isLocalPath) {
+					try {
+						uni.showLoading({ title: '上传头像中...', mask: true });
+						const userId = uni.getStorageSync('userId');
+						if (!userId) throw new Error('用户未登录');
+						const result = await uploadAvatar(avatarUrl, userId, 'wechat', data.nickname || '');
+						avatarUrl = result.avatarUrl;
+						uni.hideLoading();
+					} catch (e) {
+						uni.hideLoading();
+						uni.showToast({ title: e.message || '上传头像失败，请重试', icon: 'none' });
+						return;
+					}
+				}
+
 				try {
 					const userId = uni.getStorageSync('userId');
-					if (!userId) {
-						throw new Error('用户未登录');
-					}
-					
-					await createAvatar({
-						userId: userId,
-						module: 'wechat',
-						avatarUrl: avatarUrl,
-						name: data.nickname || this.info.name || ''
-					});
-					
-					// 重新加载云端列表以确保数据同步
+					if (!userId) throw new Error('用户未登录');
+					await createAvatar({ userId, module: 'wechat', avatarUrl, name: data.nickname || this.info.name || '' });
 					await this.loadAvatarList();
-				} catch (error) {
-					console.error('保存头像到云端失败:', error);
-					uni.showToast({
-						title: error.message || '保存头像失败，请重试',
-						icon: 'none'
-					});
+				} catch (e) {
+					uni.showToast({ title: e.message || '保存头像失败，请重试', icon: 'none' });
 					return;
 				}
-				
+
 				this.info.url = avatarUrl;
-				this.saveTflist();
+				this.saveBill();
 			},
 			changeRole() {
 				if (this.roleList.length > 0) {
@@ -426,36 +350,11 @@
 					this.$refs.cradPopup.open()
 				}
 			},
-			saveTflist() {
-				// 从文件获取现有列表
-				let list = this.getTfListFromFile();
-
-				// 查找订单号匹配的元素
-				const index = list.findIndex(item => {
-					return item.info.orderNumber === this.info.orderNumber;
-				});
-
-				// 如果不存在，添加新元素
-				if (index < 0) {
-					list.push({
-						type: 1,
-						info: this.info
-					});
-				}
-				// 如果存在，更新原有元素的info部分
-				else {
-					list[index].info = this.info;
-				}
-
-				// 保存到文件
-				this.saveTfListToFile(list);
-			},
 			onOrderSubmit(data) {
-				console.log(data);
 				this.info = {
 					...data
 				}
-				this.saveTflist()
+				this.saveBill()
 			},
 			exitInfo() {
 				this.$refs.orderPopup.open()

@@ -143,7 +143,7 @@
 							const result = await deleteBill(billId);
 							
 							if (result && result.code === 200) {
-								this.list.splice(index, 1);
+							this.list.splice(index, 1);
 								uni.showToast({
 									title: '删除成功',
 									icon: 'success'

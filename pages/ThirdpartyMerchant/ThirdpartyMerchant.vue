@@ -171,7 +171,7 @@
 				</view> -->
 				<view class="list_rl">
 					<uni-swipe-action v-if="roleList.length>0">
-						<uni-swipe-action-item v-for="(item,index) in roleList" :right-options="options2" :auto-close="false"
+						<uni-swipe-action-item v-for="(item,index) in roleList" :key="item.id || index" :right-options="options2" :auto-close="false"
 							@click="bindClick(index)">
 
 							<view class="content-box" @click="changeRl(item.avatar)">
@@ -277,161 +277,14 @@ import CommonHeader from "../../components/CommonHeader/CommonHeader.vue"
 			if (list) this.roleList = list
 		},
 		methods: {
-			// 从文件读取 tfList，并迁移 localStorage 中的数据
-			getTfListFromFile() {
-				try {
-					const fs = uni.getFileSystemManager();
-					const filePath = plus.io.convertLocalFileSystemURL('_doc/data.json');
-					
-					let fileList = [];
-					let hasFile = false;
-					
-					// 尝试从文件读取
-					try {
-						const fileContent = fs.readFileSync(filePath, 'utf8');
-						if (fileContent && fileContent.trim()) {
-							fileList = JSON.parse(fileContent);
-							hasFile = true;
-						}
-					} catch (readError) {
-						// 文件不存在或读取失败
-						console.log('文件不存在或读取失败，准备迁移数据');
-					}
-					
-					// 尝试从 localStorage 读取旧数据
-					let storageList = [];
-					try {
-						const storageData = uni.getStorageSync('tfList');
-						if (storageData) {
-							if (typeof storageData === 'string') {
-								storageList = JSON.parse(storageData);
-							} else if (Array.isArray(storageData)) {
-								storageList = storageData;
-							}
-						}
-					} catch (e) {
-						console.log('读取 localStorage 失败:', e);
-					}
-					
-					// 如果文件不存在或为空，但 localStorage 有数据，则迁移
-					if (!hasFile && storageList.length > 0) {
-						console.log('检测到 localStorage 中有旧数据，开始迁移到文件...');
-						this.saveTfListToFile(storageList);
-						console.log('数据迁移完成，已保存到文件');
-						return storageList;
-					}
-					
-					// 如果文件存在但 localStorage 也有数据，合并数据（去重）
-					if (hasFile && storageList.length > 0) {
-						console.log('检测到文件和 localStorage 都有数据，合并数据...');
-						// 合并数据，以订单号为唯一标识去重
-						const mergedList = [...fileList];
-						storageList.forEach(storageItem => {
-							if (storageItem && storageItem.info) {
-								const orderNumber = storageItem.info.orderNumber || storageItem.info.shopNumber;
-								if (orderNumber) {
-									const exists = mergedList.some(fileItem => {
-										if (fileItem && fileItem.info) {
-											return (fileItem.info.orderNumber === orderNumber || 
-											        fileItem.info.shopNumber === orderNumber);
-										}
-										return false;
-									});
-									if (!exists) {
-										mergedList.push(storageItem);
-									}
-								}
-							}
-						});
-						// 保存合并后的数据到文件
-						this.saveTfListToFile(mergedList);
-						console.log('数据合并完成');
-						return mergedList;
-					}
-					
-					// 如果文件存在，返回文件数据
-					if (hasFile) {
-						return fileList;
-					}
-					
-					return [];
-				} catch (error) {
-					console.error('读取文件失败:', error);
-					// 降级到旧存储方式
-					try {
-						return uni.getStorageSync('tfList') || [];
-					} catch (e) {
-						return [];
-					}
-				}
-			},
-			// 保存 tfList 到文件
-			saveTfListToFile(list) {
-				try {
-					const fs = uni.getFileSystemManager();
-					const filePath = plus.io.convertLocalFileSystemURL('_doc/data.json');
-					
-					fs.writeFile({
-						filePath: filePath,
-						data: JSON.stringify(list),
-						encoding: 'utf8',
-						success: () => {
-							console.log('记录已保存到文件');
-						},
-						fail: (err) => {
-							console.error('保存文件失败:', err);
-							// 降级到旧存储方式
-							try {
-								uni.setStorageSync('tfList', list);
-							} catch (e) {
-								console.error('降级存储也失败:', e);
-							}
-						}
-					});
-				} catch (error) {
-					console.error('保存文件异常:', error);
-					// 降级到旧存储方式
-					try {
-						uni.setStorageSync('tfList', list);
-					} catch (e) {
-						console.error('降级存储也失败:', e);
-					}
-				}
-			},
 			saveRoleList() {
 				uni.setStorage({
 					key: 'roleList',
 					data: this.roleList
 				})
 			},
-			saveTflist() {
-				// 从文件获取现有列表
-				let list = this.getTfListFromFile();
-
-				// 查找订单号匹配的元素
-				const index = list.findIndex(item => {
-					return item.info.orderNumber === this.info.orderNumber;
-				});
-
-				// 如果不存在，添加新元素
-				if (index < 0) {
-					list.push({
-						type: 2,
-						info: this.info
-					});
-				}
-				// 如果存在，更新原有元素的info部分
-				else {
-					list[index].info = this.info;
-				}
-
-				// 保存到文件
-				this.saveTfListToFile(list);
-			},
 			changeRl(url) {
-				// console.log(url);
 				this.info.url = url
-				this.saveTflist()
 			},
 			openAddPopup() {
 				this.$refs.cradPopup.open()
@@ -453,26 +306,21 @@ import CommonHeader from "../../components/CommonHeader/CommonHeader.vue"
 				}
 			},
 			async onCradSubmitz(data) {
-				console.log(data);
 				const baseImg = await eadLocalFileToBase64(data.avatar)
-
 				this.roleList.push({
 					...data,
 					avatar: baseImg
 				})
 				this.saveRoleList()
 				this.info.url = baseImg
-				this.saveTflist()
 			},
 			onOrderSubmit(data) {
-				console.log(data);
 				const baseImg = this.info.url
 				this.info = {
 					...this.info,
 					...data
 				}
 				this.info.url = baseImg
-				this.saveTflist()
 			},
 			exitInfo() {
 				this.$refs.orderPopup.open()
