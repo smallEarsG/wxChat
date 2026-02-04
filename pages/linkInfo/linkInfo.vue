@@ -4,15 +4,15 @@
 		<view class="content">
 			<view style="padding: 24rpx;">
 				<view class="title-row">
-					<text class="title-text" :style="{ fontSize: rpx(46) }">{{ linkInfo.name }}</text>
+					<text class="title-text" :style="{ fontSize: rpx(42) }">{{ linkInfo.name }}</text>
 					<image :style="{ width: rpx(38), position: 'relative', top: '-4rpx' }" src="/static/chat/li_exit.png"
 						mode="widthFix"></image>
 				</view>
 				<view class="link-row">
-					<text class="link-text" :style="{ fontSize: rpx(40) }">
+					<text class="link-text" :style="{ fontSize: rpx(36) }">
 						{{ linkInfo.addUrl }}
 					</text>
-					<view class="copy-btn" :style="{ fontSize: rpx(32), padding: rpx(16) + ' ' + rpx(28) }" @click="copyLink">
+					<view class="copy-btn" :style="{ fontSize: rpx(28), padding: rpx(14) + ' ' + rpx(20) }" @click="copyLink">
 						复制
 					</view>
 				</view>
@@ -753,7 +753,7 @@ image{
 .title-row{
 	display: flex;
 	align-items: center;
-	margin-bottom: 36rpx;
+	margin-bottom: 18rpx;
 }
 .title-text{
 	font-size: 46rpx;
@@ -775,10 +775,11 @@ image{
 	font-size: 40rpx;
 	color: #1a1a1a;
 	line-height: 1.2;
-	margin-right: 36rpx;
+	
 	/* 超出自动换行，长链接也能断行 */
-	word-break: break-all;
-	white-space: normal;
+	word-break: break-all; 
+	white-space:normal;
+	overflow: hidden;
 }
 .copy-btn{
 	background-color: #2979ff;
@@ -787,6 +788,7 @@ image{
 	padding: 16rpx 28rpx;
 	border-radius: 12rpx;
 	font-weight: 600;
+	margin-left: 46rpx;
 }
 .usage-card{
 	margin-top: 24rpx;

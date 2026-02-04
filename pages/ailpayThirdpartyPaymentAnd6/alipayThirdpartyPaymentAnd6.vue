@@ -308,8 +308,8 @@
 						await deleteAvatar(item.id);
 						await this.loadAvatarList();
 						uni.hideLoading();
-						uni.showToast({
-							title: '删除成功',
+				uni.showToast({
+					title: '删除成功',
 							icon: 'success'
 						});
 					} catch (error) {
@@ -317,7 +317,7 @@
 						uni.hideLoading();
 						uni.showToast({
 							title: error.message || '删除失败，请重试',
-							icon: 'none'
+					icon: 'none'
 						});
 					}
 				} else {
@@ -364,7 +364,7 @@
 			},
 			// 保存到账单服务（create 或 update）
 			async saveBillToServer() {
-				try {
+					try {
 					const userId = uni.getStorageSync('userId');
 					if (!userId) {
 						console.warn('用户未登录，跳过保存账单');
@@ -392,7 +392,7 @@
 						};
 						await updateBill(this.id, updateData);
 					}
-				} catch (e) {
+						} catch (e) {
 					console.error('保存账单失败:', e);
 				}
 			},

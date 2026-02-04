@@ -5,17 +5,17 @@
 		<image src="/static/chat/h1.png" mode="widthFix"></image>
 		
 		<view class="main-warp">
-			 <view style="background-color: #3175da;height: 20rpx;">
+		<!-- 	 <view style="background-color: #3175da;height: 10rpx;">
 			 	
-			 </view>
+			 </view> -->
 			 <image src="/static/chat/h9.png" mode="widthFix"></image>
 			<view class="center-warp">
 			
 				<!-- 获客情况 -->
-				<view class="usage-scenario">
+				<view class="usage-scenario" style="margin-top: 4rpx;">
 					<view class="client-top">
 						<view class="section-title">获客情况</view>
-						<image src="/static/right-icon.png"></image>
+						<image class="right-icon" src="/static/chat/li_right_icon.png"></image>
 					</view>
 					<view class="client-main" @click="showClient">
 						<view class="client-warp">
@@ -27,44 +27,41 @@
 							<view>累计新增客户</view>
 						</view>
 						<view class="client-warp">
-							<view class="num-text" style="display: flex;align-items:flex-start;">
-							{{clientInfo.Remainder}}
-							<image style="width:68rpx;margin-left: 4rpx;" src="/static/chat/h3.png" mode="widthFix"></image>
+							<view class="num-text num-with-icon">
+								{{clientInfo.Remainder}}
+								<image class="feel" src="/static/chat/h3.png" mode="widthFix"></image>
 							</view>
 							<view class="text-bottom">
 								剩余使用量
-								<image src="/static/hit.png"></image>
+								<image src="/static/chat/g_ionc.png" ></image>
 							</view>
 						</view>
 					</view>
 					<view style="background-color: #d6d6d6;height: 2rpx;transform: scaleY(0.1);"></view>
 					<view class="client-bottom">
 						<view style="font-size: 30rpx;">购买使用量</view>
-						<view class="client-left">
-							<image src="/static/buy.png"></image>
-							前往购买
-						</view>
+						<image style="width: 220rpx;margin-right: 10rpx;" src="/static/chat/vip_buy.png" mode="widthFix"></image>
 					</view>
 				</view>
 				<!-- 获客链接 -->
-				<view class="usage-scenario" style="margin-top: 23rpx;">
-					<view class="client-top">
-						<view class="section-title">获客链接</view>
-						<image style="width: 35rpx;" src="/static/chat/p5.png" mode="widthFix"></image>
+				<view class="usage-scenario" style="margin-top: 20rpx;padding-bottom: 0;">
+					<view class="client-top" style="padding-top:0">
+						<view class="section-title" style="margin-bottom:24rpx">获客链接</view>
+						<image style="width: 30rpx;" src="/static/chat/p5.png" mode="widthFix"></image>
 					</view>
 					<view class="add-warp" @click="editLinkName">
-						<image style="width: 80rpx;" src="/static/chat/h2.png" mode="widthFix"></image>
+						<image style="width: 70rpx;" src="/static/chat/h2.png" mode="widthFix"></image>
 						<view>{{ linkDisplay.name }}</view>
 					</view>
-					<view class="all-warp" style="font-size: 28rpx;" @click="goLinkList">查看全部
+					<view class="all-warp" style="font-size: 24rpx;" @click="goLinkList">查看全部
 						<view class="circle" />
 		
 						<text @click.stop="editLinkCount">{{ linkDisplay.count }}</text><uni-icons type="right" size="12" color="#8c8c8c" style=" margin-left:-1px ;"></uni-icons>
 					</view>
 				</view>
 				<!-- 更多功能 -->
-				<view class="usage-scenario" >
-					<view class="section-title" style="margin-top: 20rpx;">更多功能</view>
+				<view class="usage-scenario" style="margin-top: 20rpx" >
+					<view class="section-title" style="margin-top: 20rpx;margin-bottom: 14rpx;">更多功能</view>
 		
 					<view class="acquisition-methods more-warp">
 						<!-- 第一项 -->
@@ -73,7 +70,7 @@
 								<image class="left-icon share-icon" src="/static/chat/h6.png" mode="widthFix"></image>
 								<text class="right_text">自动跳过成员异常账号</text>
 							</view>
-							<image class="right-icon" src="/static/right-icon.png"></image>
+							<image class="right-icon" src="/static/chat/li_right_icon.png"></image>
 						</view>
 						<view class="skip-warp">
 							<view class="skip-item" @click="editSkipCount('today')">
@@ -90,7 +87,7 @@
 								<text class="right_text">提升广告有效率</text>
 							</view>
 		
-							<image class="right-icon" src="/static/right-icon.png" ></image>
+							<image class="right-icon" src="/static/chat/li_right_icon.png" ></image>
 						</view>
 						<!-- 第三项 -->
 						<view class="method-item">
@@ -99,7 +96,7 @@
 								<text class="right_text">通过API使用</text>
 							</view>
 		
-							<image class="right-icon" src="/static/right-icon.png"></image>
+							<image class="right-icon" src="/static/chat/li_right_icon.png"></image>
 						</view>
 					</view>
 				</view>
@@ -143,7 +140,7 @@
 				clientInfo: {
 					NewAddToday: 0,
 					CumulativeNew: 50,
-					Remainder: 0,
+					Remainder: 50,
 				},
 				clientKey: {
 					NewAddToday: '今日新增客户',
@@ -305,6 +302,17 @@
 </script>
 
 <style scoped>
+	.num-with-icon{
+		position: relative;
+		display: inline-block;
+	}
+	.feel{
+		position: absolute;
+		left: 100%;
+		top: 0;
+		width: 60rpx;
+		margin-left: 4rpx;
+	}
 	.back-btn{
 		/* background-color: red; */
 		top: 80rpx;
@@ -360,10 +368,9 @@
 	}
 
 	.circle {
-		height: 6rpx;
-		width: 6rpx;
+		height: 4rpx;
+		width: 4rpx;
 		background-color: #8c8c8c;
-
 		border-radius: 50%;
 		margin: 0 10rpx;
 
@@ -394,7 +401,9 @@
 		align-items: center;
 		justify-content: center;
 		text-align: center;
-		padding: 32rpx;
+		padding: 30rpx;
+		padding-bottom: 38rpx;
+		padding-top: 22rpx;
 		color: #8c8c8c;
 	}
 
@@ -443,14 +452,14 @@
 		justify-content: space-between;
 	}
 
-	.client-top image {
+/* 	.client-top image {
 		width: 40rpx;
 		height: 40rpx;
-	}
+	} */
 
 	.client-main {
 		display: flex;
-		padding-bottom: 74rpx;
+		padding-bottom: 64rpx;
 		justify-content: space-around;
 		
 	}
@@ -461,7 +470,7 @@
 		flex-direction: column;
 		align-items: center;
 		color: #808080;
-		font-size: 28rpx;
+		font-size: 24rpx;
 	}
 
 	.text-bottom {
@@ -470,27 +479,27 @@
 	}
 
 	.text-bottom image {
-		width: 32rpx;
-		height: 32rpx;
-		margin-left: 10rpx;
+		width: 24rpx;
+		height: 24rpx;
+		margin-left: 6rpx;
 	}
 
 	
 
 	.num-text {
 		font-family: 'WeChat Sans SS', sans-serif;
-		font-size: 53rpx;
+		font-size: 50rpx;
 		color: #000;
 		font-weight: 600;
-		margin-bottom: 10rpx;
+		/* margin-bottom: 10rpx; */
 	}
 
 	.section-title {
-		font-size: 32rpx;
+		font-size: 30rpx;
 
 		margin-bottom: 40rpx;
 	}
-
+	
 	/* 使用场景样式 */
 	.scenario-container {
 		position: relative;
@@ -639,11 +648,6 @@
 		border-top: 6rpx solid #f8f8f8;
 	}
 
-	.step .icon {
-		/* width: 26rpx;
-		height: 24rpx; */
-	}
-
 	.one-icon {
 		width: 26rpx;
 		height: 24rpx;
@@ -682,13 +686,13 @@
 		justify-content: space-between;
 		gap: 20rpx;
 		font-size: 32rpx;
-		padding: 28rpx 0rpx;
+		padding: 30rpx 0rpx;
 		border-bottom: 2rpx solid #e8e8e8;
 	}
 
 	.method-item:last-of-type {
 		border-bottom: none;
-		padding-bottom: 0rpx;
+		/* padding-bottom: 0rpx; */
 	}
 
 	.more-warp .method-item {
@@ -708,7 +712,7 @@
 		margin-right: 16rpx;
 	} */
 	.left-icon {
-		width: 42rpx;
+		width: 40rpx;
 		margin-right: 6rpx;
 		/* height: 48rpx; */
 
@@ -742,8 +746,8 @@
 	}
 
 	.right-icon {
-		width: 40rpx;
-		height: 40rpx;
+		width: 20rpx;
+		height: 20rpx;
 	}
 
 	.icon {
@@ -759,9 +763,10 @@
 
 	.footer-container {
 		text-align: center;
-		padding: 64rpx;
+		padding-top: 64rpx;
+		padding-bottom: 44rpx;
 		color: #3175da;
-		font-size: 30rpx;
+		font-size: 28rpx;
 		/* font-weight: 600; */
 	}
 
@@ -770,7 +775,7 @@
 		position: relative;
 		flex: 1;
 		overflow: scroll;
-		background-color: #f3f3f3;
+		background-color: #edf0f5;
 		/* padding-bottom: 120rpx; */
 	}
 
@@ -797,7 +802,7 @@
 		padding: 24rpx;
 		border-radius: 16rpx;
 		margin: 16rpx 22rpx 0 22rpx;
-		box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+		/* box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1); */
 	}
 
 	/* 编辑链接弹框样式 */

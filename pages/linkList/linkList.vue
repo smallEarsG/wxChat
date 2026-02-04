@@ -4,10 +4,10 @@
 		<view class="contant">
 			<image src="/static/chat/ll_select.png" mode="widthFix"></image>
 			<view class="add-warp" v-for="item in list" :key="item.id" @click="goLinkInfo(item)">
-				<view style="width: 80rpx;overflow: hidden;border-radius:10rpx;margin-right: 22rpx;">
+				<view style="width: 70rpx;overflow: hidden;border-radius:10rpx;margin-right: 22rpx;">
 					<image  src="/static/chat/h2.png" mode="widthFix"></image>
 				</view>
-				<view>{{ item.name }}</view>
+				<view style="font-size: 32rpx;">{{ item.name }}</view>
 			</view>
 		</view>
 		<!-- 左上返回 -->
@@ -263,10 +263,11 @@
 		display: flex;
 		align-items: center;
 		background-color:#fff;
-		padding: 34rpx;
+		padding: 30rpx;
 		border-radius: 16rpx;
 		margin: 24rpx;
-		margin-top: 0;
+		margin-top: 1rpx;
+		margin-bottom: 16rpx;
 	}
 	
 	.contant{
