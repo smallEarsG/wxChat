@@ -192,7 +192,7 @@
 					"orderNumber": "1000050001202506130129831495334",
 					"otherTime": "2025年6月13日 16:20:17",
 					"payment": "零钱通",
-					"message":"留言",
+					"message":"",
 					"currentState": "对方已收钱",
 					"desc": "转账时间",
 					"padd":60,

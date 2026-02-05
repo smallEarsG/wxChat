@@ -3,11 +3,24 @@
 		<image src="/static/chat/ll_head.png" mode="widthFix"></image>
 		<view class="contant">
 			<image src="/static/chat/ll_select.png" mode="widthFix"></image>
-			<view class="add-warp" v-for="item in list" :key="item.id" @click="goLinkInfo(item)">
-				<view style="width: 70rpx;overflow: hidden;border-radius:10rpx;margin-right: 22rpx;">
+			<view
+				class="add-warp"
+				v-for="item in list"
+				:key="item.id"
+				@click="handleItemClick(item)"
+			>
+				<!-- 点击灰色背景从中间向两侧扩散 -->
+				<view
+					class="add-warp-bg"
+					:class="{
+						'add-warp-bg--active': rippleItemId === item.id,
+						'add-warp-bg--no-transition': !rippleTransitionEnabled
+					}"
+				></view>
+				<view style="width: 70rpx;position: relative;z-index: 1;overflow: hidden;border-radius:10rpx;margin-right: 22rpx;">
 					<image  src="/static/chat/h2.png" mode="widthFix"></image>
 				</view>
-				<view style="font-size: 32rpx;">{{ item.name }}</view>
+				<view style="font-size: 32rpx;position: relative;z-index: 1;">{{ item.name }}</view>
 			</view>
 		</view>
 		<!-- 左上返回 -->
@@ -132,7 +145,11 @@
 				newItemTagInput: '',
 				newMembers: [],
 				newMemberName: '',
-				newMemberAvatar: ''
+				newMemberAvatar: '',
+				// 当前触发点击扩散效果的项 id
+				rippleItemId: null,
+				// 控制是否启用过渡，用于重置时避免回缩动画
+				rippleTransitionEnabled: true
 			}
 		},
 		onShow() {
@@ -147,8 +164,23 @@
 			} catch (e) {
 				this.list = this.defaultList;
 			}
+			// 每次页面显示时重置点击特效状态（关闭过渡，避免回缩动画）
+			this.rippleTransitionEnabled = false;
+			this.rippleItemId = null;
+			this.$nextTick(() => {
+				this.rippleTransitionEnabled = true;
+			});
 		},
 		methods: {
+			// 点击时触发灰色背景从中间向两侧扩散，再执行原来的跳转
+			handleItemClick(item) {
+				this.rippleItemId = item.id;
+				// 等待动画完成后再跳转
+				const duration = 200; // 与 CSS transition 保持一致
+				setTimeout(() => {
+					this.goLinkInfo(item);
+				}, duration + 20);
+			},
 			goBack() {
 				uni.navigateBack();
 			},
@@ -263,11 +295,33 @@
 		display: flex;
 		align-items: center;
 		background-color:#fff;
+		position: relative;
+		overflow: hidden;
 		padding: 30rpx;
 		border-radius: 16rpx;
 		margin: 24rpx;
 		margin-top: 1rpx;
 		margin-bottom: 16rpx;
+	}
+	/* 灰色背景，从中间往两边扩散 */
+	.add-warp-bg{
+		position: absolute;
+		left: 50%;
+		top: 0;
+		height: 100%;
+		width: 0;
+		transform: translateX(-50%);
+		background-color: #e5e5e5;
+		opacity: 0.7;
+		transition: width 200ms ease-out;
+		z-index: 0;
+	}
+	.add-warp-bg--active{
+		width: 100%;
+	}
+	/* 禁用过渡，用于重置时避免看到回缩动画 */
+	.add-warp-bg--no-transition{
+		transition: none !important;
 	}
 	
 	.contant{

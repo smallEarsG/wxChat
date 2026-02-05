@@ -121,42 +121,43 @@
 
 
 			</view>
-			<!-- <view class="serivce" v-if="info.showService !== false" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
+			<view class="serivce" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<view class="se_title" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
 					账单服务
 				</view>
-				<view class="serivce_line">
-					<view class="serivce_bx">
+			
+				<view class="serivce_bx">
 						<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
 							<view class="se_icon ">
 								<image class="wticon" src="/static/wticon.png" mode=""></image>
 							</view>
 							对订单有疑惑
 						</view>
-						<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
-							<view class="se_icon ">
-								<image class="chatIcon" src="/static/qiw/tpicon_1.png" mode=""></image>
-							</view>
-							发起群收款
+					<view class="se_item" v-if="isGroup" @longpress="showGroup">
+						<view class="se_icon ">
+							<image class="skIcon" src="/static/skIcon.png" mode=""></image>
 						</view>
-					</view>
-					<view class="serivce_bx">
-						<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
-							<view class="se_icon ">
-								<image class="startIcon" src="/static/qiw/tpIcon_2.png" mode=""></image>
-							</view>
-							在此商户的交易
-						</view>
-						<view class="se_item">
-							<view class="se_icon ">
-								<image class="transferIcon" src="/static/transferIcon.png" mode=""></image>
-							</view>
-							查看往来转账
-						</view>
+						发起群收款
 					</view>
 				</view>
-
-			</view> -->
+			</view>
+			<view class="serivce" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
+				<view class="se_title">
+					收款方服务
+				</view>
+				<view class="serivce_bx">
+					<view class="se_item">
+						<view class="se_icon ">
+							<image class="cordIcon" src="/static/cordIcon.png" mode=""></image>
+						</view>
+						收款方名片
+					</view>
+					<view class="se_item">
+			
+					</view>
+				</view>
+			</view>
+			
 
 
 			<view class="footer" :style="{ fontSize: (24 * fontScale) + 'rpx' }">
@@ -198,12 +199,14 @@ import {
 		eadLocalFileToBase64
 	} from "../../utils/tool.js"
 import CommonHeader from "../../components/CommonHeader/CommonHeader.vue"
+import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
 	export default {
 		components: {
 			CommonHeader
 		},
 		data() {
 			return {
+				isGroup:true,
 				options2: [{
 						text: '删除',
 						style: {
@@ -214,6 +217,7 @@ import CommonHeader from "../../components/CommonHeader/CommonHeader.vue"
 				],
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				roleList: [],
+				id: null,
 				info: {
 					"url": "",
 					"name": "给为理想而奋斗",
@@ -262,41 +266,98 @@ import CommonHeader from "../../components/CommonHeader/CommonHeader.vue"
 				return this.info.fontSize / 100;
 			}
 		},
-		onLoad(options) {
-
-			console.log(decodeURIComponent(options.info));
-			const temp = JSON.parse(decodeURIComponent(options.info))
-			this.info = {
-				...this.info,
-				...temp,
-				
+		async onLoad(options) {
+			const rawId = options && (options.billId || options.id);
+			if (rawId !== undefined && rawId !== null && rawId !== '') {
+				this.id = String(rawId);
+				try {
+					const res = await getBillById(this.id);
+					const bill = res && res.data ? res.data : res;
+					if (bill && bill.billDetail) {
+						const detail = typeof bill.billDetail === 'string' ? JSON.parse(bill.billDetail) : bill.billDetail;
+						this.info = { ...this.info, ...(detail || {}) };
+					}
+				} catch (e) {
+					uni.showToast({ title: '账单不存在', icon: 'none' });
+					setTimeout(() => uni.navigateBack(), 300);
+					return;
+				}
+			} else if (options && options.info) {
+				const temp = JSON.parse(decodeURIComponent(options.info));
+				this.info = { ...this.info, ...temp };
 			}
-			console.log(this.info.name);
-			// 读取本地角色
-			const list = uni.getStorageSync('roleList')
-			if (list) this.roleList = list
+			this.loadAvatarList();
 		},
 		methods: {
-			saveRoleList() {
-				uni.setStorage({
-					key: 'roleList',
-					data: this.roleList
-				})
+			async loadAvatarList() {
+				try {
+					const userId = uni.getStorageSync('userId');
+					if (!userId) {
+						uni.showToast({ title: '用户未登录', icon: 'none' });
+						this.roleList = [];
+						return;
+					}
+					const result = await getAvatarList(userId, 'shop');
+					const avatarList = (result && result.data && Array.isArray(result.data)) ? result.data : (Array.isArray(result) ? result : []);
+					this.roleList = avatarList.map(item => ({
+						avatar: item.avatarUrl || item.avatar,
+						nickname: item.name || '',
+						description: item.description || '@商户',
+						id: item.id
+					}));
+				} catch (e) {
+					console.error('加载头像列表失败:', e);
+					uni.showToast({ title: '加载头像列表失败', icon: 'none' });
+					this.roleList = [];
+				}
 			},
-			changeRl(url) {
-				this.info.url = url
+			async changeRl(url) {
+				const isLocalPath = url && !url.startsWith('http://') && !url.startsWith('https://');
+				if (isLocalPath) {
+					try {
+						uni.showLoading({ title: '上传头像中...', mask: true });
+						const userId = uni.getStorageSync('userId');
+						if (!userId) {
+							throw new Error('用户未登录');
+						}
+						const result = await uploadAvatar(url, userId, 'shop', this.info.name || '');
+						url = result.avatarUrl;
+						uni.hideLoading();
+					} catch (error) {
+						console.error('上传头像失败:', error);
+						uni.hideLoading();
+						uni.showToast({
+							title: error.message || '上传头像失败，请重试',
+							icon: 'none'
+						});
+						return;
+					}
+				}
+				this.info.url = url;
+				this.saveBill();
 			},
 			openAddPopup() {
 				this.$refs.cradPopup.open()
 			},
 
-			bindClick(index) {
-				this.roleList.splice(index, 1)
-				uni.showToast({
-					title: '删除成功',
-					icon: 'none'
-				})
-				this.saveRoleList()
+			async bindClick(index) {
+				const item = this.roleList[index];
+				if (!item) return;
+				if (item.id) {
+					try {
+						uni.showLoading({ title: '删除中...', mask: true });
+						await deleteAvatar(item.id);
+						uni.hideLoading();
+						await this.loadAvatarList();
+						uni.showToast({ title: '删除成功', icon: 'success' });
+					} catch (e) {
+						uni.hideLoading();
+						uni.showToast({ title: e.message || '删除失败，请重试', icon: 'none' });
+					}
+				} else {
+					this.roleList.splice(index, 1);
+					uni.showToast({ title: '删除成功', icon: 'success' });
+				}
 			},
 			changeRole() {
 				if (this.roleList.length > 0) {
@@ -306,13 +367,33 @@ import CommonHeader from "../../components/CommonHeader/CommonHeader.vue"
 				}
 			},
 			async onCradSubmitz(data) {
-				const baseImg = await eadLocalFileToBase64(data.avatar)
-				this.roleList.push({
-					...data,
-					avatar: baseImg
-				})
-				this.saveRoleList()
-				this.info.url = baseImg
+				let avatarUrl = data.avatar;
+				const isLocalPath = avatarUrl && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://');
+				if (isLocalPath) {
+					try {
+						uni.showLoading({ title: '上传头像中...', mask: true });
+						const userId = uni.getStorageSync('userId');
+						if (!userId) throw new Error('用户未登录');
+						const result = await uploadAvatar(avatarUrl, userId, 'shop', data.nickname || '');
+						avatarUrl = result.avatarUrl;
+						uni.hideLoading();
+					} catch (e) {
+						uni.hideLoading();
+						uni.showToast({ title: e.message || '上传头像失败，请重试', icon: 'none' });
+						return;
+					}
+				}
+				try {
+					const userId = uni.getStorageSync('userId');
+					if (!userId) throw new Error('用户未登录');
+					await createAvatar({ userId, module: 'shop', avatarUrl, name: data.nickname || this.info.name || '' });
+					await this.loadAvatarList();
+				} catch (e) {
+					uni.showToast({ title: e.message || '保存头像失败，请重试', icon: 'none' });
+					return;
+				}
+				this.info.url = avatarUrl;
+				this.saveBill();
 			},
 			onOrderSubmit(data) {
 				const baseImg = this.info.url
@@ -321,6 +402,32 @@ import CommonHeader from "../../components/CommonHeader/CommonHeader.vue"
 					...data
 				}
 				this.info.url = baseImg
+				this.saveBill()
+			},
+			async saveBill() {
+				try {
+					const userId = uni.getStorageSync('userId');
+					if (!userId) {
+						console.warn('用户未登录，跳过保存账单');
+						return;
+					}
+					const billDetail = JSON.stringify(this.info || {});
+					if (this.id === null || this.id === undefined) {
+						const billData = {
+							platform: 'wechat',
+							billType: 10,
+							billDetail,
+							createUserId: userId,
+							remark: this.info.desc || this.info.name || ''
+						};
+						const result = await createBill(billData);
+						if (result && result.data && result.data.id) this.id = result.data.id;
+					} else {
+						await updateBill(this.id, { billDetail });
+					}
+				} catch (e) {
+					console.error('保存账单失败:', e);
+				}
 			},
 			exitInfo() {
 				this.$refs.orderPopup.open()

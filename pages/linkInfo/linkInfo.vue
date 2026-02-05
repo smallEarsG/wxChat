@@ -2,7 +2,7 @@
 	<view class="container">
 		<image src="/static/chat/li_head.png" mode="widthFix"></image>
 		<view class="content">
-			<view style="padding: 24rpx;">
+			<view style="padding: 24rpx;padding-top: 0;">
 				<view class="title-row">
 					<text class="title-text" :style="{ fontSize: rpx(42) }">{{ linkInfo.name }}</text>
 					<image :style="{ width: rpx(38), position: 'relative', top: '-4rpx' }" src="/static/chat/li_exit.png"
@@ -10,9 +10,9 @@
 				</view>
 				<view class="link-row">
 					<text class="link-text" :style="{ fontSize: rpx(36) }">
-						{{ linkInfo.addUrl }}
+						{{ displayAddUrl }}
 					</text>
-					<view class="copy-btn" :style="{ fontSize: rpx(28), padding: rpx(14) + ' ' + rpx(20) }" @click="copyLink">
+					<view class="copy-btn" :style="{ fontSize: rpx(28), padding: rpx(12) + ' ' + rpx(22) }" @click="copyLink">
 						复制
 					</view>
 				</view>
@@ -32,30 +32,34 @@
 				<!-- 使用情况筛选下拉 -->
 				<view v-if="showUsageFilter" class="usage-filter-pop">
 					<view class="usage-filter-item" @click.stop="selectUsageFilter('today')">
-						<text :style="{ fontSize: rpx(28) }">今日</text>
+						<text :style="{ fontSize: rpx(32) }">今日</text>
 						<view v-if="usageFilter === 'today'" class="usage-filter-check" :style="{ fontSize: rpx(28) }">
-							<image  :style="{ width: rpx(28) }" src="/static/chat/li_dui.png" mode="widthFix"></image>
+							<image  :style="{ width: rpx(40) }" src="/static/chat/li_dui.png" mode="widthFix"></image>
 						</view>
 					</view>
 					<view class="usage-filter-divider" />
 					<view class="usage-filter-item" @click.stop="selectUsageFilter('yesterday')">
-						<text :style="{ fontSize: rpx(28) }">昨日</text>
-						<view v-if="usageFilter === 'yesterday'" class="usage-filter-check" :style="{ fontSize: rpx(28) }">✔</view>
+						<text :style="{ fontSize: rpx(32) }">昨日</text>
+						<view v-if="usageFilter === 'yesterday'" class="usage-filter-check" :style="{ fontSize: rpx(28) }">
+							<image  :style="{ width: rpx(38) }" src="/static/chat/li_dui.png" mode="widthFix"></image>
+						</view>
 					</view>
 					<view class="usage-filter-divider" />
 					<view class="usage-filter-item" @click.stop="selectUsageFilter('custom')">
-						<text :style="{ fontSize: rpx(28) }">自定义日期</text>
-						<view v-if="usageFilter === 'custom'" class="usage-filter-check" :style="{ fontSize: rpx(28) }">✔</view>
+						<text :style="{ fontSize: rpx(32) }">自定义日期</text>
+						<view v-if="usageFilter === 'custom'" class="usage-filter-check" :style="{ fontSize: rpx(28) }">
+							<image  :style="{ width: rpx(38) }" src="/static/chat/li_dui.png" mode="widthFix"></image>
+						</view>
 					</view>
 				</view>
 				<view class="usage-body">
 					<view class="usage-item">
-						<text class="usage-number" :style="{ fontSize: rpx(58) }">{{ displayOpenLink }}</text>
-						<text class="usage-label" :style="{ fontSize: rpx(28) }">打开链接人数</text>
+						<text class="usage-number" :style="{ fontSize: rpx(56) }">{{ displayOpenLink }}</text>
+						<text class="usage-label" :style="{ fontSize: rpx(26) }">打开链接人数</text>
 					</view>
 					<view class="usage-item">
-						<text class="usage-number" :style="{ fontSize: rpx(58) }">{{ displayAddNum }}</text>
-						<text class="usage-label" :style="{ fontSize: rpx(28) }">新培客户数</text>
+						<text class="usage-number" :style="{ fontSize: rpx(56) }">{{ displayAddNum }}</text>
+						<text class="usage-label" :style="{ fontSize: rpx(26) }">新培客户数</text>
 					</view>
 				</view>
 			</view>
@@ -63,7 +67,7 @@
 			<!-- 配置卡片 -->
 			<view class="card config-card">
 				<view class="config-title" :style="{ fontSize: rpx(32) }">配置</view>
-
+				<view class="line_x"></view>
 				<!-- 客户点击链接可添加的成员 -->
 				<view class="config-item">
 					<view class="config-item-main">
@@ -71,57 +75,57 @@
 							<view class="" :style="{ fontSize: rpx(34) }">
 								客户点击链接可添加的成员 
 							</view>
-							<image class="config-arrow" :style="{ width: rpx(20) }" src="/static/chat/li_right_icon.png" mode="widthFix"></image>
+							<image class="config-arrow" :style="{ width: rpx(16) }" src="/static/chat/li_right_icon.png" mode="widthFix"></image>
 						</view>
 						<view class="config-member-row">
 							<view class="member" v-for="(m, idx) in linkInfo.member" :key="idx">
-								<image class="config-avatar" :style="{ width: rpx(86), height: rpx(86) }" :src="m.avatar" mode="aspectFill"></image>
-								<view class="config-member-name" :style="{ fontSize: rpx(22) }">{{ m.name }}</view>
+								<image class="config-avatar" :style="{ width: rpx(74) }" :src="m.avatar" mode="widthFix"></image>
+								<view class="config-member-name" :style="{ fontSize: rpx(20) }">{{ m.name }}</view>
 							</view>
 						</view>
 					</view>
 					
 				</view>
-
+				<view class="line_x"></view>
 				<!-- 欢迎语 -->
-				<view class="config-item_">
+				<view class="config-item_" style="border: none;">
 					<view class="config-item-main">
-						<text class="config-label_" :style="{ fontSize: rpx(34) }">欢迎语</text>
+						<text class="config-label_" :style="{ fontSize: rpx(32) }">欢迎语</text>
 					</view>
 					<view class="config-right">
-						<text class="config-subtext" :style="{ fontSize: rpx(32) }">{{ linkInfo.welcomeText }}</text>
-						<image class="config-arrow" :style="{ width: rpx(20) }" src="/static/chat/li_right_icon.png" mode="widthFix"></image>
+						<text class="config-subtext" :style="{ fontSize: rpx(30) }">{{ linkInfo.welcomeText }}</text>
+						<image class="config-arrow" :style="{ width: rpx(16) }" src="/static/chat/li_right_icon.png" mode="widthFix"></image>
 					</view>
 				</view>
-
+				<view class="line_x"></view>
 				<!-- 客户标签 -->
-				<view class="config-item_" :style="{ padding: rpx(29) + ' 0' }">
+				<view class="config-item_" :style="{ padding: rpx(29) + ' 0', border: 'none' }">
 					<view class="config-item-main">
 						<text class="config-label_" :style="{ fontSize: rpx(34) }">客户标签</text>
 					</view>
 					<view class="config-right">
-						<text class="config-tag" :style="{ fontSize: rpx(32) }" v-for="(t, idx) in linkInfo.tag" :key="idx">{{ t }}</text>
-						<image class="config-arrow" :style="{ width: rpx(20) }" src="/static/chat/li_right_icon.png" mode="widthFix"></image>
+						<text class="config-tag" :style="{ fontSize: rpx(28) }" v-for="(t, idx) in linkInfo.tag" :key="idx">{{ t }}</text>
+						<image class="config-arrow" :style="{ width: rpx(16) }" src="/static/chat/li_right_icon.png" mode="widthFix"></image>
 					</view>
 				</view>
 
 				<!-- 客户添加成员时需要验证 -->
 				<view class="config-item_" :style="{ padding: rpx(31) + ' 0' }">
 					<view class="config-item-main">
-						<text class="config-label_" :style="{ fontSize: rpx(34) }">客户添加成员时需要验证</text>
+						<text class="config-label_" :style="{ fontSize: rpx(32) }">客户添加成员时需要验证</text>
 					</view>
-					<image :style="{ width: rpx(100) }" src="/static/chat/li_swich.png" mode="widthFix"></image>
+					<image :style="{ width: rpx(90) }" src="/static/chat/li_swich.png" mode="widthFix"></image>
 				</view>
-
+				<view class="line_x"></view>
 				<!-- 客户添加时有成员异常账号 -->
-				<view class="config-item_">
+				<view class="config-item_"  style="border: none;">
 					<view class="config-item-main">
-						<text class="config-label_" :style="{ fontSize: rpx(34) }">客户添加时有成员异常账号</text>
+						<text class="config-label_" :style="{ fontSize: rpx(32) }">客户添加时有成员异常账号</text>
 					</view>
 					<text class="config-right-text" :style="{ fontSize: rpx(28) }">自动跳过</text>
 				</view>
 			</view>
-			<view class="foot_txt" :style="{ fontSize: rpx(28) }">
+			<view class="foot_txt" :style="{ fontSize: rpx(26) }">
 				{{ linkInfo.time }} 由我创建连接
 			</view>
 		</view>
@@ -285,6 +289,13 @@
 					return this.linkInfo.lastAddNum || 0;
 				}
 				return this.linkInfo.addNum || 0;
+			},
+			// 处理链接换行，在每个字符后插入零宽空格，避免字母+符号整块下移导致空白
+			displayAddUrl() {
+				const url = this.linkInfo && this.linkInfo.addUrl ? String(this.linkInfo.addUrl) : '';
+				if (!url) return '';
+				// 在每个字符之间插入零宽空格，允许在任何位置换行
+				return url.split('').join('\u200b');
 			}
 		},
 		onLoad(options) {
@@ -464,6 +475,14 @@
 </script>
 
 <style>
+	.line_x{
+		width: 100%;
+		height: 1rpx;
+		background-color: #f0f0f0;
+		transform: scaleY(0.5);
+		/* background-color: red; */
+		
+	}
 	.back-btn{
 	
 		top: 80rpx;
@@ -718,8 +737,8 @@
 	color: #fff;
 }
 .foot_txt{
-	margin-top: 120rpx;
-	margin-bottom: 30rpx;
+	margin-top: 100rpx;
+	margin-bottom: 50rpx;
 	font-size: 28rpx;
 	color: #999;
 	text-align: center;
@@ -753,7 +772,7 @@ image{
 .title-row{
 	display: flex;
 	align-items: center;
-	margin-bottom: 18rpx;
+	margin-bottom: 38rpx;
 }
 .title-text{
 	font-size: 46rpx;
@@ -775,11 +794,13 @@ image{
 	font-size: 40rpx;
 	color: #1a1a1a;
 	line-height: 1.2;
-	
+	/* background-color: #2979ff; */
 	/* 超出自动换行，长链接也能断行 */
 	word-break: break-all; 
-	white-space:normal;
+	white-space: normal;
 	overflow: hidden;
+	/* 允许在零宽空格处换行，避免大段空白 */
+	overflow-wrap: break-word;
 }
 .copy-btn{
 	background-color: #2979ff;
@@ -788,10 +809,10 @@ image{
 	padding: 16rpx 28rpx;
 	border-radius: 12rpx;
 	font-weight: 600;
-	margin-left: 46rpx;
+	margin-left: 76rpx;
 }
 .usage-card{
-	margin-top: 24rpx;
+	margin-top: 16rpx;
 	padding-top: 18rpx;
 	padding-bottom: 24rpx;
 	padding-left: 36rpx;
@@ -802,7 +823,7 @@ image{
 	display: flex;
 	align-items: center;
 	margin-top: 20rpx;
-	margin-bottom: 50rpx;
+	margin-bottom: 40rpx;
 }
 .usage-title{
 	font-size: 32rpx;
@@ -818,7 +839,7 @@ image{
 	justify-content: space-around;
 	align-items: center;
 	padding: 8rpx 0 4rpx;
-	margin-bottom: 40rpx;
+	margin-bottom: 30rpx;
 }
 .usage-item{
 	text-align: center;
@@ -832,17 +853,17 @@ image{
 	font-size: 58rpx;
 	color: #000;
 	font-weight: 600;
-	margin-bottom: 8rpx;
+	/* margin-bottom: 8rpx; */
 }
 .usage-label{
-	margin-top: 4rpx;
+	/* margin-top: 4rpx; */
 	font-size: 28rpx;
 	color: #999;
 }
 .usage-filter-pop{
 	position: absolute;
 	top: 86rpx;
-	left: 36rpx;
+	left: 56rpx;
 	background-color: #fff;
 	border-radius: 16rpx;
 	box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.1);
@@ -851,10 +872,11 @@ image{
 	z-index: 10;
 }
 .usage-filter-item{
-	padding: 20rpx 32rpx;
+	padding: 30rpx 32rpx;
 	font-size: 28rpx;
 	color: #333;
 	display: flex;
+	margin-right: 50rpx;
 	align-items: center;
 	/* justify-content: space-between; */
 }
@@ -862,11 +884,12 @@ image{
 	height: 1rpx;
 	background-color: #f0f0f0;
 	margin: 0 24rpx;
+	transform: scaleY(0.5);
 }
 .usage-filter-check{
 	font-size: 28rpx;
 	color: #2979ff;
-	margin-left: 8rpx;
+	margin-left: 16rpx;
 }
 
 /* 配置卡片 */
@@ -879,13 +902,13 @@ image{
 .config-title{
 	font-size: 32rpx;
 	color: #000;
-	margin-bottom: 36rpx;
-	margin-top:  20rpx;
+	margin-bottom: 30rpx;
+	/* margin-top:  20rpx; */
 	font-weight: 500;
 }
 .config-item{
 	padding-bottom: 20rpx;
-	border-top: 1rpx solid #f0f0f0;
+	
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -895,7 +918,7 @@ image{
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 40rpx 0;
+	padding: 26rpx 0;
 }
 .config-item-main{
 	flex: 1;
@@ -910,7 +933,7 @@ image{
 	margin: 28rpx 0;
 }
 .config-label_{
-	font-size: 34rpx;
+	font-size: 32rpx;
 	color: #000;
 	/* font-weight: 500;s */
 	display: flex;
@@ -937,7 +960,7 @@ image{
 	/* margin-right: 18rpx; */
 }
 .config-member-name{
-	margin-top: 14rpx;
+	margin-top: 4rpx;
 	font-size: 22rpx;
 	color: #999;
 	text-align: center;
@@ -953,13 +976,13 @@ image{
 	align-items: center;
 }
 .config-tag{
-	padding: 12rpx 16rpx;
+	padding: 10rpx 12rpx;
 	border-radius: 10rpx;
 	background-color: #f5f5f5;
-	font-size: 32rpx;
+	font-size: 22rpx;
 	color: #333;
-	margin-right: 8rpx;
-	font-weight: 500;
+	margin-right: 16rpx;
+	/* font-weight: 500; */
 }
 .config-arrow{
 	width: 20rpx;
