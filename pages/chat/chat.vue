@@ -45,57 +45,294 @@
 
 
 			<scroll-view class="chat-body" :class="{'scroll-auto': activeMsgIndex!== -1}" :scroll-top="scrollTop"
-				:style="chatBodyStyle" scroll-y :show-scrollbar="false" @scroll="onScroll">
+				:style="chatBodyStyle" :scroll-y="!isDragging" :show-scrollbar="false" @scroll="onScroll">
 				<!-- 首屏自动滚动时的加载遮罩（仅首次且确实需要滚动才显示） -->
 				<view v-if="chatBodyLoading" class="chat-body-load">
 					<view class="chat-body-load__inner">加载中...</view>
 				</view>
-				<view v-if="activeMsgIndex !== -1" class="overlay" @click="closePopupMenu"></view>
+				<view v-if="activeMsgIndex !== -1" class="overlay" @click="closePopupMenu" @touchmove.stop.prevent=""></view>
+				<view class="wxs-bridge"
+					:wxsDragData="wxsDragData"
+					:change:wxsDragData="dragHandler.updateDragData"
+					:scrollTop="scrollPosition"
+					:change:scrollTop="dragHandler.onScrollTopChange"
+				></view>
 				<!-- 上方占位符 -->
 				<view v-if="topPlaceholderHeight > 0" :style="{ height: topPlaceholderHeight + 'px' }"></view>
+				<!-- 排序模式提示条 -->
+				<view v-if="isSortingMode" class="sorting-tip-bar">
+					<view class="sort-actions">
+						<view class="action-btn" @click="restoreDefaultSort">恢复默认</view>
+						<!-- <view class="action-btn" @click="undoSort">撤销</view> -->
+					</view>
+					<text class="sort-tip">按住把手拖动</text>
+					<view class="finish-btn" @click="exitSortingMode">完成</view>
+				</view>
+				
+				<!-- 拖拽时的浮动项 (副本) -->
+				<view v-if="isDragging && draggingItem" class="floating-msg-item" :style="{ top: dragY + 'px', height: dragItemHeight + 'px' }">
+					<!-- 直接复用各类消息的展示结构 -->
+					<!-- 时间 -->
+					<view v-if="draggingItem.type == 'tips'" class="msg-time cell">
+						{{draggingItem.content}}
+					</view>
+					
+					<!-- tips提示 -->
+					<view v-else-if="draggingItem.contentType == 'tips'" class="msg-tips cell">
+						<view class="tips-content">
+							你收到了{{draggingItem.content.gusetName}}的付款<text class="blueTxt"> 查看</text>
+						</view>
+					</view>
+					
+					<view class="orderBox cell" v-else-if="draggingItem.contentType == 'order'">
+						<view class="msg right">
+							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<view>
+								<ExternalPayCard :orderInfo="draggingItem.content" />
+							</view>
+						</view>
+					</view>
+					
+					<!-- 转账 -->
+					<view v-else-if="draggingItem.contentType == 'transfer'" class="cell">
+						<view class="msg left" v-if="draggingItem.location == 0">
+							<view class="avatar">
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							</view>
+							<TransferCard :class="!draggingItem.content.st?'tfCardLeft':'tfCardLeftBg'" :state="draggingItem.content.st"
+								:name="draggingItem.content.name" :amount="draggingItem.content.amount"></TransferCard>
+						</view>
+						<view class="msg right" v-else>
+							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<TransferCard :class="!draggingItem.content.st?'tfCardRight':'tfCardRightBg'"
+								:state="draggingItem.content.st" :name="draggingItem.content.name" :amount="draggingItem.content.amount">
+							</TransferCard>
+						</view>
+					</view>
+					
+					<!-- 收款 -->
+					<view v-else-if="draggingItem.contentType == 'wxtf'" class="cell">
+						<view class="msg left" v-if="draggingItem.location == 0">
+							<view class="avatar">
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							</view>
+							<ChTf class="tfCardLeftBg" :name="draggingItem.content.name" :amount="draggingItem.content.amount"></ChTf>
+						</view>
+						<view class="msg right" v-else>
+							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<ChTf class="tfCardRightBg" :name="draggingItem.content.name" :amount="draggingItem.content.amount"></ChTf>
+						</view>
+					</view>
+					
+					<!-- 图片photo -->
+					<view v-else-if="draggingItem.contentType == 'photo'" class="cell">
+						<view class="msg left" v-if="draggingItem.location == 0">
+							<view class="avatar">
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							</view>
+							<view class="photo-container leftp" :style="getImageContainerStyle(dragStartIndex)">
+								<image :src="draggingItem.content.avatar" class="phote" mode="aspectFit" :style="getImageStyle(dragStartIndex)" />
+							</view>
+						</view>
+						<view class="msg right" v-else>
+							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<view class="photo-container rightp" :style="getImageContainerStyle(dragStartIndex)">
+								<image :src="draggingItem.content.avatar" class="phote" mode="aspectFit" :style="getImageStyle(dragStartIndex)" />
+							</view>
+						</view>
+					</view>
+					
+					<!-- 红包 -->
+					<view v-else-if="draggingItem.contentType == 'redBag'" class="cell">
+						<view class="msg left" v-if="draggingItem.location == 0">
+							<view class="avatar">
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							</view>
+							<RedBag :class="draggingItem.content?'redbagLeft':'redbagLeftBg'" :location="draggingItem.location"
+								:name="guestInfo.name  + (guestInfo.description||'')" :state="draggingItem.content"></RedBag>
+						</view>
+						<view class="msg right" v-else>
+							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<RedBag :class="draggingItem.content?'redbagRight':'redbagRightBg'" :location="draggingItem.location"
+								:name="guestInfo.name + (guestInfo.description||'')" :state="draggingItem.content"></RedBag>
+						</view>
+					</view>
+					
+					<!-- 文件 -->
+					<view v-else-if="draggingItem.contentType == 'file'" class="cell">
+						<view class="msg left" v-if="draggingItem.location == 0">
+							<view class="avatar">
+								<image mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							</view>
+							<chatFlie class="cardLeft" :content="draggingItem.content">
+							</chatFlie>
+						</view>
+						<view class="msg right" v-else>
+							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<chatFlie class="cardRight" :content="draggingItem.content">
+							</chatFlie>
+						</view>
+					</view>
+					
+					<!-- 语音 -->
+					<view v-else-if="draggingItem.contentType == 'yuyin'" class="cell">
+						<view class="msg left " v-if="draggingItem.location == 0">
+							<image class="avatar" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							<view class="bubble"
+								style="padding-top: 10rpx;display: flex;align-items: center;padding-bottom: 10rpx;">
+								<view class="yuyinBox"
+									:style="{ fontSize: rpx(34), width: (114 + Math.floor((draggingItem.content.time - 1) / 2) * 10) + 'rpx' }">
+									<image style="margin-right: 16rpx;" class="yuyinIcon" src="/static/yuyin_0.png"
+										mode="widthFix"></image>
+									{{draggingItem.content.time}}"
+								</view>
+							</view>
+						</view>
+						<view class="msg right" v-else>
+							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<view class="bubble"
+								style="padding-top: 10rpx;display: flex;align-items: center;padding-bottom: 10rpx;">
+								<view class="yuyinBox"
+									:style="{  fontSize: rpx(34), width: (114 + Math.floor((draggingItem.content.time - 1) / 2) * 10) + 'rpx' }"
+									style="justify-content: flex-end;">
+									{{draggingItem.content.time}}"
+									<image style="margin-left: 16rpx;text-align: right;" class="yuyinIcon"
+										src="/static/yuyin_1.png" mode="widthFix"></image>
+								</view>
+							</view>
+						</view>
+					</view>
+					
+					<!-- 名片 -->
+					<view v-else-if="draggingItem.contentType == 'crad'" class="cell">
+						<view class="msg left" v-if="draggingItem.location == 0">
+							<view class="avatar">
+								<image mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							</view>
+							<WxCard class="cardLeft" :nickname="draggingItem.content.nickname" :avatar="draggingItem.content.avatar">
+							</WxCard>
+						</view>
+						<view class="msg right" v-else>
+							<image class="avatar" mode="widthFix" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<WxCard class="cardRight" :nickname="draggingItem.content.nickname" :avatar="draggingItem.content.avatar">
+							</WxCard>
+						</view>
+					</view>
+					
+					<!-- 聊天 -->
+					<view v-else-if="draggingItem.contentType == 'chat'" class="cell">
+						<view class="msg left" v-if="draggingItem.location == 0">
+							<view class="avatar">
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							</view>
+							<view class="bubble" :style="{ fontSize: rpx(34) }">
+								<view>
+									<template v-for="(part, partIndex) in draggingItemParsedContent">
+										<text v-if="part.type === 'text'" :key="'text-' + partIndex"
+											class="msg-text">{{ part.content }}</text>
+										<text v-else-if="part.type === 'url'" :key="'url-' + partIndex"
+											class="msg-url">{{ part.content }}</text>
+										<text v-else-if="part.type === 'email'" :key="'email-' + partIndex"
+											class="msg-email">{{ part.content }}</text>
+										<text v-else-if="part.type === 'number'" :key="'number-' + partIndex"
+											class="msg-number">{{ part.content }}</text>
+										<image v-else-if="part.type === 'emoji'" :key="'emoji-' + partIndex"
+											:src="getEmojiUrl(part.index,draggingItem.location)" class="emoji-inline"
+											:style="{ width: rpx(40), height: rpx(40) }" />
+									</template>
+								</view>
+							</view>
+						</view>
+						<view class="msg right" v-else>
+							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<view class="bubble" :style="{ fontSize: rpx(34) }">
+								<view>
+									<template v-for="(part, partIndex) in draggingItemParsedContent">
+										<text v-if="part.type === 'text'" :key="'text-' + partIndex"
+											class="msg-text">{{ part.content }}</text>
+										<text v-else-if="part.type === 'url'" :key="'url-' + partIndex"
+											class="msg-url">{{ part.content }}</text>
+										<text v-else-if="part.type === 'email'" :key="'email-' + partIndex"
+											class="msg-email">{{ part.content }}</text>
+										<text v-else-if="part.type === 'number'" :key="'number-' + partIndex"
+											class="msg-number">{{ part.content }}</text>
+										<image v-else-if="part.type === 'emoji'" :key="'emoji-' + partIndex"
+											:src="getEmojiUrl(part.index,draggingItem.location)" class="emoji-inline"
+											:style="{ width: rpx(40), height: rpx(40) }" />
+									</template>
+								</view>
+							</view>
+						</view>
+					</view>
+					
+					<!-- 视频电话 -->
+					<view v-else-if="draggingItem.contentType == 'video'" class="cell">
+						<view class="msg left" v-if="draggingItem.location == 0">
+							<view class="avatar">
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							</view>
+							<view class="bubble" :style="{ fontSize: rpx(34) }">
+								<view class="videobox">
+									<image src="/static/qiw/video.png" :class="isIos?'videobox-ios':'videobox-and'"
+										mode="widthFix" :style="{ width: rpx(50),marginRight: rpx(12)}"></image>
+									通话时长
+									<text>{{draggingItem.content}}</text>
+								</view>
+							</view>
+						</view>
+						<view class="msg right" v-else>
+							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<view class="bubble" :style="{ fontSize: rpx(34) }">
+								<view>
+									<view class="videobox">
+										通话时长
+										<text>{{draggingItem.content}}</text>
+										<image :class="isIos?'videobox-ios':'videobox-and'" style="margin-left: 16upx;"
+											src="/static/qiw/video2.png" mode="widthFix"
+											:style="{ width: rpx(50),marginLeft: rpx(12)}"></image>
+									</view>
+								</view>
+							</view>
+						</view>
+					</view>
+				</view>
+
 				<!-- 可见消息列表 -->
 				<view v-for="msgData in visibleMessageList" :key="msgData.index"
 					:data-index="msgData.index" 
-					:class="['msg-item-wrapper', { 'dragging': isDragging && dragStartIndex === msgData.index, 'drag-over': dragOverIndex === msgData.index }]"
-					@touchstart="onMsgTouchStart($event, msgData.index)"
-					@touchmove="onMsgTouchMove($event, msgData.index)"
-					@touchend="onMsgTouchEnd($event, msgData.index)">
+					class="msg-item-wrapper"
+					:class="{ 'dragging-placeholder': isDragging && dragStartIndex === msgData.index, 'sorting-mode': isSortingMode }"
+					:style="getItemStyle(msgData.index)"
+					@touchstart="dragHandler.onWrapperTouchStart"
+					@touchmove="dragHandler.onTouchMove"
+					@touchend="dragHandler.onTouchEnd"
+					@longpress="onMsgLongPress($event, msgData.index)"
+					>
+					
+					<!-- 拖拽把手 -->
+					<view v-if="isSortingMode" class="drag-handle"
+						:data-index="msgData.index"
+						@touchstart="dragHandler.onHandleTouchStart"
+						@click.stop=""
+					>
+						<text class="handle-icon">≡</text>
+					</view>
+
 
 					<!-- 时间 -->
 					<view @longpress="showPopupMenu($event, msgData.index)" :style="{ fontSize: rpx(24) }"
 						v-if="msgData.item.type == 'tips'" class="msg-time cell">
-						<MessagePopupMenu
-							:visible="activeMsgIndex === msgData.index"
-							:styleObject="popupStyle"
-							:actions="getMessageMenuActions(msgData.item)"
-							:messageIndex="msgData.index"
-							@action="handleMenuAction"
-						/>
 						{{msgData.item.content}}
 					</view>
 					<!-- tips提示 -->
 					<view @longpress="showPopupMenu($event, msgData.index)" :style="{ fontSize: rpx(24) }"
 						v-else-if="msgData.item.contentType == 'tips'" class="msg-tips cell">
-						<MessagePopupMenu
-							:visible="activeMsgIndex === msgData.index"
-							:styleObject="popupStyle"
-							:actions="getMessageMenuActions(msgData.item)"
-							:messageIndex="msgData.index"
-							@action="handleMenuAction"
-						/>
 						<view class="tips-content">
 							你收到了{{msgData.item.content.gusetName}}的付款<text class="blueTxt"> 查看</text>
 						</view>
 					</view>
 					<view class="orderBox cell" @longpress="showPopupMenu($event, msgData.index)"
 						v-else-if="msgData.item.contentType == 'order'">
-						<MessagePopupMenu
-							:visible="activeMsgIndex === msgData.index"
-							:styleObject="popupStyle"
-							:actions="getMessageMenuActions(msgData.item)"
-							:messageIndex="msgData.index"
-							@action="handleMenuAction"
-						/>
 						<view class="msg right">
 							<image class="avatar" mode="aspectFill" lazy-load
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
@@ -110,13 +347,6 @@
 					</view>
 					<!-- 转账 -->
 					<view v-else-if="msgData.item.contentType == 'transfer'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
-						<MessagePopupMenu
-							:visible="activeMsgIndex === msgData.index"
-							:styleObject="popupStyle"
-							:actions="getMessageMenuActions(msgData.item)"
-							:messageIndex="msgData.index"
-							@action="handleMenuAction"
-						/>
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" @click="goReceipt(msgData.item)"
 							v-if="msgData.item.location == 0">
 							<view class="avatar">
@@ -136,13 +366,6 @@
 					</view>
 					<!-- 收款 -->
 					<view v-else-if="msgData.item.contentType == 'wxtf'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
-						<MessagePopupMenu
-							:visible="activeMsgIndex === msgData.index"
-							:styleObject="popupStyle"
-							:actions="getMessageMenuActions(msgData.item)"
-							:messageIndex="msgData.index"
-							@action="handleMenuAction"
-						/>
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" @click="goCollection(msgData.item)"
 							v-if="msgData.item.location == 0">
 							<view class="avatar">
@@ -161,13 +384,6 @@
 					<!-- 图片photo -->
 
 					<view v-else-if="msgData.item.contentType == 'photo'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
-						<MessagePopupMenu
-							:visible="activeMsgIndex === msgData.index"
-							:styleObject="popupStyle"
-							:actions="getMessageMenuActions(msgData.item)"
-							:messageIndex="msgData.index"
-							@action="handleMenuAction"
-						/>
 						<view class="msg left" v-if="msgData.item.location == 0" @longpress="showPopupMenu($event, msgData.index)">
 							<view class="avatar">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
@@ -189,13 +405,6 @@
 					</view>
 					<!-- 红包 -->
 					<view v-else-if="msgData.item.contentType == 'redBag'" @click="getRB(msgData.index)" class="cell">
-						<MessagePopupMenu
-							:visible="activeMsgIndex === msgData.index"
-							:styleObject="popupStyle"
-							:actions="getMessageMenuActions(msgData.item)"
-							:messageIndex="msgData.index"
-							@action="handleMenuAction"
-						/>
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
 							<view class="avatar">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
@@ -215,13 +424,6 @@
 					</view>
 					<!-- 文件 -->
 					<view v-else-if="msgData.item.contentType == 'file'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
-						<MessagePopupMenu
-							:visible="activeMsgIndex === msgData.index"
-							:styleObject="popupStyle"
-							:actions="getMessageMenuActions(msgData.item)"
-							:messageIndex="msgData.index"
-							@action="handleMenuAction"
-						/>
 
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
 							<view class="avatar">
@@ -238,13 +440,6 @@
 					</view>
 					<!-- 语音 -->
 					<view v-else-if="msgData.item.contentType == 'yuyin'" class="cell">
-						<MessagePopupMenu
-							:visible="activeMsgIndex === msgData.index"
-							:styleObject="popupStyle"
-							:actions="getMessageMenuActions(msgData.item)"
-							:messageIndex="msgData.index"
-							@action="handleMenuAction"
-						/>
 						<view class="msg left " @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
 							<image class="avatar" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							<view class="bubble"
@@ -274,13 +469,6 @@
 					</view>
 					<!-- 名片 -->
 					<view v-else-if="msgData.item.contentType == 'crad'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
-						<MessagePopupMenu
-							:visible="activeMsgIndex === msgData.index"
-							:styleObject="popupStyle"
-							:actions="getMessageMenuActions(msgData.item)"
-							:messageIndex="msgData.index"
-							@action="handleMenuAction"
-						/>
 
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
 							<view class="avatar">
@@ -298,13 +486,6 @@
 					</view>
 					<!-- l、聊天 -->
 					<view v-else-if="msgData.item.contentType == 'chat'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
-						<MessagePopupMenu
-							:visible="activeMsgIndex === msgData.index"
-							:styleObject="popupStyle"
-							:actions="getMessageMenuActions(msgData.item)"
-							:messageIndex="msgData.index"
-							@action="handleMenuAction"
-						/>
 						<!-- 聊天内容 -->
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
 							<view class="avatar">
@@ -359,13 +540,6 @@
 					</view>
 					<!-- 视频电话 -->
 					<view v-else-if="msgData.item.contentType == 'video'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
-						<MessagePopupMenu
-							:visible="activeMsgIndex === msgData.index"
-							:styleObject="popupStyle"
-							:actions="getMessageMenuActions(msgData.item)"
-							:messageIndex="msgData.index"
-							@action="handleMenuAction"
-						/>
 
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
 							<view class="avatar">
@@ -546,6 +720,14 @@
 				</uni-popup>
 			</view>
 		</view>
+		<!-- 全局长按菜单 -->
+		<MessagePopupMenu
+			:visible="activeMsgIndex !== -1"
+			:styleObject="popupStyle"
+			:actions="currentMenuActions"
+			:messageIndex="activeMsgIndex"
+			@action="handleMenuAction"
+		/>
 		<uni-popup ref="menuPopup" background-color="#fff">
 			<view class="menu" :style="{ paddingTop: statusBarHeight + 'px' }">
 				<button type="primary" plain="true" @click="openBgPopup">修改背景</button>
@@ -567,6 +749,357 @@
 		</uni-popup>
 	</view>
 </template>
+
+<script module="dragHandler" lang="wxs">
+	var startY = 0;
+	var itemRects = []; // 存储绝对坐标 { absTop, height, dataset }
+	var isDragging = false;
+	var dragStartIndex = -1;
+	var placeholderIndex = -1;
+	var dragItemHeight = 0;
+	var dragOffsetY = 0;
+	var initialScrollTop = 0;
+	var currentScrollTop = 0;
+    var containerTop = 0;
+	var itemsCache = null;
+	var floatingItemCache = null;
+	var lastAutoScrollCall = 0;
+	var AUTO_SCROLL_THROTTLE = 16;
+    
+    // 防抖相关
+    var lastSwapTime = 0;
+    var SWAP_COOLDOWN = 50; // ms
+	
+	// 接收 Vue 层传来的数据
+	function updateDragData(newValue, oldValue, ownerInstance, instance) {
+		if (!newValue) return;
+		
+		if (newValue.isDragging) {
+			isDragging = true;
+			dragStartIndex = newValue.dragStartIndex;
+			placeholderIndex = newValue.dragStartIndex;
+			initialScrollTop = newValue.initialScrollTop || initialScrollTop || 0;
+            containerTop = newValue.containerTop || containerTop || 0;
+            
+            // 首次进入时同步
+            if (currentScrollTop === 0 && initialScrollTop !== 0) {
+			    currentScrollTop = initialScrollTop;
+            }
+            if (newValue.scrollTop !== undefined) {
+                currentScrollTop = newValue.scrollTop;
+            }
+            
+            // 处理 rects，转换为绝对坐标 (相对于内容顶部)
+            // itemAbsTop = rect.top (viewport) - containerTop (viewport) + initialScrollTop
+            if (newValue.rects) {
+                itemRects = [];
+                for (var i = 0; i < newValue.rects.length; i++) {
+                    var r = newValue.rects[i];
+                    itemRects.push({
+                        absTop: r.top - containerTop + initialScrollTop,
+                        height: r.height,
+                        dataset: r.dataset,
+                        top: r.top // 保留原始 top 用于调试或回退
+                    });
+                }
+            }
+			
+			// 立即隐藏原位置的 item
+			var items = itemsCache || ownerInstance.selectAllComponents('.msg-item-wrapper');
+			itemsCache = items;
+			for (var i = 0; i < items.length; i++) {
+				var item = items[i];
+				if (item.getDataset().index == dragStartIndex) {
+					item.setStyle({ opacity: 0, visibility: 'hidden' });
+				} else {
+                     // 重置样式，确保有 transition
+                    item.setStyle({ 
+                        opacity: 1, 
+                        visibility: 'visible',
+                        transform: 'translate3d(0,0,0)',
+                        transition: 'transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1)' 
+                    });
+                }
+			}
+			
+			// 计算 dragItemHeight 和 dragOffsetY
+			for (var i = 0; i < itemRects.length; i++) {
+				if (itemRects[i].dataset && itemRects[i].dataset.index === dragStartIndex) {
+					dragItemHeight = itemRects[i].height;
+                    
+                    if (startY !== 0) {
+                        // startY 是 viewport clientY
+                        // 转换 touchAbsY = startY - containerTop + currentScrollTop
+                        // 转换 itemAbsTop = itemRects[i].absTop
+                        // dragOffsetY = touchAbsY - itemAbsTop
+                        // 但实际上，视觉上的 offset 是恒定的 viewport 差值
+                        // visualItemTop = itemRects[i].absTop - currentScrollTop + containerTop (反推)
+                        // visualItemTop 应该等于 rect.top (如果没滚动)
+                        
+                        // 简单点：dragOffsetY 是手指相对于 item 顶部的距离 (视觉上)
+                        // item 当前视觉 top = absTop - currentScrollTop + containerTop
+                        var currentVisualTop = itemRects[i].absTop - currentScrollTop + containerTop;
+                        dragOffsetY = startY - currentVisualTop;
+                    } else {
+                         dragOffsetY = dragItemHeight / 2;
+                    }
+					break;
+				}
+			}
+		} else {
+            if (newValue.isDragging === false) {
+    			isDragging = false;
+    			dragStartIndex = -1;
+    			placeholderIndex = -1;
+    			
+    			var items = itemsCache || ownerInstance.selectAllComponents('.msg-item-wrapper');
+    			for (var i = 0; i < items.length; i++) {
+    				items[i].setStyle({
+    					transform: 'translate3d(0,0,0)',
+                        opacity: 1,
+                        visibility: 'visible',
+                        transition: '' // 移除 transition
+    				});
+    			}
+				itemsCache = null;
+				floatingItemCache = null;
+				lastAutoScrollCall = 0;
+            }
+		}
+	}
+    
+    function onScrollTopChange(newValue, oldValue, ownerInstance, instance) {
+        currentScrollTop = newValue;
+    }
+    
+    function onWrapperTouchStart(event, ownerInstance) {
+        var touch = event.touches[0];
+        if (touch) {
+            startY = touch.clientY;
+        }
+    }
+    
+    function onHandleTouchStart(event, ownerInstance) {
+        var instance = event.instance;
+        var dataset = instance.getDataset();
+        var index = dataset.index;
+        
+        if (index !== undefined) {
+             // 先记录触摸位置
+             var touch = event.touches[0];
+             if (touch) {
+                 startY = touch.clientY;
+             }
+             
+             // 调用 Vue 层开始拖拽
+             ownerInstance.callMethod('startDrag', index);
+             
+             // 等待 Vue 层更新状态后，再计算 offset
+             // 这里使用 setTimeout 确保 Vue 层状态已更新
+             ownerInstance.setTimeout(function() {
+                 if (itemRects.length > 0) {
+                     for (var i = 0; i < itemRects.length; i++) {
+                        if (itemRects[i].dataset && itemRects[i].dataset.index === index) {
+                            var currentVisualTop = itemRects[i].absTop - currentScrollTop + containerTop;
+                            dragOffsetY = startY - currentVisualTop;
+                            dragItemHeight = itemRects[i].height;
+                            break;
+                        }
+                     }
+                 } else {
+                     // 如果没有 rects，使用默认值
+                     dragOffsetY = 50; // 默认偏移
+                 }
+             }, 10);
+        }
+    }
+	
+	function onTouchMove(event, ownerInstance) {
+		if (!isDragging) return;
+		
+		var touch = event.touches[0];
+		if (!touch) return;
+		
+		var touchY = touch.clientY; // Viewport Y
+        
+		var now = Date.now();
+		if (now - lastAutoScrollCall >= AUTO_SCROLL_THROTTLE) {
+			ownerInstance.callMethod('handleWxsAutoScroll', { touchY: touchY });
+			lastAutoScrollCall = now;
+		}
+		
+        if (dragOffsetY === 0 && dragItemHeight > 0) {
+             dragOffsetY = dragItemHeight / 2;
+        }
+        
+        // 1. 移动浮动项 (Visual - Viewport Relative)
+		var targetVisualTop = touchY - dragOffsetY;
+		var floatingItem = floatingItemCache || ownerInstance.selectComponent('.floating-msg-item');
+		floatingItemCache = floatingItem;
+		if (floatingItem) {
+			floatingItem.setStyle({
+				top: targetVisualTop + 'px'
+			});
+		}
+		
+		// 2. 计算交换 (Absolute Coordinates Logic)
+        // 当前手指对应的绝对位置中心
+        // touchAbsY = touchY - containerTop + currentScrollTop
+        // dragCenterAbsY = (touchY - dragOffsetY) - containerTop + currentScrollTop + dragItemHeight/2
+        var dragTopAbsY = targetVisualTop - containerTop + currentScrollTop;
+        var dragCenterAbsY = dragTopAbsY + dragItemHeight / 2;
+        
+        // 找到 placeholder 对应的 itemRects 索引
+        // itemRects 是按初始 DOM 顺序 (data index) 排序的?
+        // 我们需要按 "当前视觉顺序" 检查
+        // 但其实 itemRects 数组本身的顺序通常就是列表顺序 (0, 1, 2...)
+        // 我们假设 itemRects[k] 对应 visibleMessageList[k]
+        
+        // 找到 placeholderIndex 目前在哪
+        var currentPlaceholderRectIndex = -1;
+        for (var i = 0; i < itemRects.length; i++) {
+            if (itemRects[i].dataset.index === placeholderIndex) {
+                currentPlaceholderRectIndex = i;
+                break;
+            }
+        }
+        
+        if (currentPlaceholderRectIndex === -1) return;
+        
+        var swapTargetIndex = -1;
+        
+        // 检查前一个项 (Visual Previous)
+        // 注意：placeholderIndex 是数据索引。itemRects 是数据顺序。
+        // 如果 placeholderIndex > 0，前一个数据项是 placeholderIndex - 1 ?
+        // 不一定，如果有过滤。假设 rects 是连续的。
+        // 简单策略：遍历所有 rect，看 dragCenterAbsY 落在哪个 rect 的 "前半段" 或 "后半段"
+        
+        // 改进策略：越过中线交换 (Cross Midline)
+        // 遍历所有 rects
+        for (var i = 0; i < itemRects.length; i++) {
+            var rect = itemRects[i];
+            var rectIndex = rect.dataset.index;
+            
+            // 跳过自己
+            if (rectIndex === placeholderIndex) continue;
+            
+            var rectCenter = rect.absTop + rect.height / 2;
+            
+            // 判断逻辑：
+            // 如果 placeholder 在 i 之前 (placeholderIndex < rectIndex)
+            // 我们向下拖，当 dragCenter > rectCenter 时，交换
+            // 此时 placeholder 变成 rectIndex (或者说 rectIndex 移到 placeholder 之前)
+            
+            // 如果 placeholder 在 i 之后 (placeholderIndex > rectIndex)
+            // 我们向上拖，当 dragCenter < rectCenter 时，交换
+            
+            // 限制：只和相邻的交换？
+            // 为了避免跳跃，我们只检查 "视觉相邻" 的项。
+            // 但 "视觉相邻" 比较难判断，因为 transform 改变了视觉位置。
+            // 不过 itemRects 存储的是 "Slot" (槽位)。
+            // 我们只需要看 dragCenter 落在哪个 Slot 的范围内。
+            
+            if (dragCenterAbsY > rect.absTop && dragCenterAbsY < (rect.absTop + rect.height)) {
+                // 落在 rect i 的范围内
+                // 检查是否越过中线
+                if (placeholderIndex < rectIndex) {
+                    // 向下：必须越过中线 (dragCenter > rectCenter)
+                     if (dragCenterAbsY > rectCenter) {
+                         swapTargetIndex = rectIndex;
+                     }
+                } else {
+                    // 向上：必须越过中线 (dragCenter < rectCenter)
+                    if (dragCenterAbsY < rectCenter) {
+                        swapTargetIndex = rectIndex;
+                    }
+                }
+            }
+        }
+        
+        if (swapTargetIndex !== -1 && swapTargetIndex !== placeholderIndex) {
+            var now = Date.now();
+            if (now - lastSwapTime > SWAP_COOLDOWN) {
+                placeholderIndex = swapTargetIndex;
+                lastSwapTime = now;
+                ownerInstance.callMethod('wxsVibrate');
+                updateListTransforms(ownerInstance);
+            }
+        }
+	}
+	
+	function updateListTransforms(ownerInstance) {
+		var items = itemsCache || ownerInstance.selectAllComponents('.msg-item-wrapper');
+		itemsCache = items;
+		
+		for (var i = 0; i < items.length; i++) {
+			var item = items[i];
+			var index = item.getDataset().index;
+			
+			if (index == dragStartIndex) {
+				item.setStyle({ opacity: 0, visibility: 'hidden' });
+				continue;
+			}
+			
+			var transform = 'translate3d(0,0,0)';
+			
+			if (dragStartIndex < placeholderIndex) {
+				if (index > dragStartIndex && index <= placeholderIndex) {
+					transform = 'translate3d(0, -' + dragItemHeight + 'px, 0)';
+				}
+			}
+			else if (dragStartIndex > placeholderIndex) {
+				if (index >= placeholderIndex && index < dragStartIndex) {
+					transform = 'translate3d(0, ' + dragItemHeight + 'px, 0)';
+				}
+			}
+			
+			item.setStyle({
+				opacity: 1,
+				visibility: 'visible',
+				transform: transform,
+				transition: 'transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1)' // 确保动画平滑
+			});
+		}
+	}
+	
+	function onTouchEnd(event, ownerInstance) {
+		if (!isDragging) return;
+        
+        // 立即结束拖拽，不等待动画，减少卡顿
+        finishDrag(ownerInstance);
+        
+        // 可选：如果需要动画效果，异步执行但不阻塞状态清理
+        var floatingItem = ownerInstance.selectComponent('.floating-msg-item');
+        if (floatingItem) {
+            // 快速隐藏浮动项
+            floatingItem.setStyle({
+                opacity: 0,
+                transition: 'opacity 0.1s'
+            });
+        }
+	}
+    
+    function finishDrag(ownerInstance) {
+        ownerInstance.callMethod('onWxsDragEnd', {
+			from: dragStartIndex,
+			to: placeholderIndex
+		});
+		isDragging = false;
+		dragOffsetY = 0;
+		itemsCache = null;
+		floatingItemCache = null;
+		lastAutoScrollCall = 0;
+    }
+
+	module.exports = {
+        onWrapperTouchStart: onWrapperTouchStart,
+        onHandleTouchStart: onHandleTouchStart,
+		onTouchMove: onTouchMove,
+		onTouchEnd: onTouchEnd,
+		updateDragData: updateDragData,
+        onScrollTopChange: onScrollTopChange
+	}
+</script>
 
 <script>
 	import ExternalPayCard from '../../components/ExternalPayCard/ExternalPayCard.vue'; // 路径根据你存放的位置调整
@@ -625,7 +1158,6 @@
 						parsedGuestInfo = JSON.parse(rawGuestInfo);
 					}
 					this.guestInfo = parsedGuestInfo;
-					console.log(this.guestInfo);
 					this.massageList = JSON.parse(this.guestInfo.content || '[]') || [];
 					// 初始化虚拟滚动
 					this.$nextTick(() => {
@@ -639,7 +1171,6 @@
 			}
 			// 获取账号信息
 			const userId = uni.getStorageSync('userId')
-			console.log(userId);
 			this.getUserInfo(userId)
 			this.isIos = uni.getSystemInfoSync().platform === 'ios'
 			if (!this.isIos) {
@@ -663,6 +1194,31 @@
 			this.$forceUpdate()
 
 
+		},
+		onUnload() {
+			// 清理所有定时器
+			if (this.scrollTimer) {
+				clearTimeout(this.scrollTimer);
+				this.scrollTimer = null;
+			}
+			if (this.autoScrollTimer) {
+				clearInterval(this.autoScrollTimer);
+				this.autoScrollTimer = null;
+			}
+			if (this.longPressTimer) {
+				clearTimeout(this.longPressTimer);
+				this.longPressTimer = null;
+			}
+			
+			// 移除键盘高度监听器
+			uni.offKeyboardHeightChange();
+			
+			// 重置拖拽状态
+			this.resetDragState();
+			
+			// 清理缓存（可选，如果内存紧张）
+			// this.messageParseCache.clear();
+			// this.itemHeightCache.clear();
 		},
 		data() {
 			return {
@@ -907,11 +1463,19 @@
 				enableLongPressDrag: false, // 控制长按拖拽功能
 				
 				// 拖拽相关
-				dragStartIndex: -1, // 拖拽开始的消息索引
-				dragOverIndex: -1, // 拖拽悬停的消息索引
+				dragStartIndex: -1, // 拖拽开始的消息索引 (在数据源中的索引)
+				dragOverIndex: -1, // 拖拽悬停的消息索引 (废弃，使用 placeholderIndex)
 				isDragging: false, // 是否正在拖拽
+				isSortingMode: false, // 是否处于排序模式
+				draggingItem: null, // 当前拖拽的消息对象 (用于浮动显示)
+				draggingItemParsedContent: [], // 缓存拖拽项的解析内容
+				dragItemHeight: 0, // 拖拽项的高度
+				dragY: 0, // 浮动项的 Y 坐标
+				placeholderIndex: -1, // 占位符当前的索引 (视觉上的位置)
+				dragOffsetY: 0, // 手指相对于 item 顶部的偏移
 				dragStartY: 0, // 拖拽开始的Y坐标
 				longPressTimer: null, // 长按定时器
+				autoScrollTimer: null, // 自动滚动定时器
 				touchStartTime: 0, // 触摸开始时间
 
 				// 表情相关
@@ -980,7 +1544,22 @@
 					fontSize: 16
 				},
 				// 存储每张图片的显示尺寸
-				imageSizes: {}
+				imageSizes: {},
+				// WXS 交互数据
+				wxsDragData: {
+					isDragging: false,
+					dragStartIndex: -1,
+					rects: [],
+					initialScrollTop: 0,
+					scrollTop: 0
+				},
+				originalMessageList: [], // 备份原始列表
+				// cachedItemRects: [], // 移至非响应式数据
+				// initialScrollTop: 0 // 移至非响应式数据
+				// 消息解析缓存
+				messageParseCache: new Map(), // 缓存 parseMessage 结果
+				// 实际消息高度缓存（用于虚拟滚动）
+				itemHeightCache: new Map() // key: index, value: height
 			};
 		},
 		computed: {
@@ -1034,6 +1613,12 @@
 					`<svg width="${spacing}" height="${height}" xmlns="http://www.w3.org/2000/svg"><text x="50%" y="50%" font-size="${fontSize}" fill="rgba(0,0,0,0.12)" text-anchor="middle" dominant-baseline="middle" transform="rotate(-20 ${spacing / 2} ${height / 2})" font-family="-apple-system, BlinkMacSystemFont, PingFang SC, Helvetica Neue, Microsoft YaHei, Roboto, Noto Sans CJK SC, sans-serif">${text}</text></svg>`;
 				return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 			},
+			currentMenuActions() {
+				if (this.activeMsgIndex !== -1 && this.massageList[this.activeMsgIndex]) {
+					return this.getMessageMenuActions(this.massageList[this.activeMsgIndex]);
+				}
+				return [];
+			},
 			chatBodyStyle() {
 				const style = {};
 				const backgrounds = [];
@@ -1070,6 +1655,10 @@
 			}
 		},
 		mounted() {
+			// 非响应式数据初始化
+			this.cachedItemRects = [];
+			this.initialScrollTop = 0;
+			
 			// 初始化虚拟滚动
 			this.initVirtualScroll();
 			this.scrollToBottom({ initial: true });
@@ -1248,7 +1837,11 @@
 					const upxHeight = (height / screenWidth) * designWidth;
 
 					// 计算显示尺寸
-					this.calculateImageSize(upxWidth, upxHeight, imageKey);
+					const size = this.calculateImageSize(upxWidth, upxHeight, imageKey);
+					
+					// 缓存实际高度用于虚拟滚动（转换为px，复用上面的变量）
+					const actualHeightPx = (size.height / designWidth) * screenWidth;
+					this.itemHeightCache.set(index, actualHeightPx + 20); // 20px 是消息的 padding/margin
 
 					// 强制更新视图
 					this.$forceUpdate();
@@ -1363,8 +1956,27 @@
 			
 			// 更新可见区域范围
 			updateVisibleRange(scrollTop) {
-				// 计算可见区域的起始和结束索引
-				const startIndex = Math.floor(scrollTop / this.estimatedItemHeight);
+				// 拖拽过程中暂停虚拟滚动更新，防止DOM节点变化导致坐标计算错误
+				if (this.isDragging) return;
+
+				// 使用实际高度缓存计算可见区域（如果可用）
+				let startIndex = 0;
+				if (this.itemHeightCache.size > 0) {
+					// 使用实际高度累加计算
+					let accumulatedHeight = 0;
+					for (let i = 0; i < this.massageList.length; i++) {
+						const itemHeight = this.itemHeightCache.get(i) || this.estimatedItemHeight;
+						if (accumulatedHeight + itemHeight > scrollTop) {
+							startIndex = i;
+							break;
+						}
+						accumulatedHeight += itemHeight;
+					}
+				} else {
+					// 回退到估算高度
+					startIndex = Math.floor(scrollTop / this.estimatedItemHeight);
+				}
+				
 				const visibleCount = Math.ceil(this.containerHeight / this.estimatedItemHeight) + this.scrollBuffer * 2;
 				
 				this.visibleStartIndex = Math.max(0, startIndex - this.scrollBuffer);
@@ -1407,10 +2019,6 @@
 							}, res => {
 								if (!res) return;
 								
-								console.log('内容总高度:', res.scrollHeight);
-								console.log('可视区域高度:', res.height);
-								console.log('当前滚动位置:', res.scrollTop);
-								
 								// 更新容器高度（用于虚拟滚动）
 								if (res.height) {
 									this.containerHeight = res.height;
@@ -1426,7 +2034,6 @@
 								}
 
 								if (shouldScroll) {
-									console.log('滚动到底部');
 									this.scrollTop = res.scrollHeight;
 									
 									// 如果是虚拟滚动，更新可见范围到底部
@@ -1443,7 +2050,6 @@
 										}, 60);
 									}
 								} else {
-									console.log('内容未超出，不滚动');
 									// 不需要滚动也标记首屏已处理，避免后续误触发
 									if (opts.initial && !this._hasInitialAutoScroll) {
 										this._hasInitialAutoScroll = true;
@@ -1484,7 +2090,6 @@
 				})
 			},
 			goCollection(item) {
-				console.log("---");
 				uni.navigateTo({
 					url: "/pages/collectionSuccess/collectionSuccess?info=" + encodeURIComponent(JSON.stringify(
 						item.content))
@@ -1494,9 +2099,16 @@
 				this.guestInfo.content = JSON.stringify(this.massageList)
 
 				updateConversation(this.guestInfo.conversationId, this.guestInfo)
+					.catch(err => {
+						console.error('更新消息失败:', err);
+						uni.showToast({
+							title: '保存失败，请重试',
+							icon: 'none',
+							duration: 2000
+						});
+					});
 			},
 			deleteMessage_1(index) {
-				console.log(index);
 				this.massageList.splice(index, 1);
 				this.activeMsgIndex = -1; // 清除激活状态
 				this.popupVisible = false;
@@ -1537,26 +2149,38 @@
 				);
 
 				// 计算菜单位置，确保不超出屏幕
-				// 优先以触摸点为中心，但如果会超出边界则调整
-				let left = clientX - estimatedMenuWidth / 2;
-				
-				// 确保不超出左边界
-				if (left < 10) {
-					left = 10;
-				}
+				// 改为左对齐：以触摸点为左边界
+				let left = clientX;
 				
 				// 确保不超出右边界
 				if (left + estimatedMenuWidth > windowWidth - 10) {
+					// 如果右边放不下，就靠右对齐（或者向左偏移）
 					left = windowWidth - estimatedMenuWidth - 10;
 				}
+				
+				// 确保不超出左边界（虽然以 clientX 开始通常不会，但为了保险）
+				if (left < 10) {
+					left = 10;
+				}
 
-				// 计算顶部位置，确保不超出视口
-				let top = clientY - 80;
+				// 计算顶部位置，显示在触摸点下方
+				// 触摸点下方预留一些间距，例如 20px
+				let top = clientY + 20;
 				const estimatedMenuHeight = Math.ceil(itemCount / Math.floor(maxMenuWidth / estimatedItemWidth)) * 100 + 30; // 估算高度
 				
-				// 如果菜单会超出底部，则显示在触摸点上方
+				// 检查底部是否溢出
 				if (top + estimatedMenuHeight > windowHeight - 20) {
-					top = clientY - estimatedMenuHeight - 20;
+					// 如果底部放不下，尝试放在上方
+					// 上方位置 = 触摸点 - 菜单高度 - 间距
+					const topAbove = clientY - estimatedMenuHeight - 20;
+					
+					// 如果上方能放下，或者上方空间比下方大，就放上方
+					if (topAbove > 10 || (clientY > windowHeight / 2)) {
+						top = topAbove;
+					} else {
+						// 实在放不下，就贴底显示
+						top = windowHeight - estimatedMenuHeight - 10;
+					}
 				}
 				
 				// 确保不超出顶部
@@ -1642,11 +2266,16 @@
 				this.closePopupMenu();
 			},
 			async getUserInfo(userId) {
-				console.log("执行用户信息获取", userId);
-				const res = await getUserInfo(userId)
-				console.log(res);
-				this.userInfo = res.data
-
+				try {
+					const res = await getUserInfo(userId)
+					this.userInfo = res.data
+				} catch (err) {
+					console.error('获取用户信息失败:', err);
+					uni.showToast({
+						title: '获取用户信息失败',
+						icon: 'none'
+					});
+				}
 			},
 			onVideoSubmit(data) {
 				const location = this.isMe ? 1 : 0;
@@ -1667,41 +2296,53 @@
 			},
 
 			async onCradSubmitz(data) {
-				console.log(data);
-				const res = await uploadImage(data.avatar, this.guestInfo.userId)
-				const temp = data
-				temp.avatar = res.data
-				const location = this.isMe ? 1 : 0;
-				const transferInfo = {
-					type: "content", // tips, content
-					contentType: "crad", //order , chat ,link
-					location, // 1 表示我方
-					content: temp
-				};
+				try {
+					const res = await uploadImage(data.avatar, this.guestInfo.userId)
+					const temp = data
+					temp.avatar = res.data
+					const location = this.isMe ? 1 : 0;
+					const transferInfo = {
+						type: "content", // tips, content
+						contentType: "crad", //order , chat ,link
+						location, // 1 表示我方
+						content: temp
+					};
 
-				// console.log(data);
-				this.massageList.push(transferInfo);
-				this.updateMsg()
+					this.massageList.push(transferInfo);
+					this.updateMsg()
+				} catch (err) {
+					console.error('上传名片头像失败:', err);
+					uni.showToast({
+						title: '上传失败，请重试',
+						icon: 'none'
+					});
+				}
 			},
 			onBgSubmit(data) {
 				this.contentbg = data.avatar
 			},
 			async onPhotoSubmit(data) {
-				console.log(data.avatar);
-				const res = await uploadImage(data.avatar, this.guestInfo.userId)
+				try {
+					const res = await uploadImage(data.avatar, this.guestInfo.userId)
 
-				const location = this.isMe ? 1 : 0;
-				const photoInfo = {
-					type: "content", // tips, content
-					contentType: "photo", //order , chat ,link
-					location, // 1 表示我方
-					content: {
-						avatar: res.data
-					}
-				};
-				console.log(photoInfo);
-				this.massageList.push(photoInfo);
-				this.updateMsg()
+					const location = this.isMe ? 1 : 0;
+					const photoInfo = {
+						type: "content", // tips, content
+						contentType: "photo", //order , chat ,link
+						location, // 1 表示我方
+						content: {
+							avatar: res.data
+						}
+					};
+					this.massageList.push(photoInfo);
+					this.updateMsg()
+				} catch (err) {
+					console.error('上传图片失败:', err);
+					uni.showToast({
+						title: '上传失败，请重试',
+						icon: 'none'
+					});
+				}
 			},
 			onTransferSubmit(data) {
 				const location = this.isMe ? 1 : 0;
@@ -1725,21 +2366,27 @@
 				this.updateMsg()
 			},
 			async onCradSubmit(data) {
-				console.log(data);
-				const res = await uploadImage(data.avatar, this.guestInfo.userId)
-				const temp = data
-				temp.avatar = res.data
-				const location = this.isMe ? 1 : 0;
-				const transferInfo = {
-					type: "content", // tips, content
-					contentType: "crad", //order , chat ,link
-					location, // 1 表示我方
-					content: temp
-				};
+				try {
+					const res = await uploadImage(data.avatar, this.guestInfo.userId)
+					const temp = data
+					temp.avatar = res.data
+					const location = this.isMe ? 1 : 0;
+					const transferInfo = {
+						type: "content", // tips, content
+						contentType: "crad", //order , chat ,link
+						location, // 1 表示我方
+						content: temp
+					};
 
-				// console.log(data);
-				this.massageList.push(transferInfo);
-				this.updateMsg()
+					this.massageList.push(transferInfo);
+					this.updateMsg()
+				} catch (err) {
+					console.error('上传名片头像失败:', err);
+					uni.showToast({
+						title: '上传失败，请重试',
+						icon: 'none'
+					});
+				}
 			},
 			onOrderSubmit(data) {
 				const location = this.isMe ? 1 : 0
@@ -1822,13 +2469,10 @@
 
 
 			onSwitchChange(e) {
-				console.log(e);
 				this.isMe = !this.isMe;
-				console.log("当前开关状态：", this.isMe);
 			},
 
 			onLongPressPopupChange(e) {
-				console.log(e);
 				const newValue = e.detail.value;
 				
 				// 如果开启长按弹框，则关闭长按拖拽
@@ -1837,7 +2481,6 @@
 				}
 				
 				this.enableLongPressPopup = newValue;
-				console.log("长按弹框功能状态：", this.enableLongPressPopup);
 
 				// 如果关闭长按弹框功能，同时关闭当前显示的弹框
 				if (!this.enableLongPressPopup) {
@@ -1854,7 +2497,6 @@
 			},
 			
 			onLongPressDragChange(e) {
-				console.log(e);
 				const newValue = e.detail.value;
 				
 				// 如果开启长按拖拽，则关闭长按弹框
@@ -1866,7 +2508,6 @@
 				}
 				
 				this.enableLongPressDrag = newValue;
-				console.log("长按拖拽功能状态：", this.enableLongPressDrag);
 
 				// 显示状态提示
 				uni.showToast({
@@ -1877,8 +2518,6 @@
 			},
 			onSelect(type) {
 				// 处理选择事件
-				console.log('Selected:', type);
-				// const key = type
 				switch (type) {
 					case "order":
 						this.$refs.orderPopup.open()
@@ -1956,14 +2595,12 @@
 				});
 			},
 			onEnterKey() {
-				console.log(this.inputValue);
 				this.addMsgcomm(this.inputValue)
 				this.inputValue = '';
 				this.scrollToBottom()
 			},
 			addMsgcomm(inputValue) {
 				if (inputValue.trim()) {
-					console.log('用户输入内容:', inputValue);
 					// 这里可以添加发送消息的逻辑
 					const location = this.isMe ? 1 : 0
 					const msgInfo = {
@@ -2074,7 +2711,6 @@
 
 			// 消息插入提交 (模仿wxChat)
 			addMsgSubmit(data) {
-				console.log(data.msg);
 				this.addMsgcomm(data.msg);
 			},
 
@@ -2128,6 +2764,11 @@
 					type: 'text',
 					content: ''
 				}];
+
+				// 使用缓存避免重复解析
+				if (this.messageParseCache.has(msg)) {
+					return this.messageParseCache.get(msg);
+				}
 
 				const result = [];
 				// 创建一个包含所有需要匹配的模式的正则表达式
@@ -2189,6 +2830,14 @@
 						content: msg
 					});
 				}
+
+				// 缓存结果（限制缓存大小，避免内存泄漏）
+				if (this.messageParseCache.size > 100) {
+					// 删除最旧的缓存项
+					const firstKey = this.messageParseCache.keys().next().value;
+					this.messageParseCache.delete(firstKey);
+				}
+				this.messageParseCache.set(msg, result);
 
 				return result;
 			},
@@ -2285,312 +2934,533 @@
 			},
 			
 			// 拖拽相关方法
-			onMsgTouchStart(e, index) {
-				if (!this.enableLongPressDrag) return;
+			getContentTypeLabel(item) {
+				const map = {
+					tips: '提示',
+					order: '订单',
+					transfer: '转账',
+					photo: '图片',
+					redBag: '红包',
+					file: '文件',
+					yuyin: '语音',
+					crad: '名片',
+					video: '视频'
+				};
+				return map[item.contentType] || '未知消息';
+			},
+
+			getItemStyle(index) {
+				if (!this.isDragging) return {};
 				
-				this.touchStartTime = Date.now();
-				this.dragStartIndex = index;
-				if (e.touches && e.touches[0]) {
-					this.dragStartY = e.touches[0].clientY;
+				// 被拖拽的原位置元素隐藏（占位符）
+				if (index === this.dragStartIndex) {
+					return { opacity: 0, visibility: 'hidden' };
 				}
 				
-				// 清除之前的定时器
-				if (this.longPressTimer) {
-					clearTimeout(this.longPressTimer);
+				const style = {
+					transition: 'transform 0.2s ease'
+				};
+				
+				// 计算位移
+				// 向下拖拽：dragStartIndex < placeholderIndex
+				// index 在 (dragStartIndex, placeholderIndex] 之间 -> 上移
+				if (this.dragStartIndex < this.placeholderIndex) {
+					if (index > this.dragStartIndex && index <= this.placeholderIndex) {
+						style.transform = `translateY(-${this.dragItemHeight}px)`;
+					}
+				}
+				// 向上拖拽：dragStartIndex > placeholderIndex
+				// index 在 [placeholderIndex, dragStartIndex) 之间 -> 下移
+				else if (this.dragStartIndex > this.placeholderIndex) {
+					if (index >= this.placeholderIndex && index < this.dragStartIndex) {
+						style.transform = `translateY(${this.dragItemHeight}px)`;
+					}
 				}
 				
-				// 保存事件对象用于后续使用
-				const touchEvent = e;
-				
-				// 设置长按定时器（500ms后开始拖拽）
-				this.longPressTimer = setTimeout(() => {
-					this.startDrag(touchEvent, index);
-				}, 500);
+				return style;
+			},
+
+			exitSortingMode() {
+				this.isSortingMode = false;
+				this.originalMessageList = []; // 清空备份
+				this.resetDragState();
 			},
 			
-			onMsgTouchMove(e, index) {
+			restoreDefaultSort() {
+				if (this.originalMessageList.length > 0) {
+					this.massageList = JSON.parse(JSON.stringify(this.originalMessageList));
+					this.updateMsg();
+					uni.showToast({
+						title: '已恢复默认',
+						icon: 'none'
+					});
+					this.resetDragState();
+					
+					// 重新测量位置
+					this.$nextTick(() => {
+						const query = uni.createSelectorQuery().in(this);
+						query.selectAll('.msg-item-wrapper').boundingClientRect((rects) => {
+							if (rects && rects.length > 0) {
+								this.cachedItemRects = rects;
+								this.wxsDragData = {
+									...this.wxsDragData,
+									rects: rects
+								};
+							}
+						}).exec();
+					});
+				}
+			},
+			
+			// WXS 调用：处理自动滚动
+			handleWxsAutoScroll(data) {
+				const { touchY } = data;
+				this.checkAutoScroll(touchY);
+			},
+
+			onMsgLongPress(e, index) {
+				// 只有开启了长按拖拽功能才执行
 				if (!this.enableLongPressDrag) {
-					// 如果拖拽功能被关闭，重置所有状态
-					if (this.isDragging || this.dragOverIndex !== -1) {
-						this.dragStartIndex = -1;
-						this.dragOverIndex = -1;
-						this.isDragging = false;
-						this.$forceUpdate();
-					}
+					// 如果拖拽未开启，尝试触发普通长按菜单
+					this.showPopupMenu(e, index);
 					return;
 				}
+
+				// 如果正在拖拽，先强制结束当前拖拽
+				if (this.isDragging) {
+					// 保存旧的拖拽索引，用于判断是否是同一个消息
+					const oldDragStartIndex = this.dragStartIndex;
+					
+					// 提交当前拖拽的移动（如果有）
+					if (this.dragStartIndex !== this.placeholderIndex && this.placeholderIndex !== -1 && this.dragStartIndex !== -1) {
+						this.moveMessage(this.dragStartIndex, this.placeholderIndex);
+					}
+					
+					// 强制结束当前拖拽
+					this.forceEndDrag();
+					
+					// 如果点击的是同一个消息，不重新开始拖拽
+					if (oldDragStartIndex === index) {
+						return;
+					}
+					
+					// 立即开始新的拖拽
+					this.$nextTick(() => {
+						this.touchStartTime = Date.now();
+						if (e.touches && e.touches[0]) {
+							this.dragStartY = e.touches[0].clientY;
+						}
+						
+						// 如果已经在排序模式，直接开始新拖拽
+						if (this.isSortingMode) {
+							this.startNewDrag(e, index);
+						} else {
+							this.enterSortingMode(e, index);
+						}
+					});
+					return;
+				}
+
+				// 如果不在拖拽状态，正常开始
+				if (!this.isDragging) {
+					// 记录触摸开始 (WXS 会自动处理 touchstart，这里主要是逻辑状态)
+					this.touchStartTime = Date.now();
+					if (e.touches && e.touches[0]) {
+						this.dragStartY = e.touches[0].clientY;
+					}
+					
+					// 触发排序模式/拖拽
+					this.enterSortingMode(e, index);
+				}
+			},
+			
+			// WXS 回调: 震动
+			wxsVibrate() {
+				try { uni.vibrateShort({ type: 'light' }); } catch(e) {}
+			},
+			
+			// WXS 回调: 拖拽结束
+			onWxsDragEnd(data) {
+				const { from, to } = data;
 				
-				// 如果移动距离超过10px，取消长按定时器
-				if (this.longPressTimer && e.touches && e.touches[0]) {
-					const currentY = e.touches[0].clientY;
-					const moveY = Math.abs(currentY - this.dragStartY);
-					if (moveY > 10) {
-						clearTimeout(this.longPressTimer);
-						this.longPressTimer = null;
+				// 提交移动（如果有）- 先提交，再清理状态
+				if (from !== to && to !== -1 && from !== -1) {
+					this.moveMessage(from, to);
+				}
+				
+				// 立即清理拖拽状态，不等待异步操作，确保可以立即响应新的长按
+				this.isDragging = false;
+				this.draggingItem = null;
+				this.dragStartIndex = -1;
+				this.placeholderIndex = -1;
+				
+				// 清理自动滚动
+				if (this.autoScrollTimer) {
+					clearInterval(this.autoScrollTimer);
+					this.autoScrollTimer = null;
+				}
+				
+				// 立即更新 WXS 状态，确保状态同步
+				this.wxsDragData = {
+					...this.wxsDragData,
+					isDragging: false,
+					dragStartIndex: -1
+				};
+				
+				// 重新测量位置（异步执行，不阻塞状态清理）
+				// 这很重要，因为列表顺序可能已经改变
+				if (this.isSortingMode) {
+					// 使用 $nextTick 确保 DOM 更新完成
+					this.$nextTick(() => {
+						// 使用 requestAnimationFrame 优化性能，减少延迟
+						if (typeof requestAnimationFrame !== 'undefined') {
+							requestAnimationFrame(() => {
+								this.updateItemRects();
+							});
+						} else {
+							// 兼容不支持 requestAnimationFrame 的环境
+							setTimeout(() => {
+								this.updateItemRects();
+							}, 16); // 约一帧的时间
+						}
+					});
+				}
+			},
+			
+			// 更新消息项位置信息（用于拖拽）
+			updateItemRects() {
+				const query = uni.createSelectorQuery().in(this);
+				query.select('.chat-body').boundingClientRect(containerRect => {
+					const itemQuery = uni.createSelectorQuery().in(this);
+					itemQuery.selectAll('.msg-item-wrapper').boundingClientRect((rects) => {
+						if (rects && rects.length > 0) {
+							this.cachedItemRects = rects;
+							// 更新 WXS 数据，但不改变拖拽状态
+							this.wxsDragData = {
+								...this.wxsDragData,
+								rects: rects,
+								containerTop: containerRect ? containerRect.top : 0
+							};
+						}
+					}).exec();
+				}).exec();
+			},
+
+			// WXS 调用：开始拖拽 (通过把手)
+			startDrag(index) {
+				if (!this.isSortingMode) return;
+				if (this.isDragging) return;
+				
+				this.startNewDrag(null, index);
+			},
+			
+			// 开始新的拖拽（内部方法，用于统一处理拖拽开始逻辑）
+			startNewDrag(e, index) {
+				if (this.isDragging) return;
+				
+				this.dragStartIndex = index;
+				this.placeholderIndex = index;
+				this.isDragging = true;
+				this.draggingItem = this.massageList[index];
+				
+				if (this.draggingItem.contentType === 'chat') {
+					this.draggingItemParsedContent = this.parseMessage(this.draggingItem.content);
+				} else {
+					this.draggingItemParsedContent = [];
+				}
+				
+				try { uni.vibrateShort({ type: 'light' }); } catch (e) {}
+				
+				// 初始化滚动位置
+				this.initialScrollTop = this.scrollPosition;
+				
+				// 如果已有缓存的 rects，先使用缓存，然后异步更新
+				if (this.cachedItemRects && this.cachedItemRects.length > 0) {
+					// 立即更新 WXS 数据，使用缓存的 rects
+					const query = uni.createSelectorQuery().in(this);
+					query.select('.chat-body').boundingClientRect(containerRect => {
+						this.wxsDragData = {
+							isDragging: true,
+							dragStartIndex: index,
+							rects: this.cachedItemRects,
+							initialScrollTop: this.initialScrollTop,
+							containerTop: containerRect ? containerRect.top : 0,
+							scrollTop: this.scrollPosition
+						};
+						
+						// 获取当前项的高度
+						const relativeIndex = this.visibleMessageList.findIndex(item => item.index === index);
+						if (relativeIndex !== -1 && this.cachedItemRects[relativeIndex]) {
+							const rect = this.cachedItemRects[relativeIndex];
+							this.dragItemHeight = rect.height;
+							this.dragY = rect.top; 
+						}
+					}).exec();
+				}
+				
+				// 异步更新位置信息（确保使用最新数据）
+				const query = uni.createSelectorQuery().in(this);
+				query.select('.chat-body').boundingClientRect(containerRect => {
+					const itemQuery = uni.createSelectorQuery().in(this);
+					itemQuery.selectAll('.msg-item-wrapper').boundingClientRect((rects) => {
+						if (rects && rects.length > 0) {
+							this.cachedItemRects = rects;
+							
+							// 更新 WXS 数据（使用最新测量的 rects）
+							this.wxsDragData = {
+								isDragging: true,
+								dragStartIndex: index,
+								rects: rects,
+								initialScrollTop: this.initialScrollTop,
+								containerTop: containerRect ? containerRect.top : 0,
+								scrollTop: this.scrollPosition
+							};
+							
+							// 获取当前项的高度
+							const relativeIndex = this.visibleMessageList.findIndex(item => item.index === index);
+							if (relativeIndex !== -1 && rects[relativeIndex]) {
+								const rect = rects[relativeIndex];
+								this.dragItemHeight = rect.height;
+								this.dragY = rect.top; 
+							}
+						}
+					}).exec();
+				}).exec();
+			},
+
+			enterSortingMode(e, index) {
+				if (this.isDragging) return;
+				
+				this.isSortingMode = true;
+				// 备份原始列表
+				if (this.originalMessageList.length === 0) {
+					this.originalMessageList = JSON.parse(JSON.stringify(this.massageList));
+				}
+				
+				this.dragStartIndex = index;
+				this.placeholderIndex = index;
+				this.isDragging = true;
+				this.draggingItem = this.massageList[index];
+				
+				// 预先解析消息内容
+				if (this.draggingItem.contentType === 'chat') {
+					this.draggingItemParsedContent = this.parseMessage(this.draggingItem.content);
+				} else {
+					this.draggingItemParsedContent = [];
+				}
+				
+				// 震动反馈
+				try { uni.vibrateShort(); } catch (e) {}
+				
+				// 初始化滚动位置
+				this.initialScrollTop = this.scrollPosition;
+				
+				// 缓存位置信息并传递给 WXS
+				const query = uni.createSelectorQuery().in(this);
+				// 获取容器位置
+				query.select('.chat-body').boundingClientRect(containerRect => {
+					// 获取所有 item 位置
+					const itemQuery = uni.createSelectorQuery().in(this);
+					itemQuery.selectAll('.msg-item-wrapper').boundingClientRect((rects) => {
+						if (rects && rects.length > 0) {
+							this.cachedItemRects = rects;
+							
+							// 更新 WXS 数据，通知 WXS 开始接管
+							this.wxsDragData = {
+								isDragging: true,
+								dragStartIndex: index,
+								rects: rects,
+								initialScrollTop: this.initialScrollTop,
+								containerTop: containerRect ? containerRect.top : 0
+							};
+							
+							// 获取当前项的高度 (WXS 也会计算，这里主要用于 Vue 层逻辑备用)
+							const relativeIndex = this.visibleMessageList.findIndex(item => item.index === index);
+							if (relativeIndex !== -1 && rects[relativeIndex]) {
+								const rect = rects[relativeIndex];
+								this.dragItemHeight = rect.height;
+								this.dragY = rect.top; 
+							}
+						}
+					}).exec();
+				}).exec();
+			},
+			
+			// 废弃 Vue 层的 Touch 方法，改用 WXS
+			onMsgTouchStart(e, index) {},
+			onMsgTouchMove(e, index) {},
+			onMsgTouchEnd(e, index) {},
+			
+			checkAutoScroll(touchY) {
+				const systemInfo = uni.getSystemInfoSync();
+				const windowHeight = systemInfo.windowHeight;
+				const threshold = 60;
+				const maxSpeed = 10;
+				
+				if (this.autoScrollTimer) {
+					clearInterval(this.autoScrollTimer);
+					this.autoScrollTimer = null;
+				}
+				
+				let step = 0;
+				if (touchY < threshold + 80) { // 顶部区域 (+80 考虑导航栏)
+					// 向上滚动
+					const dist = Math.max(0, (threshold + 80) - touchY);
+					step = -Math.ceil((dist / threshold) * maxSpeed);
+				} else if (touchY > windowHeight - threshold) {
+					// 向下滚动
+					const dist = Math.max(0, touchY - (windowHeight - threshold));
+					step = Math.ceil((dist / threshold) * maxSpeed);
+				}
+				
+				if (step !== 0) {
+					this.autoScrollTimer = setInterval(() => {
+						this.scrollTop += step;
+						// 同步更新 scrollPosition，确保计算平滑
+						this.scrollPosition = this.scrollTop;
+						
+						// 滚动时也需要更新 dragY ? 
+						// 不需要，dragY 是 fixed 的，相对于视口。
+						// 但是 items 的位置变了（相对于视口）。
+						// updatePlaceholderIndex 会用到 scrollDelta (scrollPosition - initialScrollTop)。
+						// 所以更新 scrollPosition 后，下一次 updatePlaceholderIndex 就会计算正确。
+					}, 16);
+				}
+			},
+			
+			updatePlaceholderIndex(touchY) {
+				if (!this.cachedItemRects || this.cachedItemRects.length === 0) return;
+				
+				// 计算滚动偏差
+				const scrollDelta = this.scrollPosition - this.initialScrollTop;
+				
+				// 遍历 rects 寻找命中项
+				// 注意：rects 是初始快照。
+				// 当前每个 item 的视觉位置 = rect.top - scrollDelta + (visualShift)
+				// visualShift 取决于 item 是否在 dragStartIndex 和 placeholderIndex 之间
+				// 这导致递归依赖。
+				// 简化逻辑：我们只看 "原始位置" + 滚动偏差。
+				// 如果手指跨过了某个 item 的 "中线"，就交换。
+				
+				let newPlaceholder = this.dragStartIndex;
+				
+				for (let i = 0; i < this.cachedItemRects.length; i++) {
+					const rect = this.cachedItemRects[i];
+					// 修正为当前视口位置
+					const currentTop = rect.top - scrollDelta;
+					const center = currentTop + rect.height / 2;
+					
+					// 找到当前手指所在的 item
+					if (touchY > currentTop && touchY < currentTop + rect.height) {
+						// 这是一个近似命中。
+						// 更精确的逻辑：
+						// 如果当前 placeholder 在 i 之前，且 touchY > center -> placeholder 移到 i 之后
+						// 如果当前 placeholder 在 i 之后，且 touchY < center -> placeholder 移到 i 之前
 					}
 				}
 				
-				// 如果正在拖拽，更新位置
-				if (this.isDragging) {
-					this.updateDragPosition(e);
+				// 替代方案：直接找最近的 item
+				let minDistance = Infinity;
+				let targetIndex = -1;
+				
+				for (let i = 0; i < this.cachedItemRects.length; i++) {
+					const rect = this.cachedItemRects[i];
+					const currentTop = rect.top - scrollDelta;
+					const center = currentTop + rect.height / 2;
+					
+					const dist = Math.abs(touchY - center);
+					if (dist < minDistance) {
+						minDistance = dist;
+						// 获取该 rect 对应的真实数据索引
+						// 假设 rects 顺序对应 visibleMessageList
+						if (this.visibleMessageList[i]) {
+							targetIndex = this.visibleMessageList[i].index;
+						}
+					}
+				}
+				
+				if (targetIndex !== -1 && targetIndex !== this.placeholderIndex) {
+					// 触发触感反馈
+					if (this.placeholderIndex !== -1) {
+						try { uni.vibrateShort({ type: 'light' }); } catch(e) {}
+					}
+					this.placeholderIndex = targetIndex;
 				}
 			},
 			
 			onMsgTouchEnd(e, index) {
-				if (!this.enableLongPressDrag) {
-					// 即使拖拽功能未开启，也要重置状态
-					this.dragStartIndex = -1;
-					this.dragOverIndex = -1;
-					this.isDragging = false;
-					return;
-				}
-				
-				// 清除长按定时器
 				if (this.longPressTimer) {
 					clearTimeout(this.longPressTimer);
 					this.longPressTimer = null;
 				}
-				
-				// 如果正在拖拽，结束拖拽（注意：不要在这里重置 dragStartIndex，让 endDrag 来处理）
-				if (this.isDragging) {
-					this.endDrag(e);
-				} else {
-					// 如果没有开始拖拽，直接重置所有状态
-					this.dragStartIndex = -1;
-					this.dragOverIndex = -1;
-					this.isDragging = false;
-					this.$forceUpdate();
-				}
-			},
-			
-			startDrag(e, index) {
-				if (!this.enableLongPressDrag) return;
-				if (this.dragStartIndex !== index) return; // 确保是同一个消息项
-				
-				this.isDragging = true;
-				
-				// 震动反馈
-				try {
-					uni.vibrateShort({
-						type: 'medium'
-					});
-				} catch (e) {
-					// 某些平台可能不支持震动
+				if (this.autoScrollTimer) {
+					clearInterval(this.autoScrollTimer);
+					this.autoScrollTimer = null;
 				}
 				
-				this.$forceUpdate();
-			},
-			
-			updateDragPosition(e) {
-				if (!this.isDragging || this.dragStartIndex === -1) return;
-				if (!e.touches || !e.touches[0]) return;
+				if (!this.isDragging) return;
 				
-				const touch = e.touches[0];
-				const currentY = touch.clientY;
-				
-				// 使用 nextTick 确保 DOM 已更新
-				this.$nextTick(() => {
-					const query = uni.createSelectorQuery().in(this);
-					query.selectAll('.msg-item-wrapper').boundingClientRect((rects) => {
-						if (rects && rects.length > 0) {
-							let newDragOverIndex = -1;
-							
-							// 找到当前触摸位置对应的消息索引
-							for (let i = 0; i < rects.length; i++) {
-								const rect = rects[i];
-								// 检查触摸点是否在当前消息项范围内
-								if (currentY >= rect.top && currentY <= rect.bottom) {
-									// 判断是在消息的上半部分还是下半部分
-									const rectCenter = rect.top + rect.height / 2;
-									if (currentY < rectCenter) {
-										// 在上半部分，插入到当前位置之前
-										newDragOverIndex = i;
-									} else {
-										// 在下半部分，插入到当前位置之后
-										newDragOverIndex = i + 1;
-									}
-									break;
-								}
-							}
-							
-							// 如果没找到，尝试找到最近的消息项
-							if (newDragOverIndex < 0) {
-								let minDistance = Infinity;
-								for (let i = 0; i < rects.length; i++) {
-									const rect = rects[i];
-									const rectCenter = rect.top + rect.height / 2;
-									const distance = Math.abs(currentY - rectCenter);
-									if (distance < minDistance) {
-										minDistance = distance;
-										if (currentY < rectCenter) {
-											newDragOverIndex = i;
-										} else {
-											newDragOverIndex = i + 1;
-										}
-									}
-								}
-							}
-							
-							// 限制范围
-							if (newDragOverIndex > this.massageList.length - 1) {
-								newDragOverIndex = this.massageList.length - 1;
-							}
-							if (newDragOverIndex < 0) {
-								newDragOverIndex = 0;
-							}
-							
-							// 不能是拖拽开始的位置
-							if (newDragOverIndex === this.dragStartIndex) {
-								newDragOverIndex = -1;
-							}
-							
-							// 更新拖拽悬停索引
-							if (this.dragOverIndex !== newDragOverIndex) {
-								this.dragOverIndex = newDragOverIndex;
-								this.$forceUpdate();
-							}
-						}
-					}).exec();
-				});
-			},
-			
-			endDrag(e) {
-				if (!this.isDragging || this.dragStartIndex === -1) {
-					// 重置状态
-					this.dragStartIndex = -1;
-					this.dragOverIndex = -1;
-					this.isDragging = false;
-					this.$forceUpdate();
-					return;
+				// 提交移动
+				if (this.dragStartIndex !== this.placeholderIndex && this.placeholderIndex !== -1) {
+					this.moveMessage(this.dragStartIndex, this.placeholderIndex);
 				}
 				
-				const fromIndex = this.dragStartIndex;
-				let targetIndex = -1;
-				
-				// 优先使用 dragOverIndex（在拖拽过程中已计算好的目标位置）
-				if (this.dragOverIndex >= 0 && this.dragOverIndex !== fromIndex) {
-					targetIndex = this.dragOverIndex;
-				} else {
-					// 如果 dragOverIndex 无效，尝试通过最终触摸位置计算
-					const touch = e.changedTouches ? e.changedTouches[0] : null;
-					if (touch) {
-						const currentY = touch.clientY;
-						
-						this.$nextTick(() => {
-							const query = uni.createSelectorQuery().in(this);
-							query.selectAll('.msg-item-wrapper').boundingClientRect((rects) => {
-								if (rects && rects.length > 0) {
-									// 找到目标位置
-									for (let i = 0; i < rects.length; i++) {
-										const rect = rects[i];
-										if (currentY >= rect.top && currentY <= rect.bottom) {
-											const rectCenter = rect.top + rect.height / 2;
-											if (currentY < rectCenter) {
-												targetIndex = i;
-											} else {
-												targetIndex = i + 1;
-											}
-											break;
-										}
-									}
-									
-									// 限制范围
-									if (targetIndex > this.massageList.length - 1) {
-										targetIndex = this.massageList.length - 1;
-									}
-									if (targetIndex < 0) {
-										targetIndex = 0;
-									}
-									
-									// 执行移动
-									if (targetIndex !== fromIndex && targetIndex >= 0 && targetIndex < this.massageList.length) {
-										this.moveMessage(fromIndex, targetIndex);
-									}
-								}
-								
-								// 重置拖拽状态
-								this.dragStartIndex = -1;
-								this.dragOverIndex = -1;
-								this.isDragging = false;
-								this.$forceUpdate();
-							}).exec();
-						});
-						return; // 异步执行，提前返回
-					}
-				}
-				
-				// 如果已有有效的 targetIndex，直接执行移动
-				if (targetIndex >= 0 && targetIndex !== fromIndex && targetIndex < this.massageList.length) {
-					this.moveMessage(fromIndex, targetIndex);
-				}
-				
-				// 重置拖拽状态（确保在所有情况下都重置）
-				this.dragStartIndex = -1;
-				this.dragOverIndex = -1;
+				// 结束拖拽状态，但保持排序模式
 				this.isDragging = false;
+				this.draggingItem = null;
+				this.dragStartIndex = -1;
+				this.placeholderIndex = -1;
+				this.cachedItemRects = [];
+			},
+			
+			resetDragState() {
+				this.dragStartIndex = -1;
+				this.placeholderIndex = -1;
+				this.isDragging = false;
+				this.draggingItem = null;
+				this.cachedItemRects = [];
+				if (this.autoScrollTimer) {
+					clearInterval(this.autoScrollTimer);
+					this.autoScrollTimer = null;
+				}
+			},
+			
+			// 强制结束拖拽（立即清理所有状态）
+			forceEndDrag() {
+				// 立即清理所有拖拽状态
+				this.isDragging = false;
+				this.draggingItem = null;
+				this.dragStartIndex = -1;
+				this.placeholderIndex = -1;
 				
-				// 使用 nextTick 确保状态更新后立即刷新视图
-				this.$nextTick(() => {
-					this.$forceUpdate();
-				});
+				// 立即更新 WXS 状态
+				this.wxsDragData = {
+					...this.wxsDragData,
+					isDragging: false,
+					dragStartIndex: -1
+				};
+				
+				// 清理自动滚动
+				if (this.autoScrollTimer) {
+					clearInterval(this.autoScrollTimer);
+					this.autoScrollTimer = null;
+				}
 			},
 			
 			// 移动消息位置
 			moveMessage(fromIndex, toIndex) {
-				if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) {
-					console.log('移动消息：索引相同或无效', { fromIndex, toIndex });
-					return;
-				}
+				if (fromIndex === toIndex) return;
 				
-				// 限制 toIndex 范围
-				if (toIndex >= this.massageList.length) {
-					toIndex = this.massageList.length - 1;
-				}
-				if (toIndex < 0) {
-					toIndex = 0;
-				}
-				
-				if (fromIndex >= this.massageList.length) {
-					console.log('移动消息：fromIndex 超出范围', { fromIndex, length: this.massageList.length });
-					return;
-				}
-				
-				console.log('移动消息', { fromIndex, toIndex, length: this.massageList.length });
-				
-				// 调整目标索引：如果从前面移动到后面，需要减1（因为删除后索引会前移）
-				let adjustedToIndex = toIndex;
-				if (fromIndex < toIndex) {
-					adjustedToIndex = toIndex - 1;
-				}
-				
-				// 确保调整后的索引有效
-				if (adjustedToIndex < 0) adjustedToIndex = 0;
-				if (adjustedToIndex >= this.massageList.length) adjustedToIndex = this.massageList.length - 1;
-				
-				// 如果调整后索引相同，不移动
-				if (adjustedToIndex === fromIndex) {
-					console.log('移动消息：调整后索引相同，不移动', { fromIndex, toIndex, adjustedToIndex });
-					return;
-				}
-				
-				// 创建新数组来移动元素
 				const newList = [...this.massageList];
 				const [item] = newList.splice(fromIndex, 1);
-				newList.splice(adjustedToIndex, 0, item);
+				newList.splice(toIndex, 0, item);
 				
-				// 更新列表
 				this.massageList = newList;
 				this.updateMsg();
 				
-				// 强制更新视图
-				this.$nextTick(() => {
-					this.$forceUpdate();
-				});
-				
 				uni.showToast({
-					title: '消息已移动',
-					icon: 'success',
-					duration: 1000
+					title: '排序完成',
+					icon: 'none'
 				});
 			}
 		}
@@ -3651,10 +4521,19 @@
 		color: #666;
 	}
 
+	.wxs-bridge {
+		position: fixed;
+		width: 0;
+		height: 0;
+		opacity: 0;
+		pointer-events: none;
+	}
+
 	/* 拖拽相关样式 */
 	.msg-item-wrapper {
 		position: relative;
 		transition: transform 0.2s ease, opacity 0.2s ease;
+		will-change: transform; /* 开启硬件加速 */
 	}
 
 	.msg-item-wrapper.dragging {
@@ -3673,5 +4552,100 @@
 	.msg-item-wrapper.dragging .orderBox,
 	.msg-item-wrapper.dragging .cell {
 		pointer-events: none;
+	}
+	
+	/* 排序模式相关样式 */
+	.sorting-tip-bar {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: 100upx;
+		background: rgba(0, 0, 0, 0.85);
+		color: #fff;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 30upx;
+		z-index: 10000;
+		padding-bottom: env(safe-area-inset-bottom);
+		font-size: 28upx;
+		backdrop-filter: blur(10px);
+	}
+	
+	.sort-actions {
+		display: flex;
+		gap: 20upx;
+	}
+	
+	.action-btn {
+		padding: 10upx 20upx;
+		background: rgba(255,255,255,0.2);
+		border-radius: 8upx;
+		font-size: 24upx;
+	}
+	
+	.sort-tip {
+		font-size: 24upx;
+		color: #ccc;
+	}
+	
+	.finish-btn {
+		background: #007aff;
+		padding: 10upx 30upx;
+		border-radius: 30upx;
+		font-size: 26upx;
+		font-weight: 500;
+	}
+	
+	.floating-msg-item {
+		position: fixed;
+		left: 20upx; /* 与 .chat-body padding 一致 */
+		right: 20upx;
+		z-index: 9999;
+		pointer-events: none;
+		transform: scale(1.05) translateZ(0); /* 开启硬件加速 */
+		opacity: 0.95; 
+		will-change: top, transform;
+		/* box-shadow: 0 10upx 40upx rgba(0,0,0,0.3); */
+		filter: drop-shadow(0 10upx 20upx rgba(0,0,0,0.25));
+		/* border-radius: 16upx; */
+	}
+	
+	/* 拖拽把手样式 */
+	.drag-handle {
+		position: absolute;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		width: 80upx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1001; /* 比内容高 */
+		background: rgba(255, 255, 255, 0.5); /* 半透明背景，可选 */
+		backdrop-filter: blur(2px);
+	}
+	
+	.handle-icon {
+		font-size: 40upx;
+		color: #999;
+		font-weight: bold;
+	}
+	
+	.msg-item-wrapper.sorting-mode {
+		padding-right: 60upx; /* 给把手留位置 */
+	}
+	
+	/* 让浮动项内部的 .cell 撑满宽度，保持左右对齐 */
+	.floating-msg-item .cell {
+		width: 100%;
+	}
+	
+	/* 移除原来的 msg-content-clone 样式，因为我们直接复用了结构 */
+	
+	.msg-item-wrapper.dragging-placeholder {
+		/* 占位符样式由 inline style opacity: 0 控制 */
+		opacity: 0;
 	}
 </style>

@@ -2,91 +2,15 @@
 	<view class="container">
 		<!-- 全局水印层 -->
 		<WatermarkLayer />
-		<view class="nav" @click="goBack" :style="{ paddingTop: statusBarHeight + 'px' }">
-			<uni-icons class="close" type="closeempty" color="#000" size="22"></uni-icons>
-			<view class="allOrder" v-if="info.order" :style="{ fontSize: (36 * fontScale) + 'rpx' }">全部账单</view>
-		</view>
-
-		<view class="content">
 		
-			<view class="order" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
+		<CodePayChildBill 
+			:info="info" 
+			:statusBarHeight="statusBarHeight"
+			@goBack="goBack"
+			@changeRole="changeRole"
+			@editInfo="exitInfo"
+		/>
 
-				<view class="order_top">
-					<view class="avatar" @click="changeRole">
-						<image :src="info.url||'/static/paySe.png'"></image>
-					</view>
-					<view class="name" :style="{ fontSize: (32 * fontScale) + 'rpx' }">
-						二维码收款-{{info.name}}
-					</view>
-					<view class="num" @click="exitInfo" :style="{ fontSize: (56 * fontScale) + 'rpx' }">
-						{{info.money}}
-					</view>
-					<view class="line" />
-				</view>
-
-				<view class="order_info">
-
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							当前状态
-						</view>
-						<view class="right">
-							{{info.currentState}}
-						</view>
-					</view>
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							收款方备注
-						</view>
-						<view class="right">
-							{{info.desc}}
-						</view>
-					</view>
-					<view class="item" v-if="info.payment" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							收款方式
-						</view>
-						<view class="right rightIcon">
-							{{info.payment}}
-							<uni-icons
-							
-							v-if=" info.payment == '零钱通'"
-							  type="info" 
-							  size="18" 
-							  color="#999" 
-							  
-							  class="input-icon gthIcon" 
-							/>
-							
-						</view>
-					</view>
-
-					<view class="item" v-if="info.otherTime" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							收款时间
-						</view>
-						<view class="right">
-							{{info.otherTime}}
-						</view>
-					</view>
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							转账单号
-						</view>
-						<view class="right">
-							{{info.orderNumber}}
-						</view>
-					</view>
-
-				</view>
-
-
-			</view>
-		
-			<view class="footer" :style="{ fontSize: (24 * fontScale) + 'rpx' }">
-				本服务由财付通提供
-			</view>
-		</view>
 		<uni-popup ref="popup" type="bottom" background-color="#fff" border-radius="10px">
 			<view class="roleList">
 		
@@ -118,8 +42,12 @@
 		eadLocalFileToBase64
 	} from "../../utils/tool.js"
 	import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
+	import CodePayChildBill from '@/components/bill-preview/CodePayChildBill.vue'
 	
 	export default {
+		components: {
+			CodePayChildBill
+		},
 		data() {
 			return {
 				options2: [{

@@ -45,7 +45,7 @@ function createRequest(options = {}) {
 		const shouldUseFormData = useFormData && isPostOrPut;
 
 		return new Promise((resolve, reject) => {
-			// console.log(BASE_URL + url);
+			console.log(BASE_URL + url);
 			uni.request({
 				url: BASE_URL + url,
 				method,

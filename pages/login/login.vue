@@ -158,8 +158,9 @@ export default {
         }
       } catch (error) {
         console.error('登录失败', error);
+        const errorMessage = error?.data?.message || error?.message || error?.error?.errMsg || '登录失败,网络错误';
         uni.showToast({
-          title:  error.data.message||"登录失败,网络错误",
+          title: errorMessage,
           icon: 'none'
         });
       }

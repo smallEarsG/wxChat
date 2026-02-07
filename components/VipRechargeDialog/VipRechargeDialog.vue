@@ -60,13 +60,19 @@ export default {
     }
   },
   data() {
+    const isIos = uni.getSystemInfoSync().platform === 'ios';
+    const baseOptions = [
+      { type: 'day', label: '日会员', price: 8, saving: 6, perDay: '8' },
+      { type: 'month', label: '月会员', price: 16, saving: 12, popular: true, perDay: '0.53' },
+      { type: 'year', label: '年会员', price: 99, saving: 52, perDay: '0.26' },
+      { type: 'forever', label: '永久会员', price: 168, saving: 0, perDay: '0.00' }
+    ];
+    const applyIosPricing = (items) => items.map((item) => ({
+      ...item,
+      price: item.price * 2
+    }));
     return {
-      options: [
-        { type: 'day', label: '日会员', price: 8, saving: 6, perDay: '8' },
-        { type: 'month', label: '月会员', price: 16, saving: 12, popular: true, perDay: '0.53' },
-        { type: 'year', label: '年会员', price: 99, saving: 52, perDay: '0.26' },
-        { type: 'forever', label: '永久会员', price: 168, saving: 0, perDay: '0.00' }
-      ],
+      options: isIos ? applyIosPricing(baseOptions) : baseOptions,
       selected: 'month',
       privileges: [
         "无广告", "高清画质", "无水印", "专属内容", "优先更新",

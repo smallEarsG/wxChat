@@ -2,166 +2,15 @@
 	<view class="container">
 		<!-- 全局水印层 -->
 		<WatermarkLayer />
-		<!-- <CommonHeader 
-			:title="info.order ? '全部账单' : ''"
-			back-icon="closeempty"
-			:back-icon-size="22"
-			back-icon-color="#000"
-			@back="goBack"
-		/> -->
-		<view class="nav" @click="goBack" :style="{ paddingTop: statusBarHeight + 'px' }">
-			<uni-icons class="close" type="closeempty" color="#000" size="22"></uni-icons>
-			<view class="allOrder" v-if="info.order" :style="{ fontSize: (36 * fontScale) + 'rpx' }">全部账单</view>
-		</view>
-		<view class="content">
-			<view class="order" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
-				<view class="order_top">
-					<view class="avatar" @click="changeRole">
-						<image :src="info.url||'/static/logo.png'"></image>
-					</view>
-					<view class="name" :style="{ fontSize: (32 * fontScale) + 'rpx' }">
-						{{info.name}}
-					</view>
-					<view class="num" @click="exitInfo" :style="{ fontSize: (56 * fontScale) + 'rpx' }">
-						{{info.money}}
-						<!-- <text class="num_txt"> {{info.num}}</text> -->
-					</view>
-					<view class="line" />
-				</view>
+		
+		<ThirdpartyPaymentBill 
+			:info="info" 
+			:statusBarHeight="statusBarHeight"
+			@goBack="goBack"
+			@changeRole="changeRole"
+			@editInfo="exitInfo"
+		/>
 
-				<view class="order_info">
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							当前状态
-						</view>
-						<view class="right">
-							{{info.currentState}}
-						</view>
-					</view>
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							支付时间
-						</view>
-						<view class="right">
-							{{info.time}}
-						</view>
-					</view>
-					<view class="item"  v-if="info.shop!=''" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							商品
-						</view>
-						<view class="right">
-							{{info.shop}}
-						</view>
-					</view>
-					<view class="item"  v-if="info.merchantName!=''" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							商户全称
-						</view>
-						<view class="right">
-							{{info.merchantName}}
-						</view>
-					</view>
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							收单机构
-						</view>
-						<view class="right">
-							<view> {{info.institution}}</view>
-							<view class="tips" v-if=" info.desc" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
-								{{info.desc}}
-							</view>
-						</view>
-					</view>
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							支付方式
-						</view>
-						<view class="right  ">
-							<view class="rightIcon">
-								{{info.payment}}
-								<uni-icons v-if=" info.payment == '零钱通'" type="info" size="18" color="#999"
-									class="input-icon gthIcon" />
-							</view>
-							<view class="tips" v-if=" info.desc2" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
-								{{info.desc2}}
-								
-							</view>
-							<!-- <image v-if=" info.payment == '零钱通'" class="gthIcon" src="/static/gthIcon.png"></image> -->
-						</view>
-					</view>
-
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							交易单号
-						</view>
-						<view class="right">
-							{{info.orderNumber}}
-						</view>
-					</view>
-
-					<view class="item" v-if="info.shopNumber!=''" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							商户单号
-						</view>
-						<view class="right">
-							{{info.shopNumber}}
-						</view>
-					</view>
-					<view class="item" v-if="info.BoNumber!=''&&                                                                             info.BoNumber !=null" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							经营单号
-						</view>
-						<view class="right">
-							{{info.BoNumber}}
-						</view>
-					</view>
-				</view>
-
-
-			</view>
-			<view class="serivce" v-if="info.showService !== false" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
-				<view class="se_title" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
-					账单服务
-				</view>
-				<view class="serivce_line">
-					<view class="serivce_bx">
-						<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
-							<view class="se_icon ">
-								<image class="wticon" src="/static/wticon.png" mode=""></image>
-							</view>
-							对订单有疑惑
-						</view>
-						<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
-							<view class="se_icon ">
-								<image class="chatIcon" src="/static/qiw/tpicon_1.png" mode=""></image>
-							</view>
-							发起群收款
-						</view>
-					</view>
-					<view class="serivce_bx">
-						<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
-							<view class="se_icon ">
-								<image class="startIcon" src="/static/qiw/tpIcon_2.png" mode=""></image>
-							</view>
-							在此商户的交易
-						</view>
-					<!-- 	<view class="se_item">
-							<view class="se_icon ">
-								<image class="transferIcon" src="/static/transferIcon.png" mode=""></image>
-							</view>
-							查看往来转账
-						</view> -->
-					</view>
-				</view>
-
-			</view>
-
-
-			<view class="footer" :style="{ fontSize: (24 * fontScale) + 'rpx' }">
-				本服务由财付通提供
-			</view>
-		</view>
 		<uni-popup ref="popup" type="bottom" background-color="#fff" border-radius="10px">
 			<view class="roleList">
 				<!-- <view class=""  v-for="itme in roleList" >
@@ -198,10 +47,12 @@ import {
 	} from "../../utils/tool.js"
 import CommonHeader from "../../components/CommonHeader/CommonHeader.vue"
 import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
+import ThirdpartyPaymentBill from '@/components/bill-preview/ThirdpartyPaymentBill.vue'
 
 	export default {
 		components: {
-			CommonHeader
+			CommonHeader,
+			ThirdpartyPaymentBill
 		},
 		data() {
 			return {

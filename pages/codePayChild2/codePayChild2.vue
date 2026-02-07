@@ -2,137 +2,15 @@
 	<view class="container">
 		<!-- 全局水印层 -->
 		<WatermarkLayer />
-		<view class="nav" @click="goBack" :style="{ paddingTop: statusBarHeight + 'px' }">
-			<uni-icons class="close" type="closeempty" color="#000" size="22"></uni-icons>
-			<view class="allOrder" v-if="info.order" :style="{ fontSize: (36 * fontScale) + 'rpx' }">全部账单</view>
-		</view>
+		
+		<CodePayChild2Bill 
+			:info="info" 
+			:statusBarHeight="statusBarHeight"
+			@goBack="goBack"
+			@changeRole="changeRole"
+			@editInfo="exitInfo"
+		/>
 
-		<view class="content">
-			<!-- <view class="line_b" /> -->
-
-			<view class="order" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
-
-				<view class="order_top">
-					<view class="avatar" @click="changeRole">
-						<image :src="info.url||'/static/paySe.png'"></image>
-					</view>
-					<view class="name" :style="{ fontSize: (32 * fontScale) + 'rpx' }">
-						扫二维码付款-{{info.name}}
-					</view>
-					<view class="num" @click="exitInfo" :style="{ fontSize: (56 * fontScale) + 'rpx' }">
-						<!-- view class="sub" /> -->
-						{{info.money}}
-					</view>
-					<view class="line" />
-				</view>
-
-				<view class="order_info">
-
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							当前状态
-						</view>
-						<view class="right">
-							{{info.currentState}}
-						</view>
-					</view>
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							收款方备注
-						</view>
-						<view class="right">
-							{{info.desc}}
-						</view>
-					</view>
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }" v-if="info.message!=''&&info.message!=null">
-						<view class="left">
-							付款方留言
-						</view>
-						<view class="right">
-							{{info.message}}
-						</view>
-					</view>
-					<view class="item" v-if="info.payment!=''&&info.payment!=null" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							支付方式
-						</view>
-						<view class="right rightIcon">
-							{{info.payment}}
-							<uni-icons v-if=" info.payment == '零钱通'" type="info" size="18" color="#999"
-								class="input-icon gthIcon" />
-							<!-- <image v-if=" info.payment == '零钱通'" class="gthIcon" src="/static/gthIcon.png"></image> -->
-						</view>
-					</view>
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							转账时间
-						</view>
-						<view class="right">
-							{{info.time}}
-						</view>
-					</view>
-					<view class="item" v-if="info.otherTime" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							收款时间
-						</view>
-						<view class="right">
-							{{info.otherTime}}
-						</view>
-					</view>
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left">
-							转账单号
-						</view>
-						<view class="right">
-							{{info.orderNumber}}
-						</view>
-					</view>
-
-				</view>
-
-
-			</view>
-			<view class="serivce" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
-				<view class="se_title" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
-					账单服务
-				</view>
-
-				<view class="serivce_bx">
-						<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
-							<view class="se_icon ">
-								<image class="wticon" src="/static/wticon.png" mode=""></image>
-							</view>
-							对订单有疑惑
-						</view>
-					<view class="se_item" v-if="isGroup" @longpress="showGroup">
-						<view class="se_icon ">
-							<image class="skIcon" src="/static/skIcon.png" mode=""></image>
-						</view>
-						发起群收款
-					</view>
-				</view>
-			</view>
-			<view class="serivce" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
-				<view class="se_title">
-					收款方服务
-				</view>
-				<view class="serivce_bx">
-					<view class="se_item">
-						<view class="se_icon ">
-							<image class="cordIcon" src="/static/cordIcon.png" mode=""></image>
-						</view>
-						收款方名片
-					</view>
-					<view class="se_item">
-
-					</view>
-				</view>
-			</view>
-
-			<view class="footer" :style="{ fontSize: (24 * fontScale) + 'rpx' }">
-				本服务由财付通提供
-			</view>
-		</view>
 		<uni-popup ref="popup" type="bottom" background-color="#fff" border-radius="10px">
 			<view class="roleList">
 				<!-- <view class=""  v-for="itme in roleList" >
@@ -168,8 +46,12 @@
 		eadLocalFileToBase64
 	} from "../../utils/tool.js"
 	import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
+	import CodePayChild2Bill from '@/components/bill-preview/CodePayChild2Bill.vue'
 	
 	export default {
+		components: {
+			CodePayChild2Bill
+		},
 		data() {
 			return {
 				isGroup: true,
@@ -196,7 +78,7 @@
 					"currentState": "对方已收钱",
 					"desc": "转账时间",
 					"padd":60,
-						"fontSize":100
+					"fontSize":100
 
 				},
 				infoKey: {
@@ -400,7 +282,7 @@
 		},
 		computed: {
 			fontScale() {
-				return this.info.fontSize / 100;
+				return (this.info.fontSize || 100) / 100;
 			}
 		}
 	}
@@ -417,224 +299,5 @@
 		flex-direction: column;
 		width: 600rpx;
 		height: 800rpx;
-	}
-
-	.gthIcon {
-		/* 	width: 30rpx;
-		height: 30rpx; */
-		margin-left: 10rpx;
-	}
-
-	.right {
-		flex: 1;
-		word-wrap: break-word;
-		overflow-wrap: break-word;
-		overflow: auto;
-
-	}
-
-	.rightIcon {
-		display: flex;
-		align-items: center;
-	}
-
-	.footer {
-		width: 100%;
-		flex: 1;
-		font-size: 24rpx;
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-		flex-direction: column;
-		color: #a2a2a2;
-		min-height: 170rpx;
-		padding-bottom: 60rpx;
-		/* position: absolute;
-	bottom: 0rpx; */
-	}
-
-	.serivce {
-		margin-top: 20rpx;
-		background-color: #fff;
-		padding: 0 60rpx;
-		box-sizing: border-box;
-	}
-
-	.serivce_bx {
-		border-top: 1px solid #eaeaea;
-		display: flex;
-		align-items: center;
-		padding: 35rpx 0;
-		box-sizing: border-box;
-	}
-
-	.se_title {
-		font-size: 26rpx;
-		padding-top: 30rpx;
-		padding-bottom: 35rpx;
-		font-weight: 500;
-		box-sizing: border-box;
-	}
-
-	.se_item {
-		font-size: 26rpx;
-		color: #5c6e96;
-		flex: 1;
-		display: flex;
-		align-items: center;
-		/* margin: 0 40rpx; */
-	}
-
-	.se_icon {}
-
-	.cordIcon {
-		width: 38rpx;
-		height: 38rpx;
-		position: relative;
-		top: 4rpx;
-		margin-right: 10rpx;
-	}
-
-	.skIcon {
-		width: 36rpx;
-		height: 36rpx;
-		position: relative;
-		top: 4rpx;
-		margin-right: 10rpx;
-	}
-
-	.wticon {
-		width: 30rpx;
-		height: 30rpx;
-		margin-right: 14rpx;
-		position: relative;
-		top: 6rpx;
-	}
-
-	.order_info {
-		margin-top: 40rpx;
-		padding-bottom: 60rpx;
-	}
-
-	.sub {
-		height: 8rpx;
-		width: 26rpx;
-		background-color: #000
-	}
-
-	.num {
-		font-family: 'WeChat Sans Std';
-		display: flex;
-		align-items: center;
-		margin-top: 40rpx;
-		/* font-weight: bold; */
-		font-size: 56rpx;
-		/* font-family: ; */
-
-	}
-
-	.name {
-		margin-top: 30rpx;
-		font-size: 32rpx;
-
-		text-align: center;
-	}
-
-	.left {
-		color: #9b9b9b;
-		width: 170rpx;
-	}
-
-	.item {
-		flex: 1;
-		display: flex;
-		font-size: 28rpx;
-		margin-bottom: 20rpx;
-	}
-
-	.order_info {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.line_b {
-		width: 100%;
-		height: 1px;
-		background-color: #fafafa;
-		transform: scaleY(0.01);
-	}
-
-	.line {
-		margin-top: 88rpx;
-		width: 100%;
-		height: 1px;
-		background-color: #efefef;
-		transform: scaleY(0.6);
-	}
-
-	.avatar {
-		width: 94rpx;
-		height: 94rpx;
-		overflow: hidden;
-		margin-top: 40rpx;
-		border-radius: 50px;
-	}
-
-	.avatar image {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
-
-	.order_top {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.order {
-		box-sizing: border-box;
-		display: flex;
-		flex-direction: column;
-		background-color: #fff;
-		padding: 0 60rpx;
-	}
-
-	.close {
-		/* background-color: aqua; */
-		/* padding-top: 160px; */
-
-		padding-left: 20rpx;
-		position: relative;
-		top: 30rpx;
-		transform: scale(0.8);
-	}
-
-	.nav {
-		height: 86rpx;
-		/* background-color: #5c6e96; */
-		background-color: #fff;
-		/* overflow: hidden; */
-		position: relative;
-	}
-	.allOrder{
-		position: absolute;
-		right: 40upx;
-		font-size: 36upx;
-		bottom:  10upx;
-	}
-	.container {
-		background-color: #eaeaea;
-		display: flex;
-		flex-direction: column;
-		height: 100vh;
-	}
-
-	.content {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-
-		/* position: relative; */
 	}
 </style>

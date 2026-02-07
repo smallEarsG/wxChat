@@ -115,7 +115,7 @@
 						</view>
 						<view class="msg right"  @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<image :src="item.content.avatar" class="phote rightp" 
+							<image :src="item.content.avatar" class="phote rightp"   mode="widthFix"
 								></image>
 						</view>
 					</view>

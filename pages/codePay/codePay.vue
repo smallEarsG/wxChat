@@ -159,6 +159,14 @@
 			
 			</view>
 
+			<!-- 预览模式入口 -->
+			<view class="action-buttons" style="margin-bottom: 20px;">
+				<button class="action-btn" @click="goPreviewGallery" style="background: linear-gradient(135deg, #FF9500, #FF5E3A);">
+					<uni-icons type="images" size="24" color="#fff" />
+					<text>模板预览模式</text>
+				</button>
+			</view>
+
 			<!-- 操作按钮  v-if="resultList.length > 0" -->
 			<view class="action-buttons">
 				<button class="action-btn" @click="goCodePayChild(0)">
@@ -303,6 +311,12 @@
 			goMsg() {
 				uni.navigateTo({
 					url: '/pages/msgList/msgList'
+				});
+			},
+
+			goPreviewGallery() {
+				uni.navigateTo({
+					url: '/pages/previewGallery/previewGallery'
 				});
 			},
 

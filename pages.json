@@ -119,6 +119,15 @@
 				 "enablePullDownRefresh": false
         	}
         },
+		{
+			"path" : "pages/previewGallery/previewGallery",
+			"style" : 
+			{
+				"navigationBarTitleText" : "模板预览",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+		},
         {
         	"path" : "pages/codePayChild/codePayChild",
         	"style" : 
