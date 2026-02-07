@@ -67,10 +67,18 @@ export default {
       { type: 'year', label: '年会员', price: 99, saving: 52, perDay: '0.26' },
       { type: 'forever', label: '永久会员', price: 168, saving: 0, perDay: '0.00' }
     ];
-    const applyIosPricing = (items) => items.map((item) => ({
-      ...item,
-      price: item.price * 2
-    }));
+    const applyIosPricing = (items) => {
+      const iosPriceMap = {
+        day: 10,
+        month: 28,
+        year: 128,
+        forever: 168
+      };
+      return items.map((item) => ({
+        ...item,
+        price: iosPriceMap[item.type] ?? item.price
+      }));
+    };
     return {
       options: isIos ? applyIosPricing(baseOptions) : baseOptions,
       selected: 'month',
