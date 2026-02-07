@@ -212,9 +212,9 @@
 				this.clientInfo = Object.assign({}, data)
 			},
 			goLinkList() {
-				uni.navigateTo({
-					url: '/pages/linkList/linkList'
-				})
+				// uni.navigateTo({
+				// 	url: '/pages/linkList/linkList'
+				// })
 			},
 			editLinkName() {
 				this.editLinkType = 'name';
