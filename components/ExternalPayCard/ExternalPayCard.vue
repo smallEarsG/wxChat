@@ -2,32 +2,32 @@
 	<view>
 		
 	
-	<view class="payment-card">
+	<view class="payment-card" :style="paymentCardStyle">
 		<!-- 顶部 -->
-		<view class="header">
-			<image src="/static/icon-pay-green.png" class="icon" />
-			<text class="label">对外收款</text>
+		<view class="header" :style="headerStyle">
+			<image src="/static/icon-pay-green.png" class="icon" :style="iconStyle" />
+			<text class="label" :style="labelStyle">对外收款</text>
 		</view>
 
 		<!-- 文本 -->
-		<view class="title">
+		<view class="title" :style="titleStyle">
 			付款给 {{orderInfo.shopName }}
 		</view>
 
 		<!-- 中间卡片区域 -->
-		<view class="card">
-			<view class="card-header">
-				<image src="/static/wx-icon.png" class="icon_wx" />
+		<view class="card" :style="cardStyle">
+			<view class="card-header" :style="cardHeaderStyle">
+				<image src="/static/wx-icon.png" class="icon_wx" :style="iconWxStyle" />
 				企业微信 · 对外收款
 			</view>
-			<view class="circle"></view>
-			<view class="amount">￥{{ orderInfo.price }}</view>
-			<view class="btn" @click="onPay">付款</view>
+			<view class="circle" :style="circleStyle"></view>
+			<view class="amount" :style="amountStyle">￥{{ orderInfo.price }}</view>
+			<view class="btn" :style="btnStyle" @click="onPay">付款</view>
 		</view>
 
 		<!-- 底部小程序标志 -->
-		<view class="miniapp-footer">
-			<image src="/static/icon-miniapp.png" class="miniapp-icon" />
+		<view class="miniapp-footer" :style="miniappFooterStyle">
+			<image src="/static/icon-miniapp.png" class="miniapp-icon" :style="miniappIconStyle" />
 			<text>小程序</text>
 		</view>
 	</view>
@@ -47,7 +47,100 @@
 				default: 1
 			}
 		},
+		computed: {
+			paymentCardStyle() {
+				return {
+					'--font-scale': this.fontScale,
+					borderRadius: this.rs(16),
+					padding: this.rs(20),
+					width: this.rs(460),
+					boxShadow: `0 ${this.rs(2)} ${this.rs(10)} rgba(0, 0, 0, 0.05)`,
+					fontSize: this.rs(28),
+					marginRight: this.rs(14)
+				}
+			},
+			headerStyle() {
+				return {
+					marginBottom: this.rs(10)
+				}
+			},
+			iconStyle() {
+				return {
+					width: this.rs(50),
+					height: this.rs(50),
+					marginRight: this.rs(10)
+				}
+			},
+			labelStyle() {
+				return {
+					fontSize: this.rs(24)
+				}
+			},
+			iconWxStyle() {
+				return {
+					width: this.rs(60),
+					height: this.rs(50)
+				}
+			},
+			titleStyle() {
+				return {
+					fontSize: this.rs(32),
+					marginBottom: this.rs(20)
+				}
+			},
+			cardStyle() {
+				return {
+					borderWidth: this.rs(8),
+					borderRadius: this.rs(10),
+					paddingBottom: this.rs(20)
+				}
+			},
+			cardHeaderStyle() {
+				return {
+					padding: this.rs(20),
+					fontSize: this.rs(30)
+				}
+			},
+			circleStyle() {
+				return {
+					height: this.rs(30)
+				}
+			},
+			amountStyle() {
+				return {
+					fontSize: this.rs(48),
+					marginTop: this.rs(20),
+					marginBottom: this.rs(30)
+				}
+			},
+			btnStyle() {
+				return {
+					borderRadius: this.rs(8),
+					padding: `${this.rs(17)} 0`,
+					fontSize: this.rs(32),
+					margin: `${this.rs(30)} auto`
+				}
+			},
+			miniappFooterStyle() {
+				return {
+					paddingTop: this.rs(16),
+					marginTop: this.rs(20),
+					fontSize: this.rs(24),
+					borderTopWidth: this.rs(2)
+				}
+			},
+			miniappIconStyle() {
+				return {
+					width: this.rs(32),
+					height: this.rs(32),
+					marginRight: this.rs(8)
+				}
+			}
+		},
 		methods: {
+			rs(value) {
+				return `${value * this.fontScale}rpx`
+			},
 			onPay() {
 				// 模拟支付逻辑
 				// uni.showToast({
@@ -73,13 +166,13 @@
 .payment-card::after {
 	  content: "";
 	  position: absolute;
-	  top: 28rpx;
-	  right: -10rpx;
+	  top: calc(28rpx * var(--font-scale, 1));
+	  right: calc(-10rpx * var(--font-scale, 1));
 	  width: 0;
 	  height: 0;
-	  border-top: 6px solid transparent;
-	  border-bottom: 6px solid transparent;
-	  border-left: 6px solid #ffffff;
+	  border-top: calc(6px * var(--font-scale, 1)) solid transparent;
+	  border-bottom: calc(6px * var(--font-scale, 1)) solid transparent;
+	  border-left: calc(6px * var(--font-scale, 1)) solid #ffffff;
 	}
 	.header {
 		display: flex;

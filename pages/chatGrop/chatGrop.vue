@@ -33,7 +33,8 @@
 			</view>
 			<view class="icons">
 				<image @click="addVideo" class="nav-icon_phone" mode="widthFix" src="/static/icon-phone.png"></image>
-				<uni-icons style="margin-left: 20rpx;" type="more-filled" size="24" @click="openMenu"></uni-icons>
+				<image @click="openMenu" class="nav-icon_more" src="/static/qiw/more.png"></image>
+				<!-- <uni-icons style="margin-left: 20rpx;" type="more-filled" size="24" @click="openMenu"></uni-icons> -->
 			</view>
 		</view>
 		
@@ -72,14 +73,20 @@
 							<image class="avatar" :src="getRoleInfo(item.location).url" />
 							<view class="msgContent">
 								<view class="name">{{getRoleInfo(item.location).text}}</view>
-								<image :src="item.content.avatar"  mode="widthFix" class="phote leftp"
-									@longpress="showPopupMenu($event, i)" />
+								<view class="photo-container leftp" :style="getImageContainerStyle(i)"
+									@longpress="showPopupMenu($event, i)">
+									<image :src="item.content.avatar" class="phote" mode="aspectFit" lazy-load
+										:style="getImageStyle(i)" @load="onImageLoad($event, i)" />
+								</view>
 							</view>
 						</view>
 						<view class="msg right" @longpress="showPopupMenu($event, i)" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<image :src="item.content.avatar" mode="widthFix" class="phote rightp"
-								@longpress="showPopupMenu($event, i)"></image>
+							<view class="photo-container rightp" :style="getImageContainerStyle(i)"
+								@longpress="showPopupMenu($event, i)">
+								<image :src="item.content.avatar" class="phote" mode="aspectFit" lazy-load
+									:style="getImageStyle(i)" @load="onImageLoad($event, i)" />
+							</view>
 						</view>
 					</view>
 					<!-- 转账 -->
@@ -442,6 +449,7 @@
 				spacing: 180,
 				fontSize: 16
 			},
+			imageSizes: {},
 			popupMenuPosition: {
 				show: false,
 				top: 0,
@@ -687,6 +695,125 @@
 					url: '/static/default-avatar.png',
 					text: '未知角色',
 					id: null
+				};
+			},
+			calculateImageSize(originalWidth, originalHeight, imageKey) {
+				const maxWidth = 270;
+				const maxHeight = 300;
+				const minWidth = 80;
+				const minHeight = 80;
+
+				let displayWidth = originalWidth;
+				let displayHeight = originalHeight;
+
+				if (displayWidth > maxWidth || displayHeight > maxHeight) {
+					const widthRatio = maxWidth / displayWidth;
+					const heightRatio = maxHeight / displayHeight;
+					const ratio = Math.min(widthRatio, heightRatio);
+					displayWidth = displayWidth * ratio;
+					displayHeight = displayHeight * ratio;
+				}
+
+				if (displayWidth < minWidth && displayHeight < minHeight) {
+					const widthRatio = minWidth / displayWidth;
+					const heightRatio = minHeight / displayHeight;
+					const ratio = Math.max(widthRatio, heightRatio);
+					displayWidth = displayWidth * ratio;
+					displayHeight = displayHeight * ratio;
+				}
+
+				displayWidth = Math.max(minWidth, Math.min(maxWidth, displayWidth));
+				displayHeight = Math.max(minHeight, Math.min(maxHeight, displayHeight));
+
+				if (imageKey) {
+					this.$set(this.imageSizes, imageKey, {
+						width: displayWidth,
+						height: displayHeight
+					});
+				}
+
+				return {
+					width: displayWidth,
+					height: displayHeight
+				};
+			},
+			onImageLoad(event, index) {
+				try {
+					const imageKey = `image_${index}`;
+					const { width, height } = event.detail || {};
+
+					if (!width || !height || width <= 0 || height <= 0) {
+						return;
+					}
+
+					const systemInfo = uni.getSystemInfoSync();
+					const screenWidth = systemInfo.windowWidth || 375;
+					const designWidth = 750;
+
+					const upxWidth = (width / screenWidth) * designWidth;
+					const upxHeight = (height / screenWidth) * designWidth;
+
+					this.calculateImageSize(upxWidth, upxHeight, imageKey);
+					this.$forceUpdate();
+				} catch (error) {
+					console.error('处理图片加载事件失败:', error);
+				}
+			},
+			getImageContainerStyle(index) {
+				const imageKey = `image_${index}`;
+				const size = this.imageSizes[imageKey];
+
+				const baseStyle = {
+					overflow: 'hidden'
+				};
+
+				if (size && size.width && size.height) {
+					const borderRadius = Math.max(8, Math.min(15, size.height / 2));
+					return {
+						...baseStyle,
+						borderRadius: borderRadius + 'rpx',
+						width: size.width + 'upx',
+						height: size.height + 'upx',
+						maxWidth: '270upx',
+						maxHeight: '300upx',
+						minWidth: '80upx',
+						minHeight: '80upx'
+					};
+				}
+
+				return {
+					...baseStyle,
+					borderRadius: '15rpx',
+					width: '120upx',
+					height: 'auto',
+					maxWidth: '270upx',
+					maxHeight: '300upx',
+					minWidth: '80upx',
+					minHeight: '80upx'
+				};
+			},
+			getImageStyle(index) {
+				const imageKey = `image_${index}`;
+				const size = this.imageSizes[imageKey];
+
+				const baseStyle = {
+					width: '100%',
+					height: '100%',
+					display: 'block'
+				};
+
+				if (size && size.width && size.height) {
+					const borderRadius = Math.max(8, Math.min(15, size.height / 2));
+					return {
+						...baseStyle,
+						borderRadius: borderRadius + 'rpx'
+					};
+				}
+
+				return {
+					...baseStyle,
+					borderRadius: '15rpx',
+					height: 'auto'
 				};
 			},
 			
@@ -2038,11 +2165,19 @@
 	}
 
 	.phote {
-		max-width: 440upx;
-		width: 240upx;
-		height: auto;
-		/* height: 200rpx; */
-		/* background-color: #3086ff; */
+		border-radius: 20rpx;
+		overflow: hidden;
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.photo-container {
+		display: inline-block;
+		border-radius: 15rpx;
+		overflow: hidden !important;
+		position: relative;
+		vertical-align: top;
 	}
 
 	.rightp {
@@ -2082,7 +2217,7 @@
 	.desc {
 		color: #656a70;
 		font-size: 24upx;
-		/* margin-top: 2upx; */
+		margin-top: 8upx;
 	}
 
 	.nikeName {
@@ -2098,7 +2233,7 @@
 
 	.back {
 		font-size: 32upx;
-		margin-right: 32upx;
+		/* margin-right: 32upx; */
 		display: flex;
 	}
 
