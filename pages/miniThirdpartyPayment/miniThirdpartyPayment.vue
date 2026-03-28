@@ -79,7 +79,7 @@ import MiniThirdpartyPaymentBill from '@/components/bill-preview/MiniThirdpartyP
 					"institution": '收款机构', //收款机构
 					"shopNumber": ' 商户单号', // 商单号
 					"desc2": "由互联网清算有限公司提供付款清算服务",
-					"miniName":"小七商行收款",
+					"miniName":"小七商行收款小七商行收款小七商行收款",
 						"padd":60,
 						"order":false,
 						"fontSize":100

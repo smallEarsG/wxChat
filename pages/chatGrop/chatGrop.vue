@@ -3,7 +3,7 @@
 		<!-- 全局水印层 -->
 		<WatermarkLayer />
 
-	<view  v-if="!isIos" class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
+<!-- 	<view  v-if="!isIos" class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="back" @click="goBack">
 				<image class="backimg" src="../../static/qiw/black_leftIcon.png" mode="widthFix"></image>
 			</view>
@@ -11,16 +11,16 @@
 				<view class="nikeName"  :style="{ fontSize: rpx(36) }">
 					{{guestInfo.nickname || "微信工坊"}}
 				</view>
-				<!-- <view class="desc" :style="{ fontSize: rpx(24) }">{{guestInfo.description}}</view> -->
+				<view class="desc" :style="{ fontSize: rpx(24) }"> {{guestInfo.description}}</view>
 
 			</view>
 			<view class="icons">
 				<image @click="addVideo" class="nav-icon_phone" mode="widthFix" src="/static/icon-phone.png"></image>
 				<image @click="openMenu" class="nav-icon_more" src="/static/qiw/more.png"></image>
 			</view>
-		</view>
-		<!-- isIos -->
-		<view  v-else class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
+		</view> -->
+		<!-- isIos v-else -->
+		<view   class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="back" @click="goBack">
 				<uni-icons type="left" color="#000" size="24"></uni-icons>
 				<view class="nav-icon_phone" style="margin-right: 26upx;" />
@@ -29,17 +29,17 @@
 				<view class="nikeName"  :style="{ fontSize: rpx(34),fontWeight:'500' }">
 					{{guestInfo.nickname || "微信工坊"}}
 				</view>
-				<!-- <view class="desc" :style="{ fontSize: rpx(24) }">{{guestInfo.description}}</view> -->
+				<view class="desc" :style="{ fontSize: rpx(24) }">{{guestInfo.description}}</view>
 			</view>
 			<view class="icons">
 				<image @click="addVideo" class="nav-icon_phone" mode="widthFix" src="/static/icon-phone.png"></image>
-				<uni-icons style="margin-left: 20rpx;" type="more-filled" size="24"></uni-icons>
+				<uni-icons style="margin-left: 20rpx;" type="more-filled" size="24" @click="openMenu"></uni-icons>
 			</view>
 		</view>
 		
 		<!-- 聊天内容区域 -->
 		<view class="chat-content">
-			<scroll-view class="chat-body" scroll-y :show-scrollbar="false">
+			<scroll-view class="chat-body" scroll-y :show-scrollbar="false" :style="chatBodyStyle">
 
 				<view v-if="activeMsgIndex !== -1" class="overlay" @click="closePopupMenu"></view>
 				<!-- 聊天内容 -->
@@ -175,7 +175,10 @@
 								<view class="name">{{getRoleInfo(item.location).text}} <text class="name-desc">{{getRoleInfo(item.location).desc}}</text></view>
 							<view class="bubble">
 								<template v-for="(part, partIndex) in parseMessage(item.content)">
-									<text v-if="part.type === 'text'" :key="'text-'+partIndex">{{ part.content }}</text>
+									<text v-if="part.type === 'text'" :key="'text-'+partIndex" class="msg-text">{{ part.content }}</text>
+									<text v-else-if="part.type === 'url'" :key="'url-'+partIndex" class="msg-url">{{ part.content }}</text>
+									<text v-else-if="part.type === 'email'" :key="'email-'+partIndex" class="msg-email">{{ part.content }}</text>
+									<text v-else-if="part.type === 'number'" :key="'number-'+partIndex" class="msg-number">{{ part.content }}</text>
 									<image v-else-if="part.type === 'emoji'" :key="'emoji-'+partIndex"
 										:src="getEmojiUrl(part.index,item.location)" class="emoji-inline" />
 								</template>
@@ -187,7 +190,10 @@
 						<view class="msgContent">
 							<view class="bubble">
 								<template v-for="(part, partIndex) in parseMessage(item.content)">
-									<text v-if="part.type === 'text'" :key="'text-'+partIndex">{{ part.content }}</text>
+									<text v-if="part.type === 'text'" :key="'text-'+partIndex" class="msg-text">{{ part.content }}</text>
+									<text v-else-if="part.type === 'url'" :key="'url-'+partIndex" class="msg-url">{{ part.content }}</text>
+									<text v-else-if="part.type === 'email'" :key="'email-'+partIndex" class="msg-email">{{ part.content }}</text>
+									<text v-else-if="part.type === 'number'" :key="'number-'+partIndex" class="msg-number">{{ part.content }}</text>
 									<image v-else-if="part.type === 'emoji'" :key="'emoji-'+partIndex"
 										:src="getEmojiUrl(part.index,item.location)" class="emoji-inline" />
 								</template>
@@ -237,6 +243,7 @@
 			@submit="onTransferSubmit" />
 		<!-- 图片 -->
 		<UploadImage ref="photoPopup" @submit="onPhotoSubmit"></UploadImage>
+		<UploadImage ref="bgPopup" @submit="onBgSubmit"></UploadImage>
 		<!-- 名片 -->
 		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
 		<!-- 插入 -->
@@ -249,6 +256,53 @@
 		<ProfileEditPopup ref="wxChatAdd" @submit="addGusetInfo"></ProfileEditPopup>
 		<!-- 编辑角色 -->
 		<ProfileEditPopup ref="editRolePopup" :value="editRoleInfo" @submit="onEditRoleSubmit"></ProfileEditPopup>
+		<uni-popup ref="watermarkPopup" type="center">
+			<view class="watermark-popup">
+				<view class="wm-header">水印设置</view>
+				<view class="wm-body">
+					<view class="wm-row">
+						<text class="wm-label">是否显示</text>
+						<switch :checked="watermarkForm.visible" color="#007aff" @click.stop="" @change="onWatermarkVisibleChange" />
+					</view>
+					<view class="wm-row">
+						<text class="wm-label">文字内容</text>
+						<input class="wm-input" v-model="watermarkForm.text" placeholder="请输入水印文字" />
+					</view>
+					<view class="wm-row wm-slider-row">
+						<text class="wm-label">字体大小</text>
+						<view class="wm-slider">
+							<slider :value="watermarkForm.fontSize" min="12" max="32" step="1" @change="onWatermarkFontSizeChange" @changing="onWatermarkFontSizeChange" />
+							<text class="wm-hint">{{ watermarkForm.fontSize }}px</text>
+						</view>
+					</view>
+					<view class="wm-row wm-slider-row">
+						<text class="wm-label">排列密度</text>
+						<view class="wm-slider">
+							<slider :value="watermarkForm.spacing" min="60" max="240" step="10" @change="onWatermarkSpacingChange" @changing="onWatermarkSpacingChange" />
+							<text class="wm-hint">{{ watermarkForm.spacing }}px</text>
+						</view>
+					</view>
+				</view>
+				<view class="wm-actions">
+					<button class="wm-btn cancel" @click="closeWatermarkSettings">取消</button>
+					<button class="wm-btn confirm" @click="applyWatermarkSettings">确定</button>
+				</view>
+			</view>
+		</uni-popup>
+		<uni-popup ref="menuPopup" background-color="#fff">
+			<view class="menu" :style="{ paddingTop: statusBarHeight + 'px' }">
+				<button type="primary" plain="true" @click="openBgPopup">修改背景</button>
+				<view class="fontChange">
+					<view class="">
+						字体调节
+					</view>
+					<slider :value="scale" :min="0.7" :max="1.5" :step="0.02" @changing="onScaleChange" />
+				</view>
+				<view class="watermark-settings-entry">
+					<button type="default" plain="true" @click="openWatermarkSettings">水印设置</button>
+				</view>
+			</view>
+		</uni-popup>
 	<uni-popup ref="rolePopup" class="role-popup">
 	  <view class="role-container">
 	    <view class="role-header">
@@ -351,6 +405,7 @@
 			
 			// 恢复缓存数据
 			this.loadChatData();
+			this.loadWatermarkSettings();
 			
 			// 获取账号信息
 			const userId = uni.getStorageSync('userId');
@@ -364,6 +419,7 @@
 		},
 		data() {
 			return {
+				isIos: false,
 				keyboardHeight: 0,
 				keyboard: false,
 				guestList: [], // 修复拼写：gusetList -> guestList
@@ -375,6 +431,17 @@
 				currentRoleIndex: 0, // 重命名：isMe -> currentRoleIndex，当前选中的角色索引
 			openPopup: false,
 			inputValue: "",
+			contentbg: "null",
+			watermarkVisible: false,
+			watermarkText: '测试水印',
+			watermarkSpacing: 180,
+			watermarkFontSize: 16,
+			watermarkForm: {
+				visible: false,
+				text: '测试水印',
+				spacing: 180,
+				fontSize: 16
+			},
 			popupMenuPosition: {
 				show: false,
 				top: 0,
@@ -460,6 +527,49 @@
 				}
 				return pages;
 			},
+			watermarkPattern() {
+				const text = (this.watermarkText || '').trim() || ' ';
+				const spacing = Math.max(60, Number(this.watermarkSpacing) || 180);
+				const fontSize = Number(this.watermarkFontSize) || 16;
+				const height = Math.max(40, Math.round(spacing * 0.7));
+				const svg =
+					`<svg width="${spacing}" height="${height}" xmlns="http://www.w3.org/2000/svg"><text x="50%" y="50%" font-size="${fontSize}" fill="rgba(0,0,0,0.12)" text-anchor="middle" dominant-baseline="middle" transform="rotate(-20 ${spacing / 2} ${height / 2})" font-family="-apple-system, BlinkMacSystemFont, PingFang SC, Helvetica Neue, Microsoft YaHei, Roboto, Noto Sans CJK SC, sans-serif">${text}</text></svg>`;
+				return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+			},
+			chatBodyStyle() {
+				const style = {};
+				const backgrounds = [];
+				const sizes = [];
+				const repeats = [];
+				const positions = [];
+
+				const hasCustomBackground = this.contentbg && this.contentbg !== 'null';
+
+				if (this.watermarkVisible) {
+					backgrounds.push(`url("${this.watermarkPattern}")`);
+					sizes.push(
+						`${Math.max(60, Number(this.watermarkSpacing) || 180)}px ${Math.max(40, Math.round((Number(this.watermarkSpacing) || 180) * 0.7))}px`
+					);
+					repeats.push('repeat');
+					positions.push('0 0');
+				}
+
+				if (hasCustomBackground) {
+					backgrounds.push(`url("${this.contentbg}")`);
+					sizes.push('100% 100%');
+					repeats.push('no-repeat');
+					positions.push('center center');
+				}
+
+				if (backgrounds.length) {
+					style.backgroundImage = backgrounds.join(', ');
+					style.backgroundSize = sizes.join(', ');
+					style.backgroundRepeat = repeats.join(', ');
+					style.backgroundPosition = positions.join(', ');
+				}
+
+				return style;
+			}
 		},
 		mounted() {
 
@@ -483,6 +593,86 @@
 			// }, 1000)
 		},
 		methods: {
+			openWatermarkSettings() {
+				this.watermarkForm = {
+					visible: this.watermarkVisible,
+					text: this.watermarkText,
+					spacing: this.watermarkSpacing,
+					fontSize: this.watermarkFontSize
+				};
+				this.$refs.watermarkPopup.open();
+				this.$refs.menuPopup.close();
+			},
+			closeWatermarkSettings() {
+				this.$refs.watermarkPopup.close();
+			},
+			onWatermarkVisibleChange(event) {
+				this.watermarkForm.visible = event.detail.value;
+			},
+			onWatermarkSpacingChange(event) {
+				const raw = event?.detail?.value;
+				if (typeof raw === 'number') {
+					this.watermarkForm.spacing = raw;
+				}
+			},
+			onWatermarkFontSizeChange(event) {
+				const raw = event?.detail?.value;
+				if (typeof raw === 'number') {
+					this.watermarkForm.fontSize = raw;
+				}
+			},
+			applyWatermarkSettings() {
+				this.watermarkVisible = this.watermarkForm.visible;
+				this.watermarkText = this.watermarkForm.text;
+				this.watermarkSpacing = this.watermarkForm.spacing;
+				this.watermarkFontSize = this.watermarkForm.fontSize;
+				this.saveWatermarkSettings();
+				this.closeWatermarkSettings();
+			},
+			loadWatermarkSettings() {
+				try {
+					const savedSettings = uni.getStorageSync('watermarkSettings');
+					if (!savedSettings) return;
+
+					let settings = savedSettings;
+					if (typeof savedSettings === 'string') {
+						settings = JSON.parse(savedSettings);
+					}
+
+					if (!settings || typeof settings !== 'object') return;
+
+					if (settings.visible !== undefined) this.watermarkVisible = settings.visible;
+					if (settings.text !== undefined && settings.text !== '') this.watermarkText = settings.text;
+					if (settings.spacing !== undefined) this.watermarkSpacing = Number(settings.spacing) || 180;
+					if (settings.fontSize !== undefined) this.watermarkFontSize = Number(settings.fontSize) || 16;
+				} catch (error) {
+					console.error('读取水印设置失败:', error);
+				}
+			},
+			saveWatermarkSettings() {
+				try {
+					const settings = {
+						visible: this.watermarkVisible,
+						text: this.watermarkText,
+						spacing: this.watermarkSpacing,
+						fontSize: this.watermarkFontSize
+					};
+					uni.setStorageSync('watermarkSettings', JSON.stringify(settings));
+				} catch (error) {
+					console.error('保存水印设置失败:', error);
+				}
+			},
+			onScaleChange(e) {
+				const scale = e.detail.value;
+				this.$store.commit('setScale', scale);
+			},
+			openBgPopup() {
+				this.$refs.bgPopup.open();
+				this.$refs.menuPopup.close();
+			},
+			onBgSubmit(data) {
+				this.contentbg = data.avatar;
+			},
 			// 获取角色信息（带边界检查）
 			getRoleInfo(location) {
 				if (location < 0 || location >= this.guestList.length) {
@@ -500,41 +690,124 @@
 				};
 			},
 			
-		// 解析消息内容（支持表情）
+		// 解析消息内容（支持表情、链接、邮箱、数字）
 		parseMessage(content) {
 			if (typeof content !== 'string') {
 				return [{ type: 'text', content: String(content) }];
 			}
 			const parts = [];
-			const emojiRegex = /\[(\d+)\]/g;
+			const combinedRegex = /(\[(?:emoji_)?(\d+)\])|(https?:\/\/[^\s]+|ftp:\/\/[^\s]+|www\.[^\s]+)|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|(\d{7,})/g;
 			let lastIndex = 0;
 			let match;
 			
-			while ((match = emojiRegex.exec(content)) !== null) {
-				// 添加表情前的文本
+			while ((match = combinedRegex.exec(content)) !== null) {
 				if (match.index > lastIndex) {
+					const textBefore = content.substring(lastIndex, match.index);
+					if (textBefore) {
+						this.parseTextForEmailAndNumber(textBefore, parts);
+					}
+				}
+
+				if (match[1]) {
 					parts.push({
-						type: 'text',
-						content: content.substring(lastIndex, match.index)
+						type: 'emoji',
+						index: parseInt(match[2])
+					});
+				} else if (match[3]) {
+					parts.push({
+						type: 'url',
+						content: match[3]
+					});
+				} else if (match[4]) {
+					parts.push({
+						type: 'email',
+						content: match[4]
+					});
+				} else if (match[5]) {
+					parts.push({
+						type: 'number',
+						content: match[5]
 					});
 				}
-				// 添加表情
-				parts.push({
-					type: 'emoji',
-					index: parseInt(match[1])
-				});
-				lastIndex = match.index + match[0].length;
+
+				lastIndex = combinedRegex.lastIndex;
 			}
 			
-			// 添加剩余文本
 			if (lastIndex < content.length) {
-				parts.push({
-					type: 'text',
-					content: content.substring(lastIndex)
-				});
+				const remainingText = content.substring(lastIndex);
+				if (remainingText) {
+					this.parseTextForEmailAndNumber(remainingText, parts);
+				}
 			}
 			
 			return parts.length > 0 ? parts : [{ type: 'text', content }];
+		},
+
+		parseTextForEmailAndNumber(text, result) {
+			if (!text) return;
+
+			const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+			const numberRegex = /\d{7,}/g;
+			const matches = [];
+			let match;
+
+			emailRegex.lastIndex = 0;
+			while ((match = emailRegex.exec(text)) !== null) {
+				matches.push({
+					type: 'email',
+					content: match[0],
+					index: match.index,
+					length: match[0].length
+				});
+			}
+
+			numberRegex.lastIndex = 0;
+			while ((match = numberRegex.exec(text)) !== null) {
+				const isInEmail = matches.some(m =>
+					match.index >= m.index && match.index < m.index + m.length
+				);
+				if (!isInEmail) {
+					matches.push({
+						type: 'number',
+						content: match[0],
+						index: match.index,
+						length: match[0].length
+					});
+				}
+			}
+
+			matches.sort((a, b) => a.index - b.index);
+
+			let lastIndex = 0;
+			for (let i = 0; i < matches.length; i++) {
+				const current = matches[i];
+
+				if (current.index > lastIndex) {
+					result.push({
+						type: 'text',
+						content: text.substring(lastIndex, current.index)
+					});
+				}
+
+				result.push({
+					type: current.type,
+					content: current.content
+				});
+
+				lastIndex = current.index + current.length;
+			}
+
+			if (lastIndex < text.length) {
+				result.push({
+					type: 'text',
+					content: text.substring(lastIndex)
+				});
+			} else if (matches.length === 0) {
+				result.push({
+					type: 'text',
+					content: text
+				});
+			}
 		},
 		
 		// 检查角色是否可以被删除
@@ -629,7 +902,7 @@
 			},
 			
 			openMenu(){
-				
+				this.$refs.menuPopup.open('top')
 			},
 			checkSelect(index){
 			if(this.currentActionIndex != -1 && this.currentActionIndex < this.massageList.length ){
@@ -1447,6 +1720,34 @@
 
 	}
 
+	.msg-text {
+		word-break: break-all;
+		overflow-wrap: anywhere;
+		white-space: pre-wrap;
+		color: #333;
+	}
+
+	.msg-url {
+		word-break: break-all;
+		overflow-wrap: anywhere;
+		white-space: pre-wrap;
+		color: #007AFF;
+	}
+
+	.msg-email {
+		word-break: break-all;
+		overflow-wrap: anywhere;
+		white-space: pre-wrap;
+		color: #3175d8;
+	}
+
+	.msg-number {
+		word-break: break-all;
+		overflow-wrap: anywhere;
+		white-space: pre-wrap;
+		color: #3175d8;
+	}
+
 	.emoji-picker {
 		background-color: #fff;
 		height: 360upx;
@@ -2055,5 +2356,101 @@
 	.feature-text {
 		font-size: 24rpx;
 		color: #333;
+	}
+
+	.menu {
+		padding: 40upx;
+	}
+
+	.fontChange {
+		margin-top: 20upx;
+		border: 1px solid #007aff;
+		padding: 10upx;
+		border-radius: 16upx;
+	}
+
+	.watermark-settings-entry {
+		margin-top: 20upx;
+	}
+
+	.watermark-settings-entry button {
+		width: 100%;
+	}
+
+	.watermark-popup {
+		width: 620rpx;
+		background: #fff;
+		border-radius: 20rpx;
+		overflow: hidden;
+	}
+
+	.wm-header {
+		padding: 24rpx 28rpx;
+		font-size: 30rpx;
+		font-weight: 600;
+		border-bottom: 1rpx solid #f0f0f0;
+	}
+
+	.wm-body {
+		padding: 20rpx 28rpx;
+	}
+
+	.wm-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 20rpx;
+	}
+
+	.wm-slider-row {
+		align-items: flex-start;
+	}
+
+	.wm-label {
+		font-size: 26rpx;
+		color: #333;
+		min-width: 140rpx;
+	}
+
+	.wm-input {
+		flex: 1;
+		height: 64rpx;
+		line-height: 64rpx;
+		background: #f7f8fa;
+		border-radius: 12rpx;
+		padding: 0 20rpx;
+		font-size: 24rpx;
+	}
+
+	.wm-slider {
+		flex: 1;
+		margin-left: 20rpx;
+	}
+
+	.wm-hint {
+		font-size: 22rpx;
+		color: #999;
+	}
+
+	.wm-actions {
+		display: flex;
+		border-top: 1rpx solid #f0f0f0;
+	}
+
+	.wm-btn {
+		flex: 1;
+		border-radius: 0;
+		border: 0;
+		background: #fff;
+		font-size: 28rpx;
+	}
+
+	.wm-btn.cancel {
+		color: #666;
+		border-right: 1rpx solid #f0f0f0;
+	}
+
+	.wm-btn.confirm {
+		color: #007aff;
 	}
 </style>

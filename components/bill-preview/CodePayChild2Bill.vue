@@ -83,13 +83,15 @@
 				<view class="se_title" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
 					收款方服务
 				</view>
-				<view class="serivce_bx">
+				<view class="serivce_line">
+					<view class="serivce_bx">
 					<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
 						<view class="se_icon">
 							<image class="cordIcon" src="/static/cordIcon.png" mode=""></image>
 						</view>
 						收款方名片
 					</view>
+				</view>
 				</view>
 			</view>
 
@@ -285,7 +287,7 @@
 	}
 	
 	.serivce_line {
-		border-top: 1px solid #eaeaea;
+		border-top: 1rpx solid #eaeaea;
 	}
 	
 	.serivce_bx {

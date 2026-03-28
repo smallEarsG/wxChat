@@ -835,9 +835,9 @@
 			},
 			async onCradSubmitz(data) {
 				console.log(data);
-				const res = await uploadImage(data.avatar)
+				// const res = await uploadImage(data.avatar)
 				const temp = data
-				temp.avatar = res.data
+				// temp.avatar = res.data
 				const location = this.isMe ? 1 : 0;
 				const transferInfo = {
 					type: "content", // tips, content

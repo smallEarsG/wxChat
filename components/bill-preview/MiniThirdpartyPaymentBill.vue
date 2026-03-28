@@ -73,7 +73,7 @@
 				</view>
 			</view>
 			
-			<view class="mini" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx', fontSize: (28 * fontScale) + 'rpx' }">
+			<view class="mini" style="align-items: center;" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx', fontSize: (28 * fontScale) + 'rpx' }">
 				<view class="left" style="color: black;">商家小程序</view>
 				<view class="right_mini">
 					<image class="miniapp" mode="widthFix" src="/static/qiw/miniIcon.png"></image>

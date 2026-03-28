@@ -78,6 +78,7 @@
 					"currentState": "对方已收钱",
 					"desc": "转账时间",
 					"padd":60,
+					"order":false,
 					"fontSize":100
 
 				},
@@ -92,6 +93,7 @@
 					"payment": '支付方式',
 					"desc": "备注",
 					"padd":"边距",
+					"order":"全部账单",
 						"fontSize":"字体大小"
 				}
 			}

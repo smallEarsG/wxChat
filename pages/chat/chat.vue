@@ -1159,10 +1159,6 @@
 					}
 					this.guestInfo = parsedGuestInfo;
 					this.massageList = JSON.parse(this.guestInfo.content || '[]') || [];
-					// 初始化虚拟滚动
-					this.$nextTick(() => {
-						this.initVirtualScroll();
-					});
 				} catch (e) {
 					console.error('guestInfo 参数解析失败', e, options.guestInfo);
 					this.massageList = [];
@@ -1200,6 +1196,10 @@
 			if (this.scrollTimer) {
 				clearTimeout(this.scrollTimer);
 				this.scrollTimer = null;
+			}
+			if (this.measureTimer) {
+				clearTimeout(this.measureTimer);
+				this.measureTimer = null;
 			}
 			if (this.autoScrollTimer) {
 				clearInterval(this.autoScrollTimer);
@@ -1248,6 +1248,7 @@
 					}
 				}],
 				// 虚拟滚动相关
+				useVirtualScroll: false,
 				virtualScrollEnabled: true, // 是否启用虚拟滚动（消息数量超过阈值时启用）
 				virtualScrollThreshold: 50, // 启用虚拟滚动的消息数量阈值
 				visibleStartIndex: 0, // 可见区域起始索引
@@ -1257,6 +1258,9 @@
 				containerHeight: 0, // 容器高度
 				scrollPosition: 0, // 当前滚动位置
 				scrollTimer: null, // 滚动节流定时器
+				measureTimer: null,
+				topPlaceholderHeightPx: 0,
+				bottomPlaceholderHeightPx: 0,
 				orderInfo: {
 					shopName: "",
 					gusetName: "",
@@ -1573,9 +1577,24 @@
 			},
 			// 虚拟滚动：计算可见的消息列表
 			visibleMessageList() {
+				if (!this.useVirtualScroll) {
+					return this.massageList.map((item, index) => ({ item, index, isVisible: true }));
+				}
 				// 如果消息数量少于阈值或未启用虚拟滚动，返回全部消息
 				if (!this.virtualScrollEnabled || this.massageList.length <= this.virtualScrollThreshold) {
 					return this.massageList.map((item, index) => ({ item, index, isVisible: true }));
+				}
+
+				if (!this.visibleEndIndex || this.visibleEndIndex <= 0) {
+					const safeContainerHeight = this.containerHeight || 600;
+					const visibleCount = Math.ceil(safeContainerHeight / this.estimatedItemHeight) + this.scrollBuffer * 4;
+					const start = Math.max(0, this.massageList.length - visibleCount);
+					const end = this.massageList.length;
+					return this.massageList.slice(start, end).map((item, relativeIndex) => ({
+						item,
+						index: start + relativeIndex,
+						isVisible: true
+					}));
 				}
 				
 				// 计算可见范围
@@ -1591,18 +1610,22 @@
 			},
 			// 计算上方占位符高度
 			topPlaceholderHeight() {
+				if (!this.useVirtualScroll) return 0;
 				if (!this.virtualScrollEnabled || this.massageList.length <= this.virtualScrollThreshold) {
 					return 0;
 				}
-				return this.visibleStartIndex * this.estimatedItemHeight;
+				if (!this.visibleEndIndex || this.visibleEndIndex <= 0) return 0;
+				return this.topPlaceholderHeightPx || (this.visibleStartIndex * this.estimatedItemHeight);
 			},
 			// 计算下方占位符高度
 			bottomPlaceholderHeight() {
+				if (!this.useVirtualScroll) return 0;
 				if (!this.virtualScrollEnabled || this.massageList.length <= this.virtualScrollThreshold) {
 					return 0;
 				}
+				if (!this.visibleEndIndex || this.visibleEndIndex <= 0) return 0;
 				const remaining = this.massageList.length - this.visibleEndIndex;
-				return remaining * this.estimatedItemHeight;
+				return this.bottomPlaceholderHeightPx || (remaining * this.estimatedItemHeight);
 			},
 			watermarkPattern() {
 				const text = (this.watermarkText || '').trim() || ' ';
@@ -1845,6 +1868,26 @@
 
 					// 强制更新视图
 					this.$forceUpdate();
+
+					this.$nextTick(() => {
+						setTimeout(() => {
+							uni.createSelectorQuery().select('.chat-body')
+								.fields({
+									size: true,
+									scrollOffset: true
+								}, res => {
+									if (!res) return;
+									if (this.virtualScrollEnabled) {
+										this.updateVisibleRange(res.scrollTop || this.scrollPosition || 0);
+									}
+									const distanceToBottom = res.scrollHeight - (res.scrollTop + res.height);
+									if (distanceToBottom < 120) {
+										this.scrollToBottom();
+									}
+								})
+								.exec();
+						}, 30);
+					});
 				} catch (error) {
 					console.error('处理图片加载事件失败:', error);
 				}
@@ -1940,6 +1983,7 @@
 			},
 			// 滚动事件处理（虚拟滚动）
 			onScroll(e) {
+				if (!this.useVirtualScroll) return;
 				if (!this.virtualScrollEnabled || this.massageList.length <= this.virtualScrollThreshold) {
 					return;
 				}
@@ -1952,41 +1996,205 @@
 				this.scrollTimer = setTimeout(() => {
 					this.updateVisibleRange(scrollTop);
 				}, 50);
+
+				clearTimeout(this.measureTimer);
+				this.measureTimer = setTimeout(() => {
+					this.measureVisibleItemHeights();
+				}, 120);
 			},
 			
 			// 更新可见区域范围
 			updateVisibleRange(scrollTop) {
+				if (!this.useVirtualScroll) {
+					this.virtualScrollEnabled = false;
+					this.visibleStartIndex = 0;
+					this.visibleEndIndex = this.massageList.length;
+					this.topPlaceholderHeightPx = 0;
+					this.bottomPlaceholderHeightPx = 0;
+					return;
+				}
 				// 拖拽过程中暂停虚拟滚动更新，防止DOM节点变化导致坐标计算错误
 				if (this.isDragging) return;
 
+				const listLen = this.massageList.length;
+				if (!listLen) {
+					this.visibleStartIndex = 0;
+					this.visibleEndIndex = 0;
+					this.topPlaceholderHeightPx = 0;
+					this.bottomPlaceholderHeightPx = 0;
+					return;
+				}
+
 				// 使用实际高度缓存计算可见区域（如果可用）
 				let startIndex = 0;
+				let heightBeforeStartIndex = 0;
 				if (this.itemHeightCache.size > 0) {
 					// 使用实际高度累加计算
 					let accumulatedHeight = 0;
-					for (let i = 0; i < this.massageList.length; i++) {
+					let found = false;
+					for (let i = 0; i < listLen; i++) {
 						const itemHeight = this.itemHeightCache.get(i) || this.estimatedItemHeight;
 						if (accumulatedHeight + itemHeight > scrollTop) {
 							startIndex = i;
+							heightBeforeStartIndex = accumulatedHeight;
+							found = true;
 							break;
 						}
 						accumulatedHeight += itemHeight;
 					}
+					if (!found) {
+						const lastHeight = this.itemHeightCache.get(listLen - 1) || this.estimatedItemHeight;
+						startIndex = listLen - 1;
+						heightBeforeStartIndex = Math.max(0, accumulatedHeight - lastHeight);
+					}
 				} else {
 					// 回退到估算高度
 					startIndex = Math.floor(scrollTop / this.estimatedItemHeight);
+					heightBeforeStartIndex = startIndex * this.estimatedItemHeight;
 				}
-				
-				const visibleCount = Math.ceil(this.containerHeight / this.estimatedItemHeight) + this.scrollBuffer * 2;
-				
-				this.visibleStartIndex = Math.max(0, startIndex - this.scrollBuffer);
-				this.visibleEndIndex = Math.min(this.massageList.length, startIndex + visibleCount);
+
+				if (startIndex >= listLen) startIndex = listLen - 1;
+				if (startIndex < 0) startIndex = 0;
+
+				let visibleCount = Math.ceil(this.containerHeight / this.estimatedItemHeight) + this.scrollBuffer * 2;
+				if (!Number.isFinite(visibleCount) || visibleCount <= 0) visibleCount = this.scrollBuffer * 4 + 10;
+
+				let visibleStart = Math.max(0, startIndex - this.scrollBuffer);
+				let visibleEnd = Math.min(listLen, startIndex + visibleCount);
+
+				if (visibleEnd <= visibleStart) {
+					visibleStart = Math.max(0, Math.min(visibleStart, listLen - 1));
+					visibleEnd = Math.min(listLen, visibleStart + visibleCount);
+				}
+
+				this.visibleStartIndex = visibleStart;
+				this.visibleEndIndex = visibleEnd;
+
+				let topHeight = 0;
+				if (this.itemHeightCache.size > 0) {
+					topHeight = heightBeforeStartIndex;
+					for (let i = visibleStart; i < startIndex; i++) {
+						topHeight -= (this.itemHeightCache.get(i) || this.estimatedItemHeight);
+					}
+					if (!Number.isFinite(topHeight) || topHeight < 0) topHeight = 0;
+				} else {
+					topHeight = visibleStart * this.estimatedItemHeight;
+				}
+
+				let heightBeforeVisibleEnd = topHeight;
+				for (let i = visibleStart; i < visibleEnd; i++) {
+					heightBeforeVisibleEnd += (this.itemHeightCache.get(i) || this.estimatedItemHeight);
+				}
+
+				let totalHeight = listLen * this.estimatedItemHeight;
+				if (this.itemHeightCache.size > 0) {
+					for (const [idx, h] of this.itemHeightCache.entries()) {
+						if (idx >= 0 && idx < listLen) totalHeight += (h - this.estimatedItemHeight);
+					}
+				}
+
+				this.topPlaceholderHeightPx = topHeight;
+				this.bottomPlaceholderHeightPx = Math.max(0, totalHeight - heightBeforeVisibleEnd);
+			},
+
+			measureVisibleItemHeights() {
+				if (!this.useVirtualScroll) return;
+				if (!this.virtualScrollEnabled || this.massageList.length <= this.virtualScrollThreshold) return;
+				if (this.isDragging) return;
+
+				const listLen = this.massageList.length;
+				if (!listLen) return;
+
+				const query = uni.createSelectorQuery().in(this);
+				query.selectAll('.msg-item-wrapper')
+					.fields({
+						size: true,
+						dataset: true
+					}, (nodes) => {
+						if (!nodes || !nodes.length) return;
+
+						let changed = false;
+						for (let i = 0; i < nodes.length; i++) {
+							const node = nodes[i] || {};
+							const h = node.height;
+							if (!h || h <= 0) continue;
+
+							const datasetIndex = node.dataset && (node.dataset.index !== undefined ? node.dataset.index : node.dataset['index']);
+							let idx = Number(datasetIndex);
+							if (!Number.isFinite(idx)) {
+								const fallback = this.visibleMessageList[i] && this.visibleMessageList[i].index;
+								idx = Number(fallback);
+							}
+							if (!Number.isFinite(idx) || idx < 0 || idx >= listLen) continue;
+
+							const prev = this.itemHeightCache.get(idx);
+							if (prev !== h) {
+								this.itemHeightCache.set(idx, h);
+								changed = true;
+							}
+						}
+
+						if (changed) {
+							this.updateVisibleRange(this.scrollPosition || 0);
+						}
+					})
+					.exec();
+			},
+
+			invalidateVirtualScrollCaches() {
+				if (this.messageParseCache && typeof this.messageParseCache.clear === 'function') {
+					this.messageParseCache.clear();
+				}
+				if (this.itemHeightCache && typeof this.itemHeightCache.clear === 'function') {
+					this.itemHeightCache.clear();
+				}
+
+				if (!this.useVirtualScroll) {
+					this.virtualScrollEnabled = false;
+					this.visibleStartIndex = 0;
+					this.visibleEndIndex = this.massageList.length;
+					this.topPlaceholderHeightPx = 0;
+					this.bottomPlaceholderHeightPx = 0;
+					return;
+				}
+
+				this.$nextTick(() => {
+					if (this.massageList.length <= this.virtualScrollThreshold) {
+						this.virtualScrollEnabled = false;
+						this.visibleStartIndex = 0;
+						this.visibleEndIndex = this.massageList.length;
+						this.topPlaceholderHeightPx = 0;
+						this.bottomPlaceholderHeightPx = 0;
+						return;
+					}
+
+					if (!this.virtualScrollEnabled) this.virtualScrollEnabled = true;
+
+					if (!this.containerHeight) {
+						this.initVirtualScroll();
+						return;
+					}
+
+					this.updateVisibleRange(this.scrollPosition || 0);
+				});
 			},
 			
 			// 初始化虚拟滚动
 			initVirtualScroll() {
+				if (!this.useVirtualScroll) {
+					this.virtualScrollEnabled = false;
+					this.visibleStartIndex = 0;
+					this.visibleEndIndex = this.massageList.length;
+					this.topPlaceholderHeightPx = 0;
+					this.bottomPlaceholderHeightPx = 0;
+					return;
+				}
 				if (this.massageList.length <= this.virtualScrollThreshold) {
 					this.virtualScrollEnabled = false;
+					this.visibleStartIndex = 0;
+					this.visibleEndIndex = this.massageList.length;
+					this.topPlaceholderHeightPx = 0;
+					this.bottomPlaceholderHeightPx = 0;
 					return;
 				}
 				
@@ -1996,12 +2204,20 @@
 				this.$nextTick(() => {
 					uni.createSelectorQuery().select('.chat-body')
 						.boundingClientRect((res) => {
-							if (res) {
-								this.containerHeight = res.height;
-								// 初始化可见范围（默认显示最后的消息）
-								this.visibleEndIndex = this.massageList.length;
-								this.visibleStartIndex = Math.max(0, this.massageList.length - Math.ceil(this.containerHeight / this.estimatedItemHeight) - this.scrollBuffer * 2);
+							if (!res || !res.height) {
+								this._initVirtualScrollRetry = (this._initVirtualScrollRetry || 0) + 1;
+								if (this._initVirtualScrollRetry < 20) {
+									setTimeout(() => this.initVirtualScroll(), 16);
+								}
+								return;
 							}
+
+							this._initVirtualScrollRetry = 0;
+							this.containerHeight = res.height;
+							this.visibleEndIndex = this.massageList.length;
+							this.visibleStartIndex = Math.max(0, this.massageList.length - Math.ceil(this.containerHeight / this.estimatedItemHeight) - this.scrollBuffer * 2);
+							this.topPlaceholderHeightPx = this.visibleStartIndex * this.estimatedItemHeight;
+							this.bottomPlaceholderHeightPx = (this.massageList.length - this.visibleEndIndex) * this.estimatedItemHeight;
 						})
 						.exec();
 				});
@@ -2112,6 +2328,7 @@
 				this.massageList.splice(index, 1);
 				this.activeMsgIndex = -1; // 清除激活状态
 				this.popupVisible = false;
+				this.invalidateVirtualScrollCaches();
 				this.updateMsg()
 			},
 
@@ -2297,9 +2514,11 @@
 
 			async onCradSubmitz(data) {
 				try {
-					const res = await uploadImage(data.avatar, this.guestInfo.userId)
+					// console.log("======",dataavatar)
+					// const res = await uploadImage(data.avatar, this.guestInfo.userId)
+					
 					const temp = data
-					temp.avatar = res.data
+					// temp.avatar = res.data
 					const location = this.isMe ? 1 : 0;
 					const transferInfo = {
 						type: "content", // tips, content
@@ -2359,6 +2578,7 @@
 				// 如果有当前操作的索引，将转账插入到该消息上方
 				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, transferInfo);
+					this.invalidateVirtualScrollCaches();
 					this.currentActionIndex = -1;
 				} else {
 					this.massageList.push(transferInfo);
@@ -2401,6 +2621,7 @@
 				// 如果有当前操作的索引，将订单插入到该消息上方
 				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, orderInfo);
+					this.invalidateVirtualScrollCaches();
 					this.currentActionIndex = -1;
 				} else {
 					this.massageList.push(orderInfo);
@@ -2434,6 +2655,7 @@
 				// 如果有当前操作的索引，将tips插入到该消息上方
 				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, tipsInfo);
+					this.invalidateVirtualScrollCaches();
 					this.currentActionIndex = -1;
 				} else {
 					this.massageList.push(tipsInfo);
@@ -2456,6 +2678,7 @@
 				// 如果有当前操作的索引，将时间插入到该消息上方
 				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, timeInfo);
+					this.invalidateVirtualScrollCaches();
 					// 插入后重置索引
 					this.currentActionIndex = -1;
 				} else {
@@ -2584,6 +2807,7 @@
 				// 如果有当前操作的索引，将文件插入到该消息上方
 				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, fileInfo);
+					this.invalidateVirtualScrollCaches();
 					this.currentActionIndex = -1;
 				} else {
 					this.massageList.push(fileInfo);
@@ -2613,6 +2837,7 @@
 					// 如果有当前操作的索引，将时间插入到该消息上方
 					if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 						this.massageList.splice(this.currentActionIndex, 0, msgInfo);
+						this.invalidateVirtualScrollCaches();
 						// 插入后重置索引
 						this.currentActionIndex = -1;
 					} else {
@@ -2695,6 +2920,7 @@
 				
 				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, redBagInfo);
+					this.invalidateVirtualScrollCaches();
 					this.currentActionIndex = -1;
 				} else {
 					this.massageList.push(redBagInfo);
@@ -2725,6 +2951,7 @@
 
 				if (this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, msgInfo);
+					this.invalidateVirtualScrollCaches();
 				} else {
 					this.massageList.push(msgInfo);
 				}
@@ -2989,6 +3216,7 @@
 			restoreDefaultSort() {
 				if (this.originalMessageList.length > 0) {
 					this.massageList = JSON.parse(JSON.stringify(this.originalMessageList));
+					this.invalidateVirtualScrollCaches();
 					this.updateMsg();
 					uni.showToast({
 						title: '已恢复默认',
@@ -3456,6 +3684,7 @@
 				newList.splice(toIndex, 0, item);
 				
 				this.massageList = newList;
+				this.invalidateVirtualScrollCaches();
 				this.updateMsg();
 				
 				uni.showToast({

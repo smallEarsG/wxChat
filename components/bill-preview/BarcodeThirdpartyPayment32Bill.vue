@@ -74,7 +74,7 @@
 						<view class="right">可在支持的商户扫码退款</view>
 					</view>
 					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
-						<view class="left"></view>
+						<!-- <view class="left"></view> -->
 						<view class="right">
 							<view class="barCodeBox">
 								 <BarcodeGenerator v-if="info.shopNumber != ''" :width="'219px'" :content="info.shopNumber" />
