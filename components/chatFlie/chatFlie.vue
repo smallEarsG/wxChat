@@ -1,5 +1,5 @@
 <template>
-  <view class="wx-card" :style="{ 'padding-bottom': content.isCop ? '0rpx' : '30rpx' }">
+  <view class="wx-card" :style="cardScaleStyle">
     <view class="card-content">
       <view class="file-name">{{ content.fileName }}</view>
       <view class="avatar-box">
@@ -21,11 +21,24 @@
 export default {
   name: 'FileCard', // 修正组件名拼写错误
   props: {
+	fontScale: {
+	  type: Number,
+	  default: 1
+	},
     content: {
       type: Object,
       required: true, // 明确标记为必填属性
       default: () => ({}) // 确保默认值是安全的空对象
     }
+  },
+  computed: {
+	cardScaleStyle() {
+		const scale = Number(this.fontScale) || 1
+		return {
+			'padding-bottom': this.content.isCop ? '0rpx' : '30rpx',
+			zoom: scale
+		}
+	}
   },
   methods: {
     // 集中管理文件类型与图标映射关系

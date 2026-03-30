@@ -139,7 +139,11 @@
 		},
 		methods: {
 			rs(value) {
-				return `${value * this.fontScale}rpx`
+				const scale = Number(this.fontScale) || 1
+				if (typeof uni !== 'undefined' && typeof uni.upx2px === 'function') {
+					return `${uni.upx2px(value * scale)}px`
+				}
+				return `${value * scale}px`
 			},
 			onPay() {
 				// 模拟支付逻辑
@@ -166,13 +170,13 @@
 .payment-card::after {
 	  content: "";
 	  position: absolute;
-	  top: calc(28rpx * var(--font-scale, 1));
-	  right: calc(-10rpx * var(--font-scale, 1));
+	  top: 28rpx;
+	  right: 11rpx;
 	  width: 0;
 	  height: 0;
-	  border-top: calc(6px * var(--font-scale, 1)) solid transparent;
-	  border-bottom: calc(6px * var(--font-scale, 1)) solid transparent;
-	  border-left: calc(6px * var(--font-scale, 1)) solid #ffffff;
+	  border-top: 12px solid transparent;
+	  border-bottom: 12px  solid transparent;
+	  border-left: 12px solid #fff;
 	}
 	.header {
 		display: flex;

@@ -88,7 +88,7 @@
 						<view class="msg right">
 							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view>
-								<ExternalPayCard :orderInfo="draggingItem.content" />
+								<ExternalPayCard :orderInfo="draggingItem.content" :fontScale="Number(scale) || 1" />
 							</view>
 						</view>
 					</view>
@@ -100,11 +100,13 @@
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<TransferCard :class="!draggingItem.content.st?'tfCardLeft':'tfCardLeftBg'" :state="draggingItem.content.st"
+								:fontScale="Number(scale) || 1"
 								:name="draggingItem.content.name" :amount="draggingItem.content.amount"></TransferCard>
 						</view>
 						<view class="msg right" v-else>
 							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<TransferCard :class="!draggingItem.content.st?'tfCardRight':'tfCardRightBg'"
+								:fontScale="Number(scale) || 1"
 								:state="draggingItem.content.st" :name="draggingItem.content.name" :amount="draggingItem.content.amount">
 							</TransferCard>
 						</view>
@@ -116,11 +118,11 @@
 							<view class="avatar">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<ChTf class="tfCardLeftBg" :name="draggingItem.content.name" :amount="draggingItem.content.amount"></ChTf>
+							<ChTf class="tfCardLeftBg" :fontScale="Number(scale) || 1" :name="draggingItem.content.name" :amount="draggingItem.content.amount"></ChTf>
 						</view>
 						<view class="msg right" v-else>
 							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<ChTf class="tfCardRightBg" :name="draggingItem.content.name" :amount="draggingItem.content.amount"></ChTf>
+							<ChTf class="tfCardRightBg" :fontScale="Number(scale) || 1" :name="draggingItem.content.name" :amount="draggingItem.content.amount"></ChTf>
 						</view>
 					</view>
 					
@@ -148,12 +150,12 @@
 							<view class="avatar">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<RedBag :class="draggingItem.content?'redbagLeft':'redbagLeftBg'" :location="draggingItem.location"
+							<RedBag :class="draggingItem.content?'redbagLeft':'redbagLeftBg'" :fontScale="Number(scale) || 1" :location="draggingItem.location"
 								:name="guestInfo.name  + (guestInfo.description||'')" :state="draggingItem.content"></RedBag>
 						</view>
 						<view class="msg right" v-else>
 							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<RedBag :class="draggingItem.content?'redbagRight':'redbagRightBg'" :location="draggingItem.location"
+							<RedBag :class="draggingItem.content?'redbagRight':'redbagRightBg'" :fontScale="Number(scale) || 1" :location="draggingItem.location"
 								:name="guestInfo.name + (guestInfo.description||'')" :state="draggingItem.content"></RedBag>
 						</view>
 					</view>
@@ -164,12 +166,12 @@
 							<view class="avatar">
 								<image mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<chatFlie class="cardLeft" :content="draggingItem.content">
+							<chatFlie class="cardLeft" :fontScale="Number(scale) || 1" :content="draggingItem.content">
 							</chatFlie>
 						</view>
 						<view class="msg right" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<chatFlie class="cardRight" :content="draggingItem.content">
+							<chatFlie class="cardRight" :fontScale="Number(scale) || 1" :content="draggingItem.content">
 							</chatFlie>
 						</view>
 					</view>
@@ -189,7 +191,7 @@
 							</view>
 						</view>
 						<view class="msg right" v-else>
-							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view class="bubble"
 								style="padding-top: 10rpx;display: flex;align-items: center;padding-bottom: 10rpx;">
 								<view class="yuyinBox"
@@ -209,12 +211,12 @@
 							<view class="avatar">
 								<image mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<WxCard class="cardLeft" :nickname="draggingItem.content.nickname" :avatar="draggingItem.content.avatar">
+							<WxCard class="cardLeft" :fontScale="Number(scale) || 1" :nickname="draggingItem.content.nickname" :avatar="draggingItem.content.avatar">
 							</WxCard>
 						</view>
 						<view class="msg right" v-else>
-							<image class="avatar" mode="widthFix" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<WxCard class="cardRight" :nickname="draggingItem.content.nickname" :avatar="draggingItem.content.avatar">
+								<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<WxCard class="cardRight" :fontScale="Number(scale) || 1" :nickname="draggingItem.content.nickname" :avatar="draggingItem.content.avatar">
 							</WxCard>
 						</view>
 					</view>
@@ -337,7 +339,7 @@
 							<image class="avatar" mode="aspectFill" lazy-load
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view>
-								<ExternalPayCard :orderInfo="msgData.item.content" />
+								<ExternalPayCard :orderInfo="msgData.item.content" :fontScale="Number(scale) || 1" />
 								<!-- <view v-if="item.content.gusetName" class="order-tips" :style="{ fontSize: rpx(24) }">
 									你收到了{{item.content.gusetName}}的付款<text class="blueTxt"> 查看</text>
 								</view> -->
@@ -353,12 +355,14 @@
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<TransferCard :class="!msgData.item.content.st?'tfCardLeft':'tfCardLeftBg'" :state="msgData.item.content.st"
+								:fontScale="Number(scale) || 1"
 								:name="msgData.item.content.name" :amount="msgData.item.content.amount"></TransferCard>
 						</view>
 						<view class="msg right" @longpress="showPopupMenu($event, msgData.index)" @click="goReceipt(msgData.item)" v-else>
 							<image class="avatar" mode="aspectFill" lazy-load
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<TransferCard :class="!msgData.item.content.st?'tfCardRight':'tfCardRightBg'"
+								:fontScale="Number(scale) || 1"
 								:state="msgData.item.content.st" :name="msgData.item.content.name" :amount="msgData.item.content.amount">
 							</TransferCard>
 
@@ -371,14 +375,14 @@
 							<view class="avatar">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<ChTf class="tfCardLeftBg" :name="msgData.item.content.name" :amount="msgData.item.content.amount"></ChTf>
+							<ChTf class="tfCardLeftBg" :fontScale="Number(scale) || 1" :name="msgData.item.content.name" :amount="msgData.item.content.amount"></ChTf>
 						</view>
 						<view class="msg right" @longpress="showPopupMenu($event, msgData.index)" @click="goCollection(msgData.item)"
 							v-else>
 
 							<image class="avatar" mode="aspectFill" lazy-load
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<ChTf class="tfCardRightBg" :name="msgData.item.content.name" :amount="msgData.item.content.amount"></ChTf>
+							<ChTf class="tfCardRightBg" :fontScale="Number(scale) || 1" :name="msgData.item.content.name" :amount="msgData.item.content.amount"></ChTf>
 						</view>
 					</view>
 					<!-- 图片photo -->
@@ -409,7 +413,7 @@
 							<view class="avatar">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<RedBag :class="msgData.item.content?'redbagLeft':'redbagLeftBg'" :location="msgData.item.location"
+							<RedBag :class="msgData.item.content?'redbagLeft':'redbagLeftBg'" :fontScale="Number(scale) || 1" :location="msgData.item.location"
 								:name="guestInfo.name  + (guestInfo.description||'')" :state="msgData.item.content"></RedBag>
 
 						</view>
@@ -417,7 +421,7 @@
 
 							<image class="avatar" mode="aspectFill" lazy-load
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<RedBag :class="msgData.item.content?'redbagRight':'redbagRightBg'" :location="msgData.item.location"
+							<RedBag :class="msgData.item.content?'redbagRight':'redbagRightBg'" :fontScale="Number(scale) || 1" :location="msgData.item.location"
 								:name="guestInfo.name + (guestInfo.description||'')" :state="msgData.item.content"></RedBag>
 
 						</view>
@@ -429,12 +433,12 @@
 							<view class="avatar">
 								<image mode="widthFix" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<chatFlie class="cardLeft" :content="msgData.item.content">
+							<chatFlie class="cardLeft" :fontScale="Number(scale) || 1" :content="msgData.item.content">
 							</chatFlie>
 						</view>
 						<view class="msg right" @longpress="showPopupMenu($event, msgData.index)" v-else>
 							<image class="avatar" lazy-load :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<chatFlie class="cardRight" :content="msgData.item.content">
+							<chatFlie class="cardRight" :fontScale="Number(scale) || 1" :content="msgData.item.content">
 							</chatFlie>
 						</view>
 					</view>
@@ -474,13 +478,13 @@
 							<view class="avatar">
 								<image mode="widthFix" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<WxCard class="cardLeft" :nickname="msgData.item.content.nickname" :avatar="msgData.item.content.avatar">
+							<WxCard class="cardLeft" :fontScale="Number(scale) || 1" :nickname="msgData.item.content.nickname" :avatar="msgData.item.content.avatar">
 							</WxCard>
 						</view>
 						<view class="msg right" @longpress="showPopupMenu($event, msgData.index)" v-else>
 							<image class="avatar" mode="widthFix" lazy-load
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<WxCard class="cardRight" :nickname="msgData.item.content.nickname" :avatar="msgData.item.content.avatar">
+							<WxCard class="cardRight" :fontScale="Number(scale) || 1" :nickname="msgData.item.content.nickname" :avatar="msgData.item.content.avatar">
 							</WxCard>
 						</view>
 					</view>
@@ -736,7 +740,7 @@
 					<view class="">
 						字体调节
 					</view>
-					<slider :value="scale" :min="0.7" :max="1.5" :step="0.02" @changing="onScaleChange" />
+					<slider :value="scale" :min="0.7" :max="1.5" :step="0.02" @changing="onScaleChange" @change="onScaleChange" />
 				</view>
 				<view class="toolbar-toggle">
 					<text>快捷栏显示</text>
@@ -828,16 +832,7 @@
 					dragItemHeight = itemRects[i].height;
                     
                     if (startY !== 0) {
-                        // startY 是 viewport clientY
-                        // 转换 touchAbsY = startY - containerTop + currentScrollTop
-                        // 转换 itemAbsTop = itemRects[i].absTop
-                        // dragOffsetY = touchAbsY - itemAbsTop
-                        // 但实际上，视觉上的 offset 是恒定的 viewport 差值
-                        // visualItemTop = itemRects[i].absTop - currentScrollTop + containerTop (反推)
-                        // visualItemTop 应该等于 rect.top (如果没滚动)
-                        
-                        // 简单点：dragOffsetY 是手指相对于 item 顶部的距离 (视觉上)
-                        // item 当前视觉 top = absTop - currentScrollTop + containerTop
+
                         var currentVisualTop = itemRects[i].absTop - currentScrollTop + containerTop;
                         dragOffsetY = startY - currentVisualTop;
                     } else {
@@ -1897,6 +1892,7 @@
 			getImageContainerStyle(index) {
 				const imageKey = `image_${index}`;
 				const size = this.imageSizes[imageKey];
+				const scale = Number(this.scale) || 1
 
 				const baseStyle = {
 					overflow: 'hidden'
@@ -1904,28 +1900,28 @@
 
 				if (size && size.width && size.height) {
 					// 动态计算 border-radius，确保不超过高度的一半，最小值为 8rpx
-					const borderRadius = Math.max(8, Math.min(15, size.height / 2));
+					const borderRadius = Math.max(8, Math.min(15, size.height / 2)) * scale;
 					return {
 						...baseStyle,
 						borderRadius: borderRadius + 'rpx',
-						width: size.width + 'upx',
-						height: size.height + 'upx',
-						maxWidth: '270upx',
-						maxHeight: '300upx',
-						minWidth: '80upx',
-						minHeight: '80upx'
+						width: (size.width * scale) + 'upx',
+						height: (size.height * scale) + 'upx',
+						maxWidth: (270 * scale) + 'upx',
+						maxHeight: (300 * scale) + 'upx',
+						minWidth: (80 * scale) + 'upx',
+						minHeight: (80 * scale) + 'upx'
 					};
 				}
 				// 如果还没有计算尺寸，返回默认值
 				return {
 					...baseStyle,
-					borderRadius: '15rpx',
-					width: '120upx',
+					borderRadius: (15 * scale) + 'rpx',
+					width: (120 * scale) + 'upx',
 					height: 'auto',
-					maxWidth: '270upx',
-					maxHeight: '300upx',
-					minWidth: '80upx',
-					minHeight: '80upx'
+					maxWidth: (270 * scale) + 'upx',
+					maxHeight: (300 * scale) + 'upx',
+					minWidth: (80 * scale) + 'upx',
+					minHeight: (80 * scale) + 'upx'
 				};
 			},
 
@@ -1933,6 +1929,7 @@
 			getImageStyle(index) {
 				const imageKey = `image_${index}`;
 				const size = this.imageSizes[imageKey];
+				const scale = Number(this.scale) || 1
 
 				const baseStyle = {
 					width: '100%',
@@ -1942,7 +1939,7 @@
 
 				if (size && size.width && size.height) {
 					// 动态计算 border-radius，确保不超过高度的一半，最小值为 8rpx
-					const borderRadius = Math.max(8, Math.min(15, size.height / 2));
+					const borderRadius = Math.max(8, Math.min(15, size.height / 2)) * scale;
 					return {
 						...baseStyle,
 						borderRadius: borderRadius + 'rpx'
@@ -1951,7 +1948,7 @@
 				// 如果还没有计算尺寸，返回默认值
 				return {
 					...baseStyle,
-					borderRadius: '15rpx',
+					borderRadius: (15 * scale) + 'rpx',
 					height: 'auto'
 				};
 			},
@@ -1974,8 +1971,8 @@
 				this.$refs.yuyinPopup.open();
 			},
 			onScaleChange(e) {
-				const scale = e.detail.value
-				// setScale(this.scale)
+				const scale = Number(e.detail.value)
+				if (Number.isNaN(scale)) return
 				this.$store.commit('setScale', scale)
 			},
 			onChatToolBarToggle(e) {
@@ -3884,40 +3881,99 @@
 		height: 32px;
 	}
 
-	.cardRight::after {
+	.cardRight::after,
+	.cardLeft::after,
+	.cardLeft_f::after,
+	.tfCardLeftBg::after,
+	.tfCardLeft::after,
+	.redbagLeftBg::after,
+	.redbagLeft::after,
+	.tfCardRightBg::after,
+	.tfCardRight::after,
+	.redbagRightBg::after,
+	.redbagRight::after,
+	.msg.right .bubble::after,
+	.msg.left .bubble::after,
+	.file-card-left::after,
+	.file-card-right::after {
 		content: "";
 		position: absolute;
 		top: 28upx;
-		right: -10upx;
 		width: 0;
 		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-left: 6px solid #fff;
+		border-top: 12px solid transparent;
+		border-bottom: 12px solid transparent;
 	}
 
-	.cardLeft::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		left: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-right: 6px solid #fff;
+	.cardLeft::after,
+	.cardLeft_f::after,
+	.tfCardLeftBg::after,
+	.tfCardLeft::after,
+	.redbagLeftBg::after,
+	.redbagLeft::after,
+	.msg.left .bubble::after,
+	.file-card-left::after {
+		left: -11upx;
+		border-right: 12px solid #fff;
+	}
+
+	.cardRight::after,
+	.tfCardRightBg::after,
+	.tfCardRight::after,
+	.redbagRightBg::after,
+	.redbagRight::after,
+	.msg.right .bubble::after,
+	.file-card-right::after {
+		right: -11upx;
+		border-left: 12px solid #fff;
 	}
 
 	.cardLeft_f::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		left: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-right: 6px solid #fff;
+		left: -11px;
+	}
+
+	.tfCardLeftBg::after {
+		border-right-color: #fce1c3;
+	}
+
+	.tfCardLeft::after {
+		border-right-color: #f99d3b;
+	}
+
+	.redbagLeftBg::after {
+		border-right-color: #f69e94;
+	}
+
+	.redbagLeft::after {
+		border-right-color: #ff624f;
+	}
+
+	.tfCardRightBg::after {
+		border-left-color: #fce1c3;
+	}
+
+	.tfCardRight::after {
+		border-left-color: #f99d3b;
+	}
+
+	.redbagRightBg::after {
+		border-left-color: #f69e94;
+	}
+
+	.redbagRight::after {
+		border-left-color: #ff624f;
+	}
+
+	.msg.right .bubble::after {
+		border-left-color: #CDE5FD;
+	}
+
+	.file-card-left::after {
+		border-right-color: #fff;
+	}
+
+	.file-card-right::after {
+		border-left-color: #fff;
 	}
 
 	.redbagLeftBg,
@@ -3928,102 +3984,7 @@
 		margin-left: 14upx;
 	}
 
-	.tfCardLeftBg::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		left: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-right: 6px solid #fce1c3
-	}
-
-	.tfCardLeft::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		left: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-right: 6px solid #f99d3b;
-	}
-
-	.redbagLeftBg::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		left: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-right: 6px solid #f69e94
-	}
-
-	.redbagLeft::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		left: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-right: 6px solid #ff624f;
-	}
-
-	.tfCardRightBg::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		right: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-left: 6px solid #fce1c3;
-	}
-
-	.tfCardRight::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		right: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-left: 6px solid #f99d3b;
-	}
-
-
-	.redbagRightBg::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		right: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-left: 6px solid #f69e94;
-	}
-
-	.redbagRight::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		right: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-left: 6px solid #ff624f;
-	}
+	
 
 	.redbagRight,
 	.redbagRightBg,
@@ -4386,29 +4347,7 @@
 		margin-left: 14upx;
 	}
 
-	.msg.right .bubble::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		right: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-left: 6px solid #CDE5FD;
-	}
-
-	.msg.left .bubble::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		left: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-right: 6px solid white;
-	}
+	
 
 	/* 链接样式 */
 	.link {
@@ -4676,33 +4615,13 @@
 		margin-left: 14upx;
 	}
 
-	.file-card-left::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		left: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-right: 6px solid #fff;
-	}
+	
 
 	.file-card-right {
 		margin-right: 14upx;
 	}
 
-	.file-card-right::after {
-		content: "";
-		position: absolute;
-		top: 28upx;
-		right: -10upx;
-		width: 0;
-		height: 0;
-		border-top: 6px solid transparent;
-		border-bottom: 6px solid transparent;
-		border-left: 6px solid #fff;
-	}
+	
 
 	.file-icon {
 		width: 80upx;

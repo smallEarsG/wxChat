@@ -1,5 +1,5 @@
 <template>
-  <view class="wx-card">
+  <view class="wx-card" :style="cardScaleStyle">
     <view class="cardleft">
     	<view class="header">
     	  <image class="logo" src="/static/icon-wechat.png" />
@@ -25,7 +25,19 @@ export default {
     avatar: {
       type: String,
       default: '/static/icon-avatar-placeholder.png' // 默认头像
+    },
+	fontScale: {
+	  type: Number,
+	  default: 1
     }
+  },
+  computed: {
+	cardScaleStyle() {
+		const scale = Number(this.fontScale) || 1
+		return {
+			zoom: scale
+		}
+	}
   }
 }
 </script>

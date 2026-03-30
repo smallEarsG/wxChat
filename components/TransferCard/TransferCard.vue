@@ -1,5 +1,5 @@
 <template>
-  <view class="transfer-card"  :class="state?'f3bg':'f9bg'">
+  <view class="transfer-card"  :class="state?'f3bg':'f9bg'" :style="cardScaleStyle">
 
     <view class="content">
       <view class="left-icon">
@@ -25,8 +25,17 @@ export default {
   name: 'TransferCard',
   props: {
 	state:{type:Boolean},
+	fontScale: { type: Number, default: 1 },
     name: { type: String, required: true },
     amount: { type: [Number, String], required: true }
+  },
+  computed: {
+	cardScaleStyle() {
+		const scale = Number(this.fontScale) || 1
+		return {
+			zoom: scale
+		}
+	}
   }
 }
 </script>

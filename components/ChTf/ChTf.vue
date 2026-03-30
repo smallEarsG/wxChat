@@ -1,5 +1,5 @@
 <template>
-  <view class="transfer-card">
+  <view class="transfer-card" :style="cardScaleStyle">
     <!-- <view class="flag"></view> -->
     <view class="content">
       <view class="left-icon">
@@ -26,9 +26,17 @@ export default {
  mixins: [scaleMixin],
   name: 'TransferCard',
   props: {
-	  
+	fontScale: { type: Number, default: 1 },
     name: { type: String,},
     amount: { type: [Number, String], required: true }
+  },
+  computed: {
+	cardScaleStyle() {
+		const scale = Number(this.fontScale) || 1
+		return {
+			zoom: scale
+		}
+	}
   }
 }
 </script>

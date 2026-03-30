@@ -1,6 +1,6 @@
 <template>
 	<view style="position: relative ;">
-		<view class="transfer-card"  :class="state?'f9bg':'f3bg'">
+		<view class="transfer-card"  :class="state?'f9bg':'f3bg'" :style="cardScaleStyle">
 			<!-- <view class="flag"></view> -->
 			<view class="content">
 				<view class="left-icon">
@@ -40,6 +40,18 @@
 			},
 			location:{
 				type:Number
+			},
+			fontScale: {
+				type: Number,
+				default: 1
+			}
+		},
+		computed: {
+			cardScaleStyle() {
+				const scale = Number(this.fontScale) || 1
+				return {
+					zoom: scale
+				}
 			}
 		}
 	}
