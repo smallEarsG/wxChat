@@ -73,7 +73,7 @@
 			},
 			labelStyle() {
 				return {
-					fontSize: this.rs(24)
+					fontSize: this.rs(25)
 				}
 			},
 			iconWxStyle() {
@@ -109,6 +109,8 @@
 			amountStyle() {
 				return {
 					fontSize: this.rs(48),
+					fontWeight: 500,
+					fontFamily: "WeChat Sans Std",
 					marginTop: this.rs(20),
 					marginBottom: this.rs(30)
 				}
@@ -255,10 +257,11 @@
 	}
 
 	.amount {
-		font-size: 48rpx;
-		font-weight: bold;
+		font-size: 50rpx;
+		font-weight: 600;
 		margin-top: 20rpx;
 		margin-bottom: 30rpx;
+		font-family: "WeChat Sans Std";
 	}
 
 	.btn {

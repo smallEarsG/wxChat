@@ -18,7 +18,7 @@ export default {
 	  src: url('/static/font/simhei.ttf') format('opentype');
 	  font-weight: normal;
 	  font-style: normal;
-	}
+	} 
 	
 	@font-face {
 	  font-family: 'WeChat Sans Std';
@@ -43,6 +43,12 @@ export default {
 	  font-family: 'WeChat Sans SS';
 	  src: url('/static/font/We Chat Sans SS Light_mianfeiziti.com.otf') format('opentype');
 	  font-weight: normal;
+	  font-style: normal;
+	}
+	@font-face {
+	  font-family: 'WeChat2';
+	  src: url('/static/font/We Chat Sans SS Light_mianfeiziti.com.otf') format('opentype');
+	  font-weight: bold;
 	  font-style: normal;
 	}
 	

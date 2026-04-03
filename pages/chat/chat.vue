@@ -1,6 +1,6 @@
 <template>
 
-	<view class="chat-page" :style="{ '--global-font-size': currentFontSize + 'px' }">
+	<view class="chat-page" :style="{ '--global-font-size': currentFontSize + 'px', '--font-scale': Number(scale) || 1 }">
 		<!-- 全局水印层 -->
 		<WatermarkLayer />
 		<!-- 顶部栏 -->
@@ -88,7 +88,7 @@
 						<view class="msg right">
 							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view>
-								<ExternalPayCard :orderInfo="draggingItem.content" :fontScale="Number(scale) || 1" />
+								<ExternalPayCard :orderInfo="draggingItem.content" :fontScale="Number(componentScale) || 1" />
 							</view>
 						</view>
 					</view>
@@ -100,13 +100,13 @@
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<TransferCard :class="!draggingItem.content.st?'tfCardLeft':'tfCardLeftBg'" :state="draggingItem.content.st"
-								:fontScale="Number(scale) || 1"
+								:fontScale="Number(componentScale) || 1"
 								:name="draggingItem.content.name" :amount="draggingItem.content.amount"></TransferCard>
 						</view>
 						<view class="msg right" v-else>
 							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<TransferCard :class="!draggingItem.content.st?'tfCardRight':'tfCardRightBg'"
-								:fontScale="Number(scale) || 1"
+								:fontScale="Number(componentScale) || 1"
 								:state="draggingItem.content.st" :name="draggingItem.content.name" :amount="draggingItem.content.amount">
 							</TransferCard>
 						</view>
@@ -118,11 +118,11 @@
 							<view class="avatar">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<ChTf class="tfCardLeftBg" :fontScale="Number(scale) || 1" :name="draggingItem.content.name" :amount="draggingItem.content.amount"></ChTf>
+							<ChTf class="tfCardLeftBg" :fontScale="Number(componentScale) || 1" :name="draggingItem.content.name" :amount="draggingItem.content.amount"></ChTf>
 						</view>
 						<view class="msg right" v-else>
 							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<ChTf class="tfCardRightBg" :fontScale="Number(scale) || 1" :name="draggingItem.content.name" :amount="draggingItem.content.amount"></ChTf>
+							<ChTf class="tfCardRightBg" :fontScale="Number(componentScale) || 1" :name="draggingItem.content.name" :amount="draggingItem.content.amount"></ChTf>
 						</view>
 					</view>
 					
@@ -150,12 +150,12 @@
 							<view class="avatar">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<RedBag :class="draggingItem.content?'redbagLeft':'redbagLeftBg'" :fontScale="Number(scale) || 1" :location="draggingItem.location"
+							<RedBag :class="draggingItem.content?'redbagLeft':'redbagLeftBg'" :fontScale="Number(componentScale) || 1" :location="draggingItem.location"
 								:name="guestInfo.name  + (guestInfo.description||'')" :state="draggingItem.content"></RedBag>
 						</view>
 						<view class="msg right" v-else>
 							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<RedBag :class="draggingItem.content?'redbagRight':'redbagRightBg'" :fontScale="Number(scale) || 1" :location="draggingItem.location"
+							<RedBag :class="draggingItem.content?'redbagRight':'redbagRightBg'" :fontScale="Number(componentScale) || 1" :location="draggingItem.location"
 								:name="guestInfo.name + (guestInfo.description||'')" :state="draggingItem.content"></RedBag>
 						</view>
 					</view>
@@ -166,12 +166,12 @@
 							<view class="avatar">
 								<image mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<chatFlie class="cardLeft" :fontScale="Number(scale) || 1" :content="draggingItem.content">
+							<chatFlie class="cardLeft" :fontScale="Number(componentScale) || 1" :content="draggingItem.content">
 							</chatFlie>
 						</view>
 						<view class="msg right" v-else>
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<chatFlie class="cardRight" :fontScale="Number(scale) || 1" :content="draggingItem.content">
+							<chatFlie class="cardRight" :fontScale="Number(componentScale) || 1" :content="draggingItem.content">
 							</chatFlie>
 						</view>
 					</view>
@@ -211,12 +211,12 @@
 							<view class="avatar">
 								<image mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<WxCard class="cardLeft" :fontScale="Number(scale) || 1" :nickname="draggingItem.content.nickname" :avatar="draggingItem.content.avatar">
+							<WxCard class="cardLeft" :fontScale="Number(componentScale) || 1" :nickname="draggingItem.content.nickname" :avatar="draggingItem.content.avatar">
 							</WxCard>
 						</view>
 						<view class="msg right" v-else>
 								<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<WxCard class="cardRight" :fontScale="Number(scale) || 1" :nickname="draggingItem.content.nickname" :avatar="draggingItem.content.avatar">
+							<WxCard class="cardRight" :fontScale="Number(componentScale) || 1" :nickname="draggingItem.content.nickname" :avatar="draggingItem.content.avatar">
 							</WxCard>
 						</view>
 					</view>
@@ -327,7 +327,7 @@
 						{{msgData.item.content}}
 					</view>
 					<!-- tips提示 -->
-					<view @longpress="showPopupMenu($event, msgData.index)" :style="{ fontSize: rpx(24) }"
+					<view @longpress="showPopupMenu($event, msgData.index)" :style="{ fontSize: rpx(25) }"
 						v-else-if="msgData.item.contentType == 'tips'" class="msg-tips cell">
 						<view class="tips-content">
 							你收到了{{msgData.item.content.gusetName}}的付款<text class="blueTxt"> 查看</text>
@@ -339,7 +339,7 @@
 							<image class="avatar" mode="aspectFill" lazy-load
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view>
-								<ExternalPayCard :orderInfo="msgData.item.content" :fontScale="Number(scale) || 1" />
+								<ExternalPayCard :orderInfo="msgData.item.content" :fontScale="Number(componentScale) || 1" />
 								<!-- <view v-if="item.content.gusetName" class="order-tips" :style="{ fontSize: rpx(24) }">
 									你收到了{{item.content.gusetName}}的付款<text class="blueTxt"> 查看</text>
 								</view> -->
@@ -355,14 +355,14 @@
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<TransferCard :class="!msgData.item.content.st?'tfCardLeft':'tfCardLeftBg'" :state="msgData.item.content.st"
-								:fontScale="Number(scale) || 1"
+								:fontScale="Number(componentScale) || 1"
 								:name="msgData.item.content.name" :amount="msgData.item.content.amount"></TransferCard>
 						</view>
 						<view class="msg right" @longpress="showPopupMenu($event, msgData.index)" @click="goReceipt(msgData.item)" v-else>
 							<image class="avatar" mode="aspectFill" lazy-load
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<TransferCard :class="!msgData.item.content.st?'tfCardRight':'tfCardRightBg'"
-								:fontScale="Number(scale) || 1"
+								:fontScale="Number(componentScale) || 1"
 								:state="msgData.item.content.st" :name="msgData.item.content.name" :amount="msgData.item.content.amount">
 							</TransferCard>
 
@@ -375,14 +375,14 @@
 							<view class="avatar">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<ChTf class="tfCardLeftBg" :fontScale="Number(scale) || 1" :name="msgData.item.content.name" :amount="msgData.item.content.amount"></ChTf>
+							<ChTf class="tfCardLeftBg" :fontScale="Number(componentScale) || 1" :name="msgData.item.content.name" :amount="msgData.item.content.amount"></ChTf>
 						</view>
 						<view class="msg right" @longpress="showPopupMenu($event, msgData.index)" @click="goCollection(msgData.item)"
 							v-else>
 
 							<image class="avatar" mode="aspectFill" lazy-load
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<ChTf class="tfCardRightBg" :fontScale="Number(scale) || 1" :name="msgData.item.content.name" :amount="msgData.item.content.amount"></ChTf>
+							<ChTf class="tfCardRightBg" :fontScale="Number(componentScale) || 1" :name="msgData.item.content.name" :amount="msgData.item.content.amount"></ChTf>
 						</view>
 					</view>
 					<!-- 图片photo -->
@@ -413,7 +413,7 @@
 							<view class="avatar">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<RedBag :class="msgData.item.content?'redbagLeft':'redbagLeftBg'" :fontScale="Number(scale) || 1" :location="msgData.item.location"
+							<RedBag :class="msgData.item.content?'redbagLeft':'redbagLeftBg'" :fontScale="Number(componentScale) || 1" :location="msgData.item.location"
 								:name="guestInfo.name  + (guestInfo.description||'')" :state="msgData.item.content"></RedBag>
 
 						</view>
@@ -421,7 +421,7 @@
 
 							<image class="avatar" mode="aspectFill" lazy-load
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<RedBag :class="msgData.item.content?'redbagRight':'redbagRightBg'" :fontScale="Number(scale) || 1" :location="msgData.item.location"
+							<RedBag :class="msgData.item.content?'redbagRight':'redbagRightBg'" :fontScale="Number(componentScale) || 1" :location="msgData.item.location"
 								:name="guestInfo.name + (guestInfo.description||'')" :state="msgData.item.content"></RedBag>
 
 						</view>
@@ -433,12 +433,12 @@
 							<view class="avatar">
 								<image mode="widthFix" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<chatFlie class="cardLeft" :fontScale="Number(scale) || 1" :content="msgData.item.content">
+							<chatFlie class="cardLeft" :fontScale="Number(componentScale) || 1" :content="msgData.item.content">
 							</chatFlie>
 						</view>
 						<view class="msg right" @longpress="showPopupMenu($event, msgData.index)" v-else>
 							<image class="avatar" lazy-load :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<chatFlie class="cardRight" :fontScale="Number(scale) || 1" :content="msgData.item.content">
+							<chatFlie class="cardRight" :fontScale="Number(componentScale) || 1" :content="msgData.item.content">
 							</chatFlie>
 						</view>
 					</view>
@@ -478,13 +478,13 @@
 							<view class="avatar">
 								<image mode="widthFix" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
-							<WxCard class="cardLeft" :fontScale="Number(scale) || 1" :nickname="msgData.item.content.nickname" :avatar="msgData.item.content.avatar">
+							<WxCard class="cardLeft" :fontScale="Number(componentScale) || 1" :nickname="msgData.item.content.nickname" :avatar="msgData.item.content.avatar">
 							</WxCard>
 						</view>
 						<view class="msg right" @longpress="showPopupMenu($event, msgData.index)" v-else>
 							<image class="avatar" mode="widthFix" lazy-load
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
-							<WxCard class="cardRight" :fontScale="Number(scale) || 1" :nickname="msgData.item.content.nickname" :avatar="msgData.item.content.avatar">
+							<WxCard class="cardRight" :fontScale="Number(componentScale) || 1" :nickname="msgData.item.content.nickname" :avatar="msgData.item.content.avatar">
 							</WxCard>
 						</view>
 					</view>
@@ -741,6 +741,12 @@
 						字体调节
 					</view>
 					<slider :value="scale" :min="0.7" :max="1.5" :step="0.02" @changing="onScaleChange" @change="onScaleChange" />
+				</view>
+				<view class="fontChange">
+					<view class="">
+						组件缩放
+					</view>
+					<slider :value="componentScale" :min="0.7" :max="1.5" :step="0.02" @changing="onComponentScaleChange" @change="onComponentScaleChange" />
 				</view>
 				<view class="toolbar-toggle">
 					<text>快捷栏显示</text>
@@ -1224,6 +1230,11 @@
 				chatBodyLoading: false,
 				_hasInitialAutoScroll: false,
 				contentbg: "null",
+				componentScale: (() => {
+					const raw = Number(uni.getStorageSync('chat_component_scale'));
+					if (!Number.isNaN(raw) && raw > 0) return raw;
+					return 1;
+				})(),
 
 
 				keyboardHeight: 0,
@@ -1892,7 +1903,7 @@
 			getImageContainerStyle(index) {
 				const imageKey = `image_${index}`;
 				const size = this.imageSizes[imageKey];
-				const scale = Number(this.scale) || 1
+				const scale = Number(this.componentScale) || 1
 
 				const baseStyle = {
 					overflow: 'hidden'
@@ -1929,7 +1940,7 @@
 			getImageStyle(index) {
 				const imageKey = `image_${index}`;
 				const size = this.imageSizes[imageKey];
-				const scale = Number(this.scale) || 1
+				const scale = Number(this.componentScale) || 1
 
 				const baseStyle = {
 					width: '100%',
@@ -1974,6 +1985,12 @@
 				const scale = Number(e.detail.value)
 				if (Number.isNaN(scale)) return
 				this.$store.commit('setScale', scale)
+			},
+			onComponentScaleChange(e) {
+				const scale = Number(e.detail.value)
+				if (Number.isNaN(scale)) return
+				this.componentScale = scale
+				uni.setStorageSync('chat_component_scale', scale)
 			},
 			onChatToolBarToggle(e) {
 				this.showChatToolBar = e.detail.value
@@ -3892,19 +3909,28 @@
 	.tfCardRight::after,
 	.redbagRightBg::after,
 	.redbagRight::after,
-	.msg.right .bubble::after,
-	.msg.left .bubble::after,
+	
 	.file-card-left::after,
 	.file-card-right::after {
 		content: "";
 		position: absolute;
-		top: 28upx;
+		top:20upx;
 		width: 0;
 		height: 0;
 		border-top: 12px solid transparent;
 		border-bottom: 12px solid transparent;
 	}
-
+	
+	.msg.right .bubble::after,
+	.msg.left .bubble::after{
+		content: "";
+		position: absolute;
+		top: calc(18upx * var(--font-scale, 1));
+		width: 0;
+		height: 0;
+		border-top: 12px solid transparent;
+		border-bottom: 12px solid transparent;
+	}
 	.cardLeft::after,
 	.cardLeft_f::after,
 	.tfCardLeftBg::after,

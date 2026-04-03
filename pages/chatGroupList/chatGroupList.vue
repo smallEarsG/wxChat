@@ -12,7 +12,6 @@
         <uni-icons type="plus" size="24"></uni-icons>
       </view>
     </view>
-    
     <!-- 群聊列表 -->
     <view class="group-list">
       <uni-swipe-action>
@@ -34,7 +33,6 @@
         </uni-swipe-action-item>
       </uni-swipe-action>
     </view>
-    
     <!-- 空状态 -->
     <view v-if="groupList.length === 0" class="empty-state">
       <text class="empty-text">暂无群聊</text>
@@ -373,7 +371,7 @@ export default {
     // 进入群聊
     enterGroup(group) {
       uni.navigateTo({
-        url: `/pages/chatGrop/chatGrop?guestInfo=${encodeURIComponent(JSON.stringify({ nickname: group.name, avatar: group.avatar,description:group.description || '' }))}`
+        url: `/pages/chatGrop/chatGrop?guestInfo=${encodeURIComponent(JSON.stringify({ nickname: group.name, avatar: group.avatar }))}`
       });
     },
     

@@ -4,8 +4,8 @@
 // 简章
  // export const REMOTE_API = 'http://106.15.137.235:9090/api'; 
 //姐姐
-export const REMOTE_API = 'http://106.15.137.235:9092/api';
-// export  const REMOTE_API = 'http://106.15.137.235:8080/api';
+// export const REMOTE_API = 'http://106.15.137.235:9092/api';
+export  const REMOTE_API = 'http://106.15.137.235:8080/api';
 const H5_PROXY = '/pawlapi';
 
 // 判断当前环境是否为H5

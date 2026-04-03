@@ -206,9 +206,9 @@
 		background-color:#fff;
 		color: #0d0d0d;
 		/* color: red; */
-		font-size: 47rpx;
+		font-size: 48rpx;
 		
-		font-family:'WeChat Sans SS' ;
+		font-family:'WeChat Sans Std' ;
 		font-weight: 600;
 	}
 	.head{
