@@ -1,7 +1,12 @@
 <template>
   <scroll-view class="chat-toolbar" scroll-x  :show-scrollbar="false"  :style="{ fontSize: rpx(28) }">
   
-
+	<view class="tool-item" @click="onClick({ label: '企业名片' })">
+	  <view class="icon-circle" :style="{width: rpx(34),height:rpx(34)}" >
+	    <image src="/static/chat/qy.png" class="tool-icon_pay" />
+	  </view>
+	  <text class="tool-label">企业名片</text>
+	</view>
     <view class="tool-item" @click="onClick({ label: '发起收款' })">
       <view class="icon-circle" :style="{width: rpx(34),height:rpx(34)}" >
         <image src="/static/chat/tool_1.png" class="tool-icon_pay" />
