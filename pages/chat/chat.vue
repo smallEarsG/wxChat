@@ -228,40 +228,60 @@
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
-								<view>
-									<template v-for="(part, partIndex) in draggingItemParsedContent">
-										<text v-if="part.type === 'text'" :key="'text-' + partIndex"
-											class="msg-text">{{ part.content }}</text>
-										<text v-else-if="part.type === 'url'" :key="'url-' + partIndex"
-											class="msg-url">{{ part.content }}</text>
-										<text v-else-if="part.type === 'email'" :key="'email-' + partIndex"
-											class="msg-email">{{ part.content }}</text>
-										<text v-else-if="part.type === 'number'" :key="'number-' + partIndex"
-											class="msg-number">{{ part.content }}</text>
-										<image v-else-if="part.type === 'emoji'" :key="'emoji-' + partIndex"
-											:src="getEmojiUrl(part.index,draggingItem.location)" class="emoji-inline"
-											:style="{ width: rpx(40), height: rpx(40) }" />
-									</template>
+								<view class="bubble-stack">
+									<QuotedMessagePreview
+										v-if="draggingItem.quote"
+										:quote="draggingItem.quote"
+										:location="draggingItem.quote.fromLocation"
+										:parseMessage="parseMessage"
+										:getEmojiUrl="getEmojiUrl"
+										:fontScale="Number(componentScale) || 1"
+									/>
+									<view>
+										<template v-for="(part, partIndex) in draggingItemParsedContent">
+											<text v-if="part.type === 'text'" :key="'text-' + partIndex"
+												class="msg-text">{{ part.content }}</text>
+											<text v-else-if="part.type === 'url'" :key="'url-' + partIndex"
+												class="msg-url">{{ part.content }}</text>
+											<text v-else-if="part.type === 'email'" :key="'email-' + partIndex"
+												class="msg-email">{{ part.content }}</text>
+											<text v-else-if="part.type === 'number'" :key="'number-' + partIndex"
+												class="msg-number">{{ part.content }}</text>
+											<image v-else-if="part.type === 'emoji'" :key="'emoji-' + partIndex"
+												:src="getEmojiUrl(part.index,draggingItem.location)" class="emoji-inline"
+												:style="{ width: rpx(40), height: rpx(40) }" />
+										</template>
+									</view>
 								</view>
 							</view>
 						</view>
 						<view class="msg right" v-else>
 							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
-								<view>
-									<template v-for="(part, partIndex) in draggingItemParsedContent">
-										<text v-if="part.type === 'text'" :key="'text-' + partIndex"
-											class="msg-text">{{ part.content }}</text>
-										<text v-else-if="part.type === 'url'" :key="'url-' + partIndex"
-											class="msg-url">{{ part.content }}</text>
-										<text v-else-if="part.type === 'email'" :key="'email-' + partIndex"
-											class="msg-email">{{ part.content }}</text>
-										<text v-else-if="part.type === 'number'" :key="'number-' + partIndex"
-											class="msg-number">{{ part.content }}</text>
-										<image v-else-if="part.type === 'emoji'" :key="'emoji-' + partIndex"
-											:src="getEmojiUrl(part.index,draggingItem.location)" class="emoji-inline"
-											:style="{ width: rpx(40), height: rpx(40) }" />
-									</template>
+								<view class="bubble-stack">
+									<QuotedMessagePreview
+										v-if="draggingItem.quote"
+										:quote="draggingItem.quote"
+										:location="draggingItem.quote.fromLocation"
+										:parseMessage="parseMessage"
+										:getEmojiUrl="getEmojiUrl"
+										:fontScale="Number(componentScale) || 1"
+									/>
+									<view>
+										<template v-for="(part, partIndex) in draggingItemParsedContent">
+											<text v-if="part.type === 'text'" :key="'text-' + partIndex"
+												class="msg-text">{{ part.content }}</text>
+											<text v-else-if="part.type === 'url'" :key="'url-' + partIndex"
+												class="msg-url">{{ part.content }}</text>
+											<text v-else-if="part.type === 'email'" :key="'email-' + partIndex"
+												class="msg-email">{{ part.content }}</text>
+											<text v-else-if="part.type === 'number'" :key="'number-' + partIndex"
+												class="msg-number">{{ part.content }}</text>
+											<image v-else-if="part.type === 'emoji'" :key="'emoji-' + partIndex"
+												:src="getEmojiUrl(part.index,draggingItem.location)" class="emoji-inline"
+												:style="{ width: rpx(40), height: rpx(40) }" />
+										</template>
+									</view>
 								</view>
 							</view>
 						</view>
@@ -496,20 +516,30 @@
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
-								<view>
-									<template v-for="(part, partIndex) in parseMessage(msgData.item.content)">
-										<text v-if="part.type === 'text'" :key="'text-' + partIndex"
-											class="msg-text">{{ part.content }}</text>
-										<text v-else-if="part.type === 'url'" :key="'url-' + partIndex"
-											class="msg-url">{{ part.content }}</text>
-										<text v-else-if="part.type === 'email'" :key="'email-' + partIndex"
-											class="msg-email">{{ part.content }}</text>
-										<text v-else-if="part.type === 'number'" :key="'number-' + partIndex"
-											class="msg-number">{{ part.content }}</text>
-										<image v-else-if="part.type === 'emoji'" :key="'emoji-' + partIndex"
-											:src="getEmojiUrl(part.index,msgData.item.location)" class="emoji-inline"
-											:style="{ width: rpx(40), height: rpx(40) }" />
-									</template>
+								<view class="bubble-stack">
+									<QuotedMessagePreview
+										v-if="msgData.item.quote"
+										:quote="msgData.item.quote"
+										:location="msgData.item.quote.fromLocation"
+										:parseMessage="parseMessage"
+										:getEmojiUrl="getEmojiUrl"
+										:fontScale="Number(componentScale) || 1"
+									/>
+									<view>
+										<template v-for="(part, partIndex) in parseMessage(msgData.item.content)">
+											<text v-if="part.type === 'text'" :key="'text-' + partIndex"
+												class="msg-text">{{ part.content }}</text>
+											<text v-else-if="part.type === 'url'" :key="'url-' + partIndex"
+												class="msg-url">{{ part.content }}</text>
+											<text v-else-if="part.type === 'email'" :key="'email-' + partIndex"
+												class="msg-email">{{ part.content }}</text>
+											<text v-else-if="part.type === 'number'" :key="'number-' + partIndex"
+												class="msg-number">{{ part.content }}</text>
+											<image v-else-if="part.type === 'emoji'" :key="'emoji-' + partIndex"
+												:src="getEmojiUrl(part.index,msgData.item.location)" class="emoji-inline"
+												:style="{ width: rpx(40), height: rpx(40) }" />
+										</template>
+									</view>
 								</view>
 
 							</view>
@@ -521,21 +551,31 @@
 							<image class="avatar" mode="aspectFill" lazy-load
 								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
-								<view>
-									<template v-for="(part, partIndex) in parseMessage(msgData.item.content)">
-										<text v-if="part.type === 'text'" :key="'text-' + partIndex"
-											class="msg-text">{{ part.content }}</text>
-										<text v-else-if="part.type === 'url'" :key="'url-' + partIndex"
-											class="msg-url">{{ part.content }}</text>
-										<text v-else-if="part.type === 'email'" :key="'email-' + partIndex"
-											class="msg-email">{{ part.content }}</text>
-										<text v-else-if="part.type === 'number'" :key="'number-' + partIndex"
-											class="msg-number">{{ part.content }}</text>
-										<image v-else-if="part.type === 'emoji'" :key="'emoji-' + partIndex"
-											:src="getEmojiUrl(part.index,msgData.item.location)" class="emoji-inline"
-											:style="{ width: rpx(40), height: rpx(40) }" />
-									</template>
+								<view class="bubble-stack">
+									<QuotedMessagePreview
+										v-if="msgData.item.quote"
+										:quote="msgData.item.quote"
+										:location="msgData.item.quote.fromLocation"
+										:parseMessage="parseMessage"
+										:getEmojiUrl="getEmojiUrl"
+										:fontScale="Number(componentScale) || 1"
+									/>
+									<view>
+										<template v-for="(part, partIndex) in parseMessage(msgData.item.content)">
+											<text v-if="part.type === 'text'" :key="'text-' + partIndex"
+												class="msg-text">{{ part.content }}</text>
+											<text v-else-if="part.type === 'url'" :key="'url-' + partIndex"
+												class="msg-url">{{ part.content }}</text>
+											<text v-else-if="part.type === 'email'" :key="'email-' + partIndex"
+												class="msg-email">{{ part.content }}</text>
+											<text v-else-if="part.type === 'number'" :key="'number-' + partIndex"
+												class="msg-number">{{ part.content }}</text>
+											<image v-else-if="part.type === 'emoji'" :key="'emoji-' + partIndex"
+												:src="getEmojiUrl(part.index,msgData.item.location)" class="emoji-inline"
+												:style="{ width: rpx(40), height: rpx(40) }" />
+										</template>
 
+									</view>
 								</view>
 							</view>
 						</view>
@@ -591,6 +631,18 @@
 			<!-- 底部输入栏 -->
 			<view class="fun_box">
 				<ChatToolBar v-if="showChatToolBar" @click="togglePopupBox" />
+				<view v-if="quoteDraft" class="quote-draft">
+					<QuotedMessagePreview
+						:quote="quoteDraft"
+						:location="quoteDraft.fromLocation"
+						:parseMessage="parseMessage"
+						:getEmojiUrl="getEmojiUrl"
+						:fontScale="Number(componentScale) || 1"
+					/>
+					<view class="quote-draft__close" @click="clearQuoteDraft">
+						<uni-icons type="close" size="18" color="#999"></uni-icons>
+					</view>
+				</view>
 				<view class="chat-input" :style="{marginBottom: keyboardHeight+'px'}">
 					<image class="icon" :style="{ width: rpx(60), height: rpx(60) }" src="/static/icon-voice.png"
 						@click="addYuyin"></image>
@@ -1121,6 +1173,7 @@
 	} from '@/utils/scale.js'
 	import chatFlie from '../../components/chatFlie/chatFlie.vue';
 	import MessagePopupMenu from '../../components/MessagePopupMenu/MessagePopupMenu.vue';
+	import QuotedMessagePreview from '../../components/QuotedMessagePreview/QuotedMessagePreview.vue';
 	import {
 		getUserInfo,
 		login
@@ -1144,7 +1197,8 @@
 			MessageInsertPopup,
 			FileEditPopup,
 			chatFlie,
-			MessagePopupMenu
+			MessagePopupMenu,
+			QuotedMessagePreview
 		},
 		onLoad(options) {
 
@@ -1244,6 +1298,7 @@
 				isMe: false,
 				openPopup: false,
 				inputValue: "",
+				quoteDraft: null,
 
 				massageList: [{
 					type: "content",
@@ -2325,6 +2380,72 @@
 						item.content))
 				})
 			},
+			clearQuoteDraft() {
+				this.quoteDraft = null;
+			},
+			startQuote(index) {
+				const item = this.massageList[index];
+				if (!item) return;
+				this.quoteDraft = this.buildQuoteSnapshot(item);
+			},
+			buildQuoteSnapshot(item) {
+				const fromLocation = item.location === 1 ? 1 : 0;
+				const fromName = fromLocation === 1 ? '我' : (this.guestInfo.name || '');
+				const contentType = item.contentType || item.type || '';
+				let previewText = '';
+				let previewImage = '';
+				
+				if (item.type === 'tips') {
+					previewText = String(item.content || '');
+				} else {
+					switch (contentType) {
+						case 'chat':
+							previewText = String(item.content || '');
+							break;
+						case 'photo':
+							previewText = '[图片]';
+							previewImage = item.content && (item.content.avatar || item.content.url) ? (item.content.avatar || item.content.url) : '';
+							break;
+						case 'file':
+							previewText = `[文件] ${(item.content && item.content.fileName) ? item.content.fileName : ''}`.trim();
+							break;
+						case 'order':
+							previewText = `[对外收款] ${(item.content && item.content.shopName) ? ('收款给 ' + item.content.shopName) : ''}`.trim();
+							break;
+						case 'transfer':
+							previewText = `[转账] ${(item.content && item.content.amount) ? ('￥' + item.content.amount) : ''}`.trim();
+							break;
+						case 'wxtf':
+							previewText = `[收款] ${(item.content && item.content.amount) ? ('￥' + item.content.amount) : ''}`.trim();
+							break;
+						case 'redBag':
+							previewText = '[红包]';
+							break;
+						case 'crad':
+							previewText = `[名片] ${(item.content && item.content.nickname) ? item.content.nickname : ''}`.trim();
+							break;
+						case 'yuyin':
+							previewText = `[语音] ${(item.content && item.content.time) ? (item.content.time + '"') : ''}`.trim();
+							break;
+						case 'video':
+							previewText = `[视频通话] ${(item.content !== undefined && item.content !== null) ? String(item.content) : ''}`.trim();
+							break;
+						default:
+							previewText = `[${contentType || '消息'}]`;
+					}
+				}
+				
+				if (!previewText) previewText = '[消息]';
+				
+				const snapshot = {
+					fromName,
+					fromLocation,
+					contentType,
+					previewText
+				};
+				if (previewImage) snapshot.previewImage = previewImage;
+				return snapshot;
+			},
 			updateMsg() {
 				this.guestInfo.content = JSON.stringify(this.massageList)
 
@@ -2460,30 +2581,36 @@
 			},
 			// 获取消息类型的菜单配置
 			getMessageMenuActions(item) {
+				let actions = this.messageMenuActions.default;
 				if (item.type === 'tips') {
-					return this.messageMenuActions.tips;
+					actions = this.messageMenuActions.tips;
 				} else if (item.contentType === 'tips') {
-					return this.messageMenuActions.tipsContent;
+					actions = this.messageMenuActions.tipsContent;
 				} else if (item.contentType === 'order') {
-					return this.messageMenuActions.order;
+					actions = this.messageMenuActions.order;
 				} else if (item.contentType === 'transfer') {
-					return this.messageMenuActions.transfer;
+					actions = this.messageMenuActions.transfer;
 				} else if (item.contentType === 'chat') {
-					return this.messageMenuActions.chat;
+					actions = this.messageMenuActions.chat;
 				} else if (item.contentType === 'wxtf') {
-					return this.messageMenuActions.wxtf;
+					actions = this.messageMenuActions.wxtf;
 				} else if (item.contentType === 'video') {
-					return this.messageMenuActions.video;
+					actions = this.messageMenuActions.video;
 				} else if (item.contentType === 'yuyin') {
-					return this.messageMenuActions.yuyin;
+					actions = this.messageMenuActions.yuyin;
 				} else if (item.contentType === 'crad') {
-					return this.messageMenuActions.crad;
+					actions = this.messageMenuActions.crad;
 				} else if (item.contentType === 'redBag') {
-					return this.messageMenuActions.redBag;
+					actions = this.messageMenuActions.redBag;
 				} else if (item.contentType === 'file') {
-					return this.messageMenuActions.file;
+					actions = this.messageMenuActions.file;
 				}
-				return this.messageMenuActions.default;
+				
+				const quoteAction = { icon: 'compose', label: '引用', method: 'startQuote' };
+				if (Array.isArray(actions) && !actions.some(a => a && a.method === 'startQuote')) {
+					return [quoteAction, ...actions];
+				}
+				return actions;
 			},
 			// 统一处理菜单项点击
 			handleMenuAction({ action, index }) {
@@ -2962,6 +3089,9 @@
 					location,
 					content: msg
 				};
+				if (this.quoteDraft) {
+					msgInfo.quote = this.quoteDraft;
+				}
 
 				if (this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, msgInfo);
@@ -2970,6 +3100,7 @@
 					this.massageList.push(msgInfo);
 				}
 				this.updateMsg();
+				this.quoteDraft = null;
 			},
 
 			// 消息编辑提交 (模仿wxChat)
@@ -4393,6 +4524,27 @@
 		/* 防止内容被挡，但背景照样铺到底 */
 		/* 减去 nav-bar 的高度 */
 		background-color: #f5f5f5;
+	}
+	
+	.quote-draft {
+		position: relative;
+		margin: 10upx 20upx 0;
+	}
+	
+	.quote-draft .quote-preview {
+		margin-bottom: 0;
+	}
+	
+	.quote-draft__close {
+		position: absolute;
+		right: 6upx;
+		top: 6upx;
+		padding: 8upx;
+	}
+	
+	.bubble-stack {
+		display: flex;
+		flex-direction: column;
 	}
 
 	/* 输入框 */
