@@ -1,8 +1,8 @@
 <template>
   <view>
     <!-- 弹出表单 -->
-    <uni-popup ref="popup" type="center">
-      <view class="popup-content">
+    <uni-popup ref="popup" :type="popupType">
+      <view class="popup-content" :class="{ 'popup-content--bottom': popupType === 'bottom' }">
         <view class="form-header">
           <text class="title">编辑信息</text>
           <view class="close-btn" @click="$refs.popup.close()">
@@ -147,6 +147,10 @@ export default {
     enableRichText: {
       type: Boolean,
       default: false
+    },
+	popupType: {
+	  type: String,
+	  default: 'center'
     }
   },
   data() {
@@ -195,7 +199,7 @@ export default {
       }
       this.showEmojiPicker = false; // 重置表情面板状态
       this.currentEmojiField = null; // 重置当前表情字段
-      this.$refs.popup.open('center');
+      this.$refs.popup.open(this.popupType);
     },
     createOrderNumber(key) {
       try {
@@ -494,6 +498,13 @@ export default {
   max-height: 80vh;
   display: flex;
   flex-direction: column;
+}
+
+.popup-content--bottom {
+  width: 100%;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  max-height: 70vh;
 }
 
 /* 表单头部 */

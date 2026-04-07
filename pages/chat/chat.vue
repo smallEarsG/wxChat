@@ -673,7 +673,7 @@
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
 								<view class="videobox">
 									<image src="/static/chat/phone_hs.png" :class="isIos?'videobox-ios':'videobox-and'"
-										mode="widthFix" :style="{ width: rpx(50),marginRight: rpx(12)}"></image>
+										mode="widthFix" :style="{ width: rpx(56),marginRight: rpx(6)}"></image>
 									<template v-if="msgData.item.content === '已取消'">
 										已取消
 									</template>
@@ -700,7 +700,7 @@
 										</template>
 										<image :class="isIos?'videobox-ios':'videobox-and'" style="margin-left: 16upx;"
 											src="/static/chat/phone_ls.png" mode="widthFix"
-											:style="{ width: rpx(50),marginLeft: rpx(12)}"></image>
+											:style="{ width: rpx(56),marginLeft: rpx(12)}"></image>
 									</view>
 								</view>
 							</view>
@@ -812,9 +812,9 @@
 				<MessageEditPopup ref="editMsgPopup" @submit="onEditMsgSubmit" />
 
 				<!-- 时间编辑 -->
-				<EditableFormPopup ref="videoPopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onVideoSubmit" />
+				<EditableFormPopup ref="videoPopup" popupType="bottom" :value="timeInfo" :fieldLabels="timeKey" @submit="onVideoSubmit" />
 				<!-- 语音通话 -->
-				<EditableFormPopup ref="phonePopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onPhoneSubmit" />
+				<EditableFormPopup ref="phonePopup" popupType="bottom" :value="timeInfo" :fieldLabels="timeKey" @submit="onPhoneSubmit" />
 				<!-- 背景修改 -->
 				<UploadImage ref="bgPopup" @submit="onBgSubmit"></UploadImage>
 				<!-- 文件信息编辑 -->
