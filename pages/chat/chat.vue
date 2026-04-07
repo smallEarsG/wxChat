@@ -317,6 +317,47 @@
 							</view>
 						</view>
 					</view>
+					
+					<!-- 语音通话 -->
+					<view v-else-if="draggingItem.contentType == 'phone'" class="cell">
+						<view class="msg left" v-if="draggingItem.location == 0">
+							<view class="avatar">
+								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							</view>
+							<view class="bubble" :style="{ fontSize: rpx(34) }">
+								<view class="videobox">
+									<image src="/static/chat/phone_hs.png" :class="isIos?'videobox-ios':'videobox-and'"
+										mode="widthFix" :style="{ width: rpx(60),marginRight: rpx(8)}"></image>
+									<template v-if="draggingItem.content === '已取消'">
+										已取消
+									</template>
+									<template v-else>
+										通话时长
+										<text>{{draggingItem.content}}</text>
+									</template>
+								</view>
+							</view>
+						</view>
+						<view class="msg right" v-else>
+							<image class="avatar" mode="aspectFill" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<view class="bubble" :style="{ fontSize: rpx(34) }">
+								<view>
+									<view class="videobox">
+										<template v-if="draggingItem.content === '已取消'">
+											已取消
+										</template>
+										<template v-else>
+											通话时长
+											<text>{{draggingItem.content}}</text>
+										</template>
+										<image :class="isIos?'videobox-ios':'videobox-and'" style="margin-left: 16upx;"
+											src="/static/chat/phone_ls.png" mode="widthFix"
+											:style="{ width: rpx(60),marginLeft: rpx(10)}"></image>
+									</view>
+								</view>
+							</view>
+						</view>
+					</view>
 				</view>
 
 				<!-- 可见消息列表 -->
@@ -621,6 +662,51 @@
 
 
 					</view>
+					
+					<!-- 语音通话 -->
+					<view v-else-if="msgData.item.contentType == 'phone'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
+					
+						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
+							<view class="avatar">
+								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
+							</view>
+							<view class="bubble" :style="{ fontSize: rpx(34) }">
+								<view class="videobox">
+									<image src="/static/chat/phone_hs.png" :class="isIos?'videobox-ios':'videobox-and'"
+										mode="widthFix" :style="{ width: rpx(50),marginRight: rpx(12)}"></image>
+									<template v-if="msgData.item.content === '已取消'">
+										已取消
+									</template>
+									<template v-else>
+										通话时长
+										<text>{{msgData.item.content}}</text>
+									</template>
+								</view>
+							</view>
+						</view>
+					
+						<view class="msg right" @longpress="showPopupMenu($event, msgData.index)" v-else>
+							<image class="avatar" mode="aspectFill" lazy-load
+								:src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
+							<view class="bubble" :style="{ fontSize: rpx(34) }">
+								<view>
+									<view class="videobox">
+										<template v-if="msgData.item.content === '已取消'">
+											已取消
+										</template>
+										<template v-else>
+											通话时长
+											<text>{{msgData.item.content}}</text>
+										</template>
+										<image :class="isIos?'videobox-ios':'videobox-and'" style="margin-left: 16upx;"
+											src="/static/chat/phone_ls.png" mode="widthFix"
+											:style="{ width: rpx(50),marginLeft: rpx(12)}"></image>
+									</view>
+								</view>
+							</view>
+						</view>
+					
+					</view>
 
 					<!-- <image src="/static/emoji/emoji_1_blue.png"></image> -->
 				</view>
@@ -727,6 +813,8 @@
 
 				<!-- 时间编辑 -->
 				<EditableFormPopup ref="videoPopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onVideoSubmit" />
+				<!-- 语音通话 -->
+				<EditableFormPopup ref="phonePopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onPhoneSubmit" />
 				<!-- 背景修改 -->
 				<UploadImage ref="bgPopup" @submit="onBgSubmit"></UploadImage>
 				<!-- 文件信息编辑 -->
@@ -737,6 +825,13 @@
 				<!-- yuyin -->
 				<EditableFormPopup ref="yuyinPopup" :value="yuyinInfo" :fieldLabels="yuyinKey"
 					@submit="onYuyinSubmit" />
+				<uni-popup ref="callTypePopup" type="bottom">
+					<view class="calltype-sheet">
+						<view class="calltype-item" @click="onSelectCallType('video')">视频通话</view>
+						<view class="calltype-item" @click="onSelectCallType('phone')">语音通话</view>
+						<view class="calltype-cancel" @click="closeCallTypePopup">取消</view>
+					</view>
+				</uni-popup>
 				<!-- 水印设置 -->
 				<uni-popup ref="watermarkPopup" type="center">
 					<view class="watermark-popup">
@@ -1588,6 +1683,11 @@
 						name: "file",
 						label: "文件",
 						icon: "/static/qiw/fs_.png"
+					},
+					{
+						name: "phone",
+						label: "语音通话",
+						icon: "/static/icon-phone.png"
 					}
 				],
 
@@ -2430,6 +2530,13 @@
 						case 'video':
 							previewText = `[视频通话] ${(item.content !== undefined && item.content !== null) ? String(item.content) : ''}`.trim();
 							break;
+						case 'phone':
+							if (String(item.content || '') === '已取消') {
+								previewText = '[语音通话] 已取消';
+							} else {
+								previewText = `[语音通话] 通话时长${(item.content !== undefined && item.content !== null) ? String(item.content) : ''}`.trim();
+							}
+							break;
 						default:
 							previewText = `[${contentType || '消息'}]`;
 					}
@@ -2648,9 +2755,32 @@
 				this.massageList.push(transferInfo)
 				this.updateMsg()
 			},
+			onPhoneSubmit(data) {
+				const location = this.isMe ? 1 : 0;
+				const phoneInfo = {
+					type: "content",
+					contentType: "phone",
+					location,
+					content: data.time
+				}
+				this.massageList.push(phoneInfo)
+				this.updateMsg()
+			},
 			async addVideo() {
-				this.$refs.videoPopup.open()
-
+				this.$refs.callTypePopup && this.$refs.callTypePopup.open()
+			},
+			closeCallTypePopup() {
+				this.$refs.callTypePopup && this.$refs.callTypePopup.close()
+			},
+			onSelectCallType(type) {
+				this.closeCallTypePopup()
+				if (type === 'video') {
+					this.$refs.videoPopup && this.$refs.videoPopup.open()
+					return
+				}
+				if (type === 'phone') {
+					this.$refs.phonePopup && this.$refs.phonePopup.open()
+				}
 			},
 
 			async onCradSubmitz(data) {
@@ -2908,6 +3038,9 @@
 						this.editMsgIndex = -1; // 重置编辑索引，确保是新增模式
 						this.tipsInfo.gusetName = ""; // 清空内容
 						this.$refs.tipsPopup.open()
+						break;
+					case "phone":
+						this.$refs.phonePopup.open()
 						break;
 					default:
 						uni.showToast({
@@ -3886,6 +4019,30 @@
 
 	.watermark-settings-entry button {
 		width: 100%;
+	}
+	
+	.calltype-sheet {
+		background-color: #fff;
+		border-top-left-radius: 24rpx;
+		border-top-right-radius: 24rpx;
+		overflow: hidden;
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+	
+	.calltype-item {
+		padding: 28rpx 32rpx;
+		font-size: 30rpx;
+		color: #111827;
+		text-align: center;
+		border-bottom: 1rpx solid #f0f0f0;
+	}
+	
+	.calltype-cancel {
+		padding: 28rpx 32rpx;
+		font-size: 30rpx;
+		color: #6b7280;
+		text-align: center;
+		background-color: #f7f7f7;
 	}
 
 	.watermark-popup {
