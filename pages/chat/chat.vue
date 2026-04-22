@@ -8,12 +8,11 @@
 			<view class="back" @click="goBack">
 				<image class="backimg" src="../../static/qiw/black_leftIcon.png" mode="widthFix"></image>
 			</view>
-			<view class="title">
-				<view class="nikeName" :style="{ fontSize: rpx(36) }">
+			<view class="title-ios">
+				<view class="nikeName" :style="{ fontSize: rpx(34),fontWeight:'500' }">
 					{{guestInfo.name || "企业微信工坊"}}
 				</view>
-				<view class="desc" :style="{ fontSize: rpx(24) }">{{guestInfo.description}}</view>
-
+				<view class="desc" :style="{ fontSize: rpx(24),color: '#4bc768' }">{{guestInfo.description}}</view>
 			</view>
 			<view class="icons">
 				<image @click="addVideo" class="nav-icon_phone" mode="widthFix" src="/static/icon-phone.png"></image>
@@ -1478,19 +1477,19 @@
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
 						{ icon: 'chat', label: '时间编辑', method: 'changeMsg' },
 						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
-						{ icon: 'wallet', label: '插入转账', method: 'insertTransfer' },
-						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
 					// 提示消息
 					tipsContent: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
 						{ icon: 'chat', label: '编辑', method: 'editTips' },
-						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
-						{ icon: 'wallet', label: '插入转账', method: 'insertTransfer' },
-						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
 					// 订单消息
 					order: [
@@ -1498,10 +1497,10 @@
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
 						{ icon: 'person', label: '切换角色', method: 'toggleRole' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
-						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
-						{ icon: 'wallet', label: '插入转账', method: 'insertTransfer' },
-						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
 					// 转账消息
 					transfer: [
@@ -1509,11 +1508,11 @@
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
 						{ icon: 'person', label: '切换角色', method: 'toggleRole' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
-						{ icon: 'wallet', label: '收款', method: 'resTransfer' },
-						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
-						{ icon: 'wallet', label: '插入转账', method: 'insertTransfer' },
-						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '收款', method: 'resTransfer' },
+						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
 					// 聊天消息
 					chat: [
@@ -1522,10 +1521,10 @@
 						{ icon: 'person', label: '切换角色', method: 'toggleRole' },
 						{ icon: 'chat', label: '消息编辑', method: 'changeMsg' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
-						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
-						{ icon: 'wallet', label: '插入转账', method: 'insertTransfer' },
-						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
 					// 收款消息
 					wxtf: [
@@ -1533,10 +1532,10 @@
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
 						{ icon: 'person', label: '切换角色', method: 'toggleRole' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
-						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
-						{ icon: 'wallet', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
 					// 视频电话消息
 					video: [
@@ -1545,10 +1544,10 @@
 						{ icon: 'person', label: '切换角色', method: 'toggleRole' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
 						{ icon: 'chat', label: '消息编辑', method: 'changeMsg' },
-						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
-						{ icon: 'wallet', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
 					// 语音消息
 					yuyin: [
@@ -1556,10 +1555,10 @@
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
 						{ icon: 'person', label: '切换角色', method: 'toggleRole' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
-						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
-						{ icon: 'wallet', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
 					// 名片消息
 					crad: [
@@ -1567,10 +1566,10 @@
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
 						{ icon: 'person', label: '切换角色', method: 'toggleRole' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
-						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
-						{ icon: 'wallet', label: '插入转账', method: 'insertTransfer' },
-						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
 					// 红包消息
 					redBag: [
@@ -1578,11 +1577,11 @@
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
 						{ icon: 'person', label: '切换角色', method: 'toggleRole' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' },
-						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
-						{ icon: 'wallet', label: '插入转账', method: 'insertTransfer' },
-						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
 					// 文件消息
 					file: [
@@ -1590,11 +1589,11 @@
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
 						{ icon: 'person', label: '切换角色', method: 'toggleRole' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
-						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
-						{ icon: 'wallet', label: '插入转账', method: 'insertTransfer' },
-						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
 					// 默认配置（用于其他类型）
 					default: [
@@ -1602,10 +1601,10 @@
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
 						{ icon: 'person', label: '切换角色', method: 'toggleRole' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
-						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
-						{ icon: 'wallet', label: '插入转账', method: 'insertTransfer' },
-						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'wallet', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 
 					]
 				},

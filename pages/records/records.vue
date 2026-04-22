@@ -35,7 +35,7 @@
 							</view>
 							<view class="info-row">
 								<text class="label">付款客户：</text>
-								<view class="value">客户<text style="color: #AFE2B7;">@{{ infrom.customer }}</text>
+								<view class="value">客户<text style="color: #4bc768;">@{{ infrom.customer }}</text>
 								</view>
 							</view>
 							<view class="info-row">
@@ -56,7 +56,7 @@
 							</view>
 							<view class="info-row">
 								<text class="label">收款汇总：</text>
-								<view class="value">今日成员收款{{ infrom.count || 1 }}笔，共{{ (infrom.totalAmount || infrom.amount || '0.00') }}元</view>
+								<view class="value">{{ getPaymentSummaryText(infrom, i) }}</view>
 							</view>
 						</view>
 						<view class="info-box" @click="deleteRecord(i)" >
@@ -187,7 +187,7 @@
 								</view>
 							</view>
 
-							<view class="form-item">
+							<!-- <view class="form-item">
 								<text class="form-label">收款笔数</text>
 								<view class="input-wrapper">
 									<uni-icons type="list" size="18" color="#999" class="input-icon" />
@@ -201,7 +201,7 @@
 									<uni-icons type="wallet" size="18" color="#999" class="input-icon" />
 									<input class="form-input" v-model="formData.totalAmount" placeholder="请输入收款总金额" type="digit" />
 								</view>
-							</view>
+							</view> -->
 						</block>
 
 						<!-- 提现通知 -->
@@ -295,6 +295,27 @@
 			};
 		},
 		methods: {
+			toMoneyNumber(value) {
+				const num = parseFloat(value);
+				return Number.isFinite(num) ? num : 0;
+			},
+			formatMoney(value) {
+				return this.toMoneyNumber(value).toFixed(2);
+			},
+			getPaymentSummaryText(record, currentIndex) {
+				if (Number(record.typeIndex) !== 0) return '';
+				const summary = {
+					count: 0,
+					totalAmount: 0
+				};
+				this.informList.forEach((item, index) => {
+					if (index > currentIndex) return;
+					if (String(item.orderType || '').trim() !== '对外汇款') return;
+					summary.count += 1;
+					summary.totalAmount += this.toMoneyNumber(item.amount);
+				});
+				return `今日成员收款${summary.count}笔，共${this.formatMoney(summary.totalAmount)}元`;
+			},
 		
 			// 返回上一页
 			goBack() {

@@ -255,31 +255,34 @@
 				this.saveFooterDataToStorage()
 			},
 			msgDeal(content) {
+				if (!content || typeof content !== 'string' || content.trim() === "") {
+					return "";
+				}
 				let showText = '';
 				try {
 					// 解析JSON内容
 					const msgAry = JSON.parse(content);
-					console.log(msgAry);
-					if(msgAry===null){
+					// console.log(msgAry);
+					if(!Array.isArray(msgAry) || msgAry.length === 0){
 						return ""
 					}
 					// 从后向前遍历消息数组
 					for (let i = msgAry.length - 1; i >= 0; i--) {
 						const el = msgAry[i];
+						if (!el) continue;
 
 						// 根据内容类型设置显示文本
 						switch (el.contentType) {
 							case 'chat':
 							 if( el.type !== 'tips'){
-								 // console.log(el.content,"====");
 								 showText = el.content;
 								}
-								 // showText = el.content;
 								break;
 							case 'order':
 								showText = '[订单]';
 								break;
-							case 'crad': // 修正拼写错误
+							case 'crad': 
+							case 'card':
 								showText = '[名片]';
 								break;
 							case 'transfer':
@@ -288,16 +291,29 @@
 							case 'photo':
 								showText = '[图片]';
 								break;
+							case 'redBag':
+								showText = '[红包]';
+								break;
+							case 'yuyin':
+								showText = '[语音]';
+								break;
+							case 'video':
+								showText = '[视频]';
+								break;
+							case 'wxtf':
+								showText = '[微信转账]';
+								break;
 							default:
-								// showText = `[未知类型:${el.contentType}]`;
-								console.log("图片");
+								// console.log("未知类型");
+								break;
 						}
 
 						// 只要找到任何一种有效类型就跳出循环
 						if (showText) break;
 					}
 				} catch (error) {
-					console.error('JSON解析错误:', error);
+					// 只有确实是格式错误才打印，避免空内容频繁报错
+					console.error('JSON解析错误:', error, content);
 					showText = '';
 				}
 				return showText;
@@ -529,23 +545,25 @@
 					
 					// 更新消息内容
 					try {
-						if (this.currentEditingConversation.content) {
-							const msgArray = JSON.parse(this.currentEditingConversation.content);
-							if (Array.isArray(msgArray) && msgArray.length > 0) {
-								// 更新最后一条消息的内容
-								msgArray[msgArray.length - 1].content = data.content;
-								newContent = JSON.stringify(msgArray);
-							} else {
-								// 如果解析失败，创建新的消息格式
-								newContent = JSON.stringify([{
-									contentType: 'chat',
-									content: data.content,
-									type: 'message',
-									timestamp: new Date().getTime()
-								}]);
+						const originalContent = this.currentEditingConversation.content;
+						let msgArray = [];
+						
+						// 容错：判断是不是空字符串或者非字符串
+						if (originalContent && typeof originalContent === 'string' && originalContent.trim() !== '') {
+							try {
+								msgArray = JSON.parse(originalContent);
+							} catch (e) {
+								console.error('原对话内容JSON解析失败:', e);
+								msgArray = [];
 							}
+						}
+						
+						if (Array.isArray(msgArray) && msgArray.length > 0) {
+							// 更新最后一条消息的内容
+							msgArray[msgArray.length - 1].content = data.content;
+							newContent = JSON.stringify(msgArray);
 						} else {
-							// 创建新的消息格式
+							// 如果解析失败或者数组为空，创建新的消息格式
 							newContent = JSON.stringify([{
 								contentType: 'chat',
 								content: data.content,
@@ -555,7 +573,7 @@
 						}
 					} catch (error) {
 						console.error('处理消息内容错误:', error);
-						// 如果解析失败，直接使用新内容
+						// 如果处理过程报错，直接使用新内容作为兜底
 						newContent = JSON.stringify([{
 							contentType: 'chat',
 							content: data.content,
