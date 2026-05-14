@@ -190,6 +190,11 @@
 				</button>	
 			</view>
 			<view class="action-buttons">
+				<button class="action-btn" @click="goCodePayChild(10)">
+					<text>第三方付款（电话）</text>
+				</button>
+			</view>
+			<view class="action-buttons">
 				<button class="action-btn" @click="goCodePayChild(4)">
 					<text>第三方条形码(16位)</text>
 				</button>
@@ -446,6 +451,7 @@
 					7: '/pages/barcodeThirdpartyPayment34/barcodeThirdpartyPayment34',
 					8: '/pages/miniThirdpartyPaymentCode/miniThirdpartyPaymentCode',
 					9: '/pages/ThirdpartyMerchant/ThirdpartyMerchant', // 第三方商家
+					10: '/pages/ThirdpartyPaymentTel/ThirdpartyPaymentTel', // 第三方付款（电话）
 				};
 
 				// 获取目标路由，默认使用第三方支付页面
@@ -477,6 +483,7 @@
 							7: 8,  // barcode34
 							8: 9,  // miniThirdpartyPaymentCode
 							9: 10, // ThirdpartyMerchant
+							10: 4, // ThirdpartyPaymentTel
 						};
 						const billType = billTypeMap[i] || 4;
 						const billData = {

@@ -31,11 +31,11 @@
 						<view class="left">支付时间</view>
 						<view class="right">{{info.time}}</view>
 					</view>
-					<view class="item" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
+					<view class="item" v-if="info.shop!=''" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
 						<view class="left">商品</view>
 						<view class="right">{{info.shop}}</view>
 					</view>
-					<view class="item" v-if="info.merchantName" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
+					<view class="item" v-if="info.merchantName!=''" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
 						<view class="left">商户全称</view>
 						<view class="right">{{info.merchantName}}</view>
 					</view>
@@ -66,24 +66,19 @@
 						<view class="right">{{info.orderNumber}}</view>
 					</view>
 
-					<view class="item" v-if="info.shopNumber" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
+					<view class="item" v-if="info.shopNumber!=''" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
 						<view class="left">商户单号</view>
 						<view class="right">{{info.shopNumber}}</view>
+					</view>
+					<view class="item" v-if="info.BoNumber!=''&& info.BoNumber !=null" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
+						<view class="left">经营单号</view>
+						<view class="right">{{info.BoNumber}}</view>
 					</view>
 				</view>
 			</view>
 			
-			<view class="mini" style="align-items: center;" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx', fontSize: (28 * fontScale) + 'rpx' }">
-				<view class="left" style="color: black;">商家小程序</view>
-				<view class="right_mini">
-					<image class="miniapp" mode="widthFix" src="/static/qiw/miniIcon.png"></image>
-					<text class="miniName">{{info.miniName}} </text>
-					<uni-icons type="right" color="#9b9b9b" size="17"></uni-icons>
-				</view>
-			</view>
-
-			<view class="serivce"  :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
-				<view class="se_title" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
+			<view class="serivce" v-if="info.showService !== false" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
+				<view class="se_title" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
 					账单服务
 				</view>
 				<view class="serivce_line">
@@ -108,11 +103,16 @@
 							</view>
 							在此商户的交易
 						</view>
-						
+						<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
+							<view class="se_icon">
+								<image class="startIcon" src="/static/wxchat/set.png" mode=""></image>
+							</view>
+							管理扣费服务
+						</view>
 					</view>
 				</view>
 			</view>
-			<!-- <view class="serivce"  :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
+			<view class="serivce"  :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<view class="se_title" :style="{ fontSize: (28 * fontScale) + 'rpx' }">
 					联系商家
 				</view>
@@ -127,7 +127,7 @@
 						
 					</view>
 				</view>
-			</view> -->
+			</view>
 
 			<view class="footer" :style="{ fontSize: (24 * fontScale) + 'rpx' }">
 				本服务由财付通提供
@@ -138,7 +138,7 @@
 
 <script>
 	export default {
-		name: 'MiniThirdpartyPaymentBill',
+		name: 'ThirdpartyPaymentTelBill',
 		props: {
 			info: {
 				type: Object,

@@ -68,7 +68,8 @@
           <view class="form-item">
             <text class="form-label">时间</text>
             <view class="input-wrapper">
-              <uni-icons type="time" size="18" color="#999" class="input-icon" />
+              <!-- <uni-icons type="time" size="18" color="#999" class="input-icon" /> -->
+                     <uni-icons type="calendar" size="18" color="#999" class="input-icon" />
               <input 
                 v-model="formData.createdAt" 
                 class="form-input" 
@@ -76,6 +77,58 @@
                 placeholder-class="placeholder"
                 maxlength="20"
               />
+            </view>
+          </view>
+
+          <!-- 客户来源 -->
+          <view class="form-item">
+            <text class="form-label">客户来源</text>
+            <view class="input-wrapper">
+              <uni-icons type="paperplane" size="18" color="#999" class="input-icon" />
+              <input
+                v-model="formData.soures"
+                class="form-input"
+                placeholder="请输入客户来源"
+                placeholder-class="placeholder"
+                maxlength="30"
+              />
+            </view>
+          </view>
+
+          <!-- 添加时间 -->
+          <view class="form-item" >
+            <text class="form-label">添加时间</text>
+            <!-- <view class="input-wrapper"> -->
+              <!-- <uni-icons type="calendar" size="18" color="#999" class="input-icon" /> -->
+              <uni-datetime-picker
+                class="form-input_time datetime-picker"
+                type="datetime"
+                 style="padding: none;"
+                return-type="timestamp"
+                :hide-second="true"
+                :clear-icon="false"
+                :border="false"
+                :value="addTimePickerValue"
+                placeholder="请选择添加时间"
+                @change="handleAddTimeChange"
+              />
+            <!-- </view> -->
+          </view>
+
+          <!-- 性别 -->
+          <view class="form-item">
+            <text class="form-label">性别</text>
+            <view class="gender-group">
+              <view
+                class="gender-option"
+                :class="{ active: Number(formData.sex) === 1 }"
+                @click="formData.sex = 1"
+              >男</view>
+              <view
+                class="gender-option"
+                :class="{ active: Number(formData.sex) === 0 }"
+                @click="formData.sex = 0"
+              >女</view>
             </view>
           </view>
           
@@ -167,10 +220,14 @@ export default {
         name: '',
         description: '',
         createdAt: '',
+        soures: '对方通过扫一扫添加',
+        addTime: '',
+        sex: 0,
         chatIndex: 0,
         content: '',
         type: 'chat'
       },
+      addTimePickerValue: '',
       showEmojiPicker: false,
       emojiTotal: 50, // 减少表情总数，避免性能问题
       isEditing: false,
@@ -237,6 +294,7 @@ export default {
     // 打开弹窗
     open(msgInfo = {}) {
       try {
+        const defaultSoures = '对方通过扫一扫添加';
         // 设置正在打开标志，防止意外触发事件
         this.isOpening = true;
         
@@ -264,10 +322,16 @@ export default {
           name: name,
           description: msgInfo.description || '@微信',
           createdAt: msgInfo.createdAt || '上午 8:15',
+          soures: isEditing ? (msgInfo.soures || '') : (msgInfo.soures || defaultSoures),
+          addTime: msgInfo.addTime || '',
+          sex: this.normalizeSex(msgInfo.sex),
           chatIndex: msgInfo.chatIndex || 0,
           content: msgInfo.content || '',
           type: msgInfo.type || 'chat'
         };
+        const parsedAddTime = this.parseAddTimeToPickerValue(this.formData.addTime);
+        this.addTimePickerValue = parsedAddTime;
+        this.formData.addTime = parsedAddTime ? this.formatDateTime(parsedAddTime) : '';
         
         // 判断是编辑还是新增
         this.isEditing = isEditing;
@@ -325,10 +389,40 @@ export default {
         name: '',
         description: '@微信',
         createdAt: '上午 8:15',
+        soures: '对方通过扫一扫添加',
+        addTime: '',
+        sex: 0,
         chatIndex: 0,
         content: '',
         type: 'chat'
       };
+      this.addTimePickerValue = '';
+    },
+    formatDateTime(value) {
+      if (!value) return '';
+      const date = new Date(Number(value));
+      if (Number.isNaN(date.getTime())) return '';
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hour = String(date.getHours()).padStart(2, '0');
+      const minute = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day} ${hour}:${minute}`;
+    },
+    parseAddTimeToPickerValue(value) {
+      if (!value) return '';
+      if (typeof value === 'number') return value;
+      const normalized = String(value).trim().replace(/-/g, '/');
+      const time = new Date(normalized).getTime();
+      return Number.isNaN(time) ? '' : time;
+    },
+    handleAddTimeChange(value) {
+      this.addTimePickerValue = value;
+      this.formData.addTime = this.formatDateTime(value);
+    },
+    normalizeSex(value) {
+      const sex = Number(value);
+      return sex === 1 ? 1 : 0;
     },
     
     // 选择头像
@@ -456,6 +550,9 @@ export default {
         name: this.formData.name.trim(),
         description: this.formData.description.trim(),
         createdAt: this.formData.createdAt.trim(),
+        soures: this.formData.soures.trim(),
+        addTime: this.formData.addTime.trim(),
+        sex: this.normalizeSex(this.formData.sex),
         chatIndex: Number(this.formData.chatIndex) || 0,
         content: this.formData.content.trim(),
         type: this.formData.type
@@ -612,6 +709,27 @@ export default {
   position: relative;
 }
 
+.gender-group {
+  display: flex;
+  gap: 20rpx;
+}
+
+.gender-option {
+  flex: 1;
+  text-align: center;
+  border: 1rpx solid #e6e6e6;
+  border-radius: 16rpx;
+  padding: 20rpx 0;
+  color: #666;
+  font-size: 28rpx;
+}
+
+.gender-option.active {
+  color: #007aff;
+  border-color: #007aff;
+  background-color: rgba(0, 122, 255, 0.08);
+}
+
 .input-icon {
   position: absolute;
   left: 24rpx;
@@ -630,10 +748,30 @@ export default {
   box-sizing: border-box;
   transition: border-color 0.2s;
 }
+.form-input_time {
+  border: 1rpx solid #e6e6e6;
+  border-radius: 16rpx;
+  padding: 0rpx 24rpx 0rpx 20rpx;
+  width: 100%;
+  font-size: 28rpx;
+  height: 80rpx;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
 
 .form-input:focus {
   border-color: #007aff;
   outline: none;
+}
+
+:deep(.datetime-picker .uni-date__x-input) {
+  padding-left: 0 !important;
+  font-size: 28rpx !important;
+}
+
+:deep(.datetime-picker .uni-date-editor) {
+  border: none !important;
+  background-color: transparent !important;
 }
 
 .form-textarea {

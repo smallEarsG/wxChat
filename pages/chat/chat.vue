@@ -1,4 +1,4 @@
-<template>
+﻿﻿<template>
 
 	<view class="chat-page" :style="{ '--global-font-size': currentFontSize + 'px', '--font-scale': Number(scale) || 1 }">
 		<!-- 全局水印层 -->
@@ -23,8 +23,17 @@
 		<view v-else class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="back" @click="goBack">
 				<uni-icons type="left" color="#000" size="24"></uni-icons>
-				<view class="nav-icon_phone" style="margin-right: 26upx;" />
-
+				<view class="msgConut">
+					<view
+						class="msgView"
+						:class="{ more_red: emailIndexMsg > 99, msgView_hidden: !hasEmailIndexMsg }"
+						:style="{ fontSize: rpx(28) }"
+					>
+						{{ hasEmailIndexMsg ? emailIndexText : '' }}
+					</view>
+				</view>
+				<!-- <view class="nav-icon_phone" style="margin-right: 26upx;" /> -->
+				
 				<!-- <image class="backimg-ios" mode="widthFix" src="/static/left.png"></image> -->
 			</view>
 			<view class="title-ios">
@@ -41,8 +50,6 @@
 		</view>
 
 		<view class="chat-content">
-
-
 			<scroll-view class="chat-body" :class="{'scroll-auto': activeMsgIndex!== -1}" :scroll-top="scrollTop"
 				:style="chatBodyStyle" :scroll-y="!isDragging" :show-scrollbar="false" @scroll="onScroll">
 				<!-- 首屏自动滚动时的加载遮罩（仅首次且确实需要滚动才显示） -->
@@ -58,7 +65,7 @@
 				></view>
 				<!-- 上方占位符 -->
 				<view v-if="topPlaceholderHeight > 0" :style="{ height: topPlaceholderHeight + 'px' }"></view>
-				<!-- 排序模式提示条 -->
+				<!-- -->
 				<view v-if="isSortingMode" class="sorting-tip-bar">
 					<view class="sort-actions">
 						<view class="action-btn" @click="restoreDefaultSort">恢复默认</view>
@@ -68,18 +75,18 @@
 					<view class="finish-btn" @click="exitSortingMode">完成</view>
 				</view>
 				
-				<!-- 拖拽时的浮动项 (副本) -->
+				<!-- -->
 				<view v-if="isDragging && draggingItem" class="floating-msg-item" :style="{ top: dragY + 'px', height: dragItemHeight + 'px' }">
-					<!-- 直接复用各类消息的展示结构 -->
+					<!-- -->
 					<!-- 时间 -->
 					<view v-if="draggingItem.type == 'tips'" class="msg-time cell">
 						{{draggingItem.content}}
 					</view>
 					
-					<!-- tips提示 -->
+					<!-- -->
 					<view v-else-if="draggingItem.contentType == 'tips'" class="msg-tips cell">
 						<view class="tips-content">
-							你收到了{{draggingItem.content.gusetName}}的付款<text class="blueTxt"> 查看</text>
+							{{ getTipsText(draggingItem) }}<text v-if="getTipsActionText(draggingItem)" class="blueTxt"> {{ getTipsActionText(draggingItem) }}</text>
 						</view>
 					</view>
 					
@@ -95,7 +102,7 @@
 					<!-- 转账 -->
 					<view v-else-if="draggingItem.contentType == 'transfer'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<TransferCard :class="!draggingItem.content.st?'tfCardLeft':'tfCardLeftBg'" :state="draggingItem.content.st"
@@ -114,7 +121,7 @@
 					<!-- 收款 -->
 					<view v-else-if="draggingItem.contentType == 'wxtf'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<ChTf class="tfCardLeftBg" :fontScale="Number(componentScale) || 1" :name="draggingItem.content.name" :amount="draggingItem.content.amount"></ChTf>
@@ -128,7 +135,7 @@
 					<!-- 图片photo -->
 					<view v-else-if="draggingItem.contentType == 'photo'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="photo-container leftp" :style="getImageContainerStyle(dragStartIndex)">
@@ -146,7 +153,7 @@
 					<!-- 红包 -->
 					<view v-else-if="draggingItem.contentType == 'redBag'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<RedBag :class="draggingItem.content?'redbagLeft':'redbagLeftBg'" :fontScale="Number(componentScale) || 1" :location="draggingItem.location"
@@ -162,7 +169,7 @@
 					<!-- 文件 -->
 					<view v-else-if="draggingItem.contentType == 'file'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<chatFlie class="cardLeft" :fontScale="Number(componentScale) || 1" :content="draggingItem.content">
@@ -207,7 +214,7 @@
 					<!-- 名片 -->
 					<view v-else-if="draggingItem.contentType == 'crad'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<WxCard class="cardLeft" :fontScale="Number(componentScale) || 1" :nickname="draggingItem.content.nickname" :avatar="draggingItem.content.avatar">
@@ -220,10 +227,10 @@
 						</view>
 					</view>
 					
-					<!-- 聊天 -->
+					<!-- 鑱婂ぉ -->
 					<view v-else-if="draggingItem.contentType == 'chat'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
@@ -289,7 +296,7 @@
 					<!-- 视频电话 -->
 					<view v-else-if="draggingItem.contentType == 'video'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
@@ -320,7 +327,7 @@
 					<!-- 语音通话 -->
 					<view v-else-if="draggingItem.contentType == 'phone'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
@@ -386,11 +393,11 @@
 						v-if="msgData.item.type == 'tips'" class="msg-time cell">
 						{{msgData.item.content}}
 					</view>
-					<!-- tips提示 -->
+					<!-- -->
 					<view @longpress="showPopupMenu($event, msgData.index)" :style="{ fontSize: rpx(25) }"
 						v-else-if="msgData.item.contentType == 'tips'" class="msg-tips cell">
 						<view class="tips-content">
-							你收到了{{msgData.item.content.gusetName}}的付款<text class="blueTxt"> 查看</text>
+							{{ getTipsText(msgData.item) }}<text v-if="getTipsActionText(msgData.item)" class="blueTxt"> {{ getTipsActionText(msgData.item) }}</text>
 						</view>
 					</view>
 					<view class="orderBox cell" @longpress="showPopupMenu($event, msgData.index)"
@@ -411,7 +418,7 @@
 					<view v-else-if="msgData.item.contentType == 'transfer'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" @click="goReceipt(msgData.item)"
 							v-if="msgData.item.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<TransferCard :class="!msgData.item.content.st?'tfCardLeft':'tfCardLeftBg'" :state="msgData.item.content.st"
@@ -432,7 +439,7 @@
 					<view v-else-if="msgData.item.contentType == 'wxtf'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" @click="goCollection(msgData.item)"
 							v-if="msgData.item.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<ChTf class="tfCardLeftBg" :fontScale="Number(componentScale) || 1" :name="msgData.item.content.name" :amount="msgData.item.content.amount"></ChTf>
@@ -449,7 +456,7 @@
 
 					<view v-else-if="msgData.item.contentType == 'photo'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 						<view class="msg left" v-if="msgData.item.location == 0" @longpress="showPopupMenu($event, msgData.index)">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="photo-container leftp" :style="getImageContainerStyle(msgData.index)">
@@ -470,7 +477,7 @@
 					<!-- 红包 -->
 					<view v-else-if="msgData.item.contentType == 'redBag'" @click="getRB(msgData.index)" class="cell">
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<RedBag :class="msgData.item.content?'redbagLeft':'redbagLeftBg'" :fontScale="Number(componentScale) || 1" :location="msgData.item.location"
@@ -490,7 +497,7 @@
 					<view v-else-if="msgData.item.contentType == 'file'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="widthFix" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<chatFlie class="cardLeft" :fontScale="Number(componentScale) || 1" :content="msgData.item.content">
@@ -535,7 +542,7 @@
 					<view v-else-if="msgData.item.contentType == 'crad'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="widthFix" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<WxCard class="cardLeft" :fontScale="Number(componentScale) || 1" :nickname="msgData.item.content.nickname" :avatar="msgData.item.content.avatar">
@@ -548,11 +555,11 @@
 							</WxCard>
 						</view>
 					</view>
-					<!-- l、聊天 -->
+					<!-- -->
 					<view v-else-if="msgData.item.contentType == 'chat'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 						<!-- 聊天内容 -->
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
@@ -626,7 +633,7 @@
 					<view v-else-if="msgData.item.contentType == 'video'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
@@ -666,7 +673,7 @@
 					<view v-else-if="msgData.item.contentType == 'phone'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 					
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
-							<view class="avatar">
+							<view class="avatar" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
@@ -731,7 +738,7 @@
 				<view class="chat-input" :style="{marginBottom: keyboardHeight+'px'}">
 					<image class="icon" :style="{ width: rpx(60), height: rpx(60) }" src="/static/icon-voice.png"
 						@click="addYuyin"></image>
-					<view class="input—box" :style="{  height: rpx(70) }"><textarea class="input"
+					<view class="input-box" :style="{  height: rpx(70) }"><textarea class="input"
 							:adjustPosition="false" v-model="inputValue" @confirm="onEnterKey" />
 					</view>
 					<image class="icon_face" :style="{ width: rpx(60), height: rpx(60) }" src="/static/icon-face.png"
@@ -739,7 +746,7 @@
 					</image>
 					<image class="icon_plus" :style="{ width: rpx(68), height: rpx(68) }" v-if="inputValue.length == 0"
 						src="/static/icon-plus.png" @click="togglePopupBox"></image>
-					<button class="send" @click="onEnterKey" v-if="inputValue.length>0"> 发送 </button>
+					<button class="send" @click="onEnterKey" v-if="inputValue.length>0"> 发送</button>
 				</view>
 				<view class="emoji-picker" v-show="emoji">
 					<view v-for="index in total" :key="index" class="emoji-item" @click="addEmojiToInput(index)">
@@ -796,7 +803,33 @@
 				<!-- 定义弹出层 -->
 				<EditableFormPopup ref="orderPopup" :value="orderInfo" :fieldLabels="orderKey"
 					@submit="onOrderSubmit" />
-				<EditableFormPopup ref="timePopup" :value="timeInfo" :fieldLabels="timeKey" @submit="onTimeSubmit" />
+				<uni-popup ref="timePopup" type="center">
+					<view class="time-select-popup">
+						<view class="time-select-title">选择时间</view>
+						<view class="time-select-body">
+							<picker mode="date" :value="timePickerDate" @change="onTimePickerDateChange">
+								<view class="time-select-row">
+									<text class="time-select-label">日期</text>
+									<text class="time-select-value">{{ formatDateDisplay(timePickerDate) }}</text>
+								</view>
+							</picker>
+							<picker mode="time" :value="timePickerTime" @change="onTimePickerTimeChange">
+								<view class="time-select-row">
+									<text class="time-select-label">时间</text>
+									<text class="time-select-value">{{ formatPickerTimeDisplay(timePickerTime) }}</text>
+								</view>
+							</picker>
+							<view class="time-select-row">
+								<text class="time-select-label">是否是24小时制</text>
+								<switch :checked="timeUse24Hour" @change="onTimeUse24HourChange" />
+							</view>
+						</view>
+						<view class="time-select-footer">
+							<button class="time-select-btn time-select-cancel" @click="closeTimePicker">取消</button>
+							<button class="time-select-btn time-select-confirm" @click="confirmTimeSelection">确定</button>
+						</view>
+					</view>
+				</uni-popup>
 				<!-- 转账 -->
 				<EditableFormPopup ref="transferPopup" :value="transfer" :fieldLabels="transferKey"
 					@submit="onTransferSubmit" />
@@ -821,6 +854,14 @@
 				<!-- tips提示 -->
 				<EditableFormPopup ref="tipsPopup" :value="tipsInfo" :fieldLabels="tipsKey"
 					@submit="onTipsSubmit" />
+				<uni-popup ref="tipsTypePopup" type="bottom">
+					<view class="calltype-sheet">
+						<view class="calltype-item" @click="onSelectTipsType('payment')">收款提示</view>
+						<view class="calltype-item" @click="onSelectTipsType('revoke_other')">对方撤回提示</view>
+						<view class="calltype-item" @click="onSelectTipsType('revoke_self')">我方撤回提示</view>
+						<view class="calltype-cancel" @click="closeTipsTypePopup">取消</view>
+					</view>
+				</uni-popup>
 				<!-- yuyin -->
 				<EditableFormPopup ref="yuyinPopup" :value="yuyinInfo" :fieldLabels="yuyinKey"
 					@submit="onYuyinSubmit" />
@@ -870,7 +911,7 @@
 				</uni-popup>
 			</view>
 		</view>
-		<!-- 全局长按菜单 -->
+		<!-- -->
 		<MessagePopupMenu
 			:visible="activeMsgIndex !== -1"
 			:styleObject="popupStyle"
@@ -880,7 +921,7 @@
 		/>
 		<uni-popup ref="menuPopup" background-color="#fff">
 			<view class="menu" :style="{ paddingTop: statusBarHeight + 'px' }">
-				<button type="primary" plain="true" @click="openBgPopup">修改背景</button>
+				<button type="primary" plain="true" @click="openBgPopup">修改聊天背景</button>
 				<!-- 滑块组件 -->
 				<view class="fontChange">
 					<view class="">
@@ -925,8 +966,6 @@
     // 防抖相关
     var lastSwapTime = 0;
     var SWAP_COOLDOWN = 50; // ms
-	
-	// 接收 Vue 层传来的数据
 	function updateDragData(newValue, oldValue, ownerInstance, instance) {
 		if (!newValue) return;
 		
@@ -936,8 +975,6 @@
 			placeholderIndex = newValue.dragStartIndex;
 			initialScrollTop = newValue.initialScrollTop || initialScrollTop || 0;
             containerTop = newValue.containerTop || containerTop || 0;
-            
-            // 首次进入时同步
             if (currentScrollTop === 0 && initialScrollTop !== 0) {
 			    currentScrollTop = initialScrollTop;
             }
@@ -945,7 +982,7 @@
                 currentScrollTop = newValue.scrollTop;
             }
             
-            // 处理 rects，转换为绝对坐标 (相对于内容顶部)
+            // 处理 rects，转换为绝对坐标（相对于内容顶部）
             // itemAbsTop = rect.top (viewport) - containerTop (viewport) + initialScrollTop
             if (newValue.rects) {
                 itemRects = [];
@@ -968,7 +1005,6 @@
 				if (item.getDataset().index == dragStartIndex) {
 					item.setStyle({ opacity: 0, visibility: 'hidden' });
 				} else {
-                     // 重置样式，确保有 transition
                     item.setStyle({ 
                         opacity: 1, 
                         visibility: 'visible',
@@ -1032,17 +1068,13 @@
         var index = dataset.index;
         
         if (index !== undefined) {
-             // 先记录触摸位置
              var touch = event.touches[0];
              if (touch) {
                  startY = touch.clientY;
              }
-             
-             // 调用 Vue 层开始拖拽
              ownerInstance.callMethod('startDrag', index);
              
              // 等待 Vue 层更新状态后，再计算 offset
-             // 这里使用 setTimeout 确保 Vue 层状态已更新
              ownerInstance.setTimeout(function() {
                  if (itemRects.length > 0) {
                      for (var i = 0; i < itemRects.length; i++) {
@@ -1054,7 +1086,6 @@
                         }
                      }
                  } else {
-                     // 如果没有 rects，使用默认值
                      dragOffsetY = 50; // 默认偏移
                  }
              }, 10);
@@ -1079,7 +1110,7 @@
              dragOffsetY = dragItemHeight / 2;
         }
         
-        // 1. 移动浮动项 (Visual - Viewport Relative)
+        // 1. 移动浮动项（Visual - Viewport Relative）
 		var targetVisualTop = touchY - dragOffsetY;
 		var floatingItem = floatingItemCache || ownerInstance.selectComponent('.floating-msg-item');
 		floatingItemCache = floatingItem;
@@ -1089,7 +1120,7 @@
 			});
 		}
 		
-		// 2. 计算交换 (Absolute Coordinates Logic)
+		// 2. 计算交换（Absolute Coordinates Logic）
         // 当前手指对应的绝对位置中心
         // touchAbsY = touchY - containerTop + currentScrollTop
         // dragCenterAbsY = (touchY - dragOffsetY) - containerTop + currentScrollTop + dragItemHeight/2
@@ -1097,9 +1128,6 @@
         var dragCenterAbsY = dragTopAbsY + dragItemHeight / 2;
         
         // 找到 placeholder 对应的 itemRects 索引
-        // itemRects 是按初始 DOM 顺序 (data index) 排序的?
-        // 我们需要按 "当前视觉顺序" 检查
-        // 但其实 itemRects 数组本身的顺序通常就是列表顺序 (0, 1, 2...)
         // 我们假设 itemRects[k] 对应 visibleMessageList[k]
         
         // 找到 placeholderIndex 目前在哪
@@ -1115,14 +1143,7 @@
         
         var swapTargetIndex = -1;
         
-        // 检查前一个项 (Visual Previous)
-        // 注意：placeholderIndex 是数据索引。itemRects 是数据顺序。
-        // 如果 placeholderIndex > 0，前一个数据项是 placeholderIndex - 1 ?
-        // 不一定，如果有过滤。假设 rects 是连续的。
-        // 简单策略：遍历所有 rect，看 dragCenterAbsY 落在哪个 rect 的 "前半段" 或 "后半段"
-        
-        // 改进策略：越过中线交换 (Cross Midline)
-        // 遍历所有 rects
+        // 改进策略：越过中线交换（Cross Midline）
         for (var i = 0; i < itemRects.length; i++) {
             var rect = itemRects[i];
             var rectIndex = rect.dataset.index;
@@ -1131,31 +1152,17 @@
             if (rectIndex === placeholderIndex) continue;
             
             var rectCenter = rect.absTop + rect.height / 2;
-            
-            // 判断逻辑：
             // 如果 placeholder 在 i 之前 (placeholderIndex < rectIndex)
-            // 我们向下拖，当 dragCenter > rectCenter 时，交换
-            // 此时 placeholder 变成 rectIndex (或者说 rectIndex 移到 placeholder 之前)
             
             // 如果 placeholder 在 i 之后 (placeholderIndex > rectIndex)
-            // 我们向上拖，当 dragCenter < rectCenter 时，交换
-            
-            // 限制：只和相邻的交换？
-            // 为了避免跳跃，我们只检查 "视觉相邻" 的项。
-            // 但 "视觉相邻" 比较难判断，因为 transform 改变了视觉位置。
-            // 不过 itemRects 存储的是 "Slot" (槽位)。
-            // 我们只需要看 dragCenter 落在哪个 Slot 的范围内。
             
             if (dragCenterAbsY > rect.absTop && dragCenterAbsY < (rect.absTop + rect.height)) {
-                // 落在 rect i 的范围内
-                // 检查是否越过中线
+                // 钀藉湪 rect i 的范围内
                 if (placeholderIndex < rectIndex) {
-                    // 向下：必须越过中线 (dragCenter > rectCenter)
                      if (dragCenterAbsY > rectCenter) {
                          swapTargetIndex = rectIndex;
                      }
                 } else {
-                    // 向上：必须越过中线 (dragCenter < rectCenter)
                     if (dragCenterAbsY < rectCenter) {
                         swapTargetIndex = rectIndex;
                     }
@@ -1211,14 +1218,9 @@
 	
 	function onTouchEnd(event, ownerInstance) {
 		if (!isDragging) return;
-        
-        // 立即结束拖拽，不等待动画，减少卡顿
         finishDrag(ownerInstance);
-        
-        // 可选：如果需要动画效果，异步执行但不阻塞状态清理
         var floatingItem = ownerInstance.selectComponent('.floating-msg-item');
         if (floatingItem) {
-            // 快速隐藏浮动项
             floatingItem.setStyle({
                 opacity: 0,
                 transition: 'opacity 0.1s'
@@ -1303,7 +1305,6 @@
 					try {
 						parsedGuestInfo = JSON.parse(decodeURIComponent(rawGuestInfo));
 					} catch (_) {
-						// 兼容已经被解码或未编码的场景
 						parsedGuestInfo = JSON.parse(rawGuestInfo);
 					}
 					this.guestInfo = parsedGuestInfo;
@@ -1314,6 +1315,8 @@
 					this.updateMsg();
 				}
 			}
+			const emailIndex = Number(options && options.emailIndexMsg);
+			this.emailIndexMsg = Number.isFinite(emailIndex) && emailIndex > 0 ? emailIndex : 0;
 			// 获取账号信息
 			const userId = uni.getStorageSync('userId')
 			this.getUserInfo(userId)
@@ -1332,8 +1335,6 @@
 					this.keyboardHeight = res.height - safeAreaBottom;
 				}
 			});
-
-			// 读取本地存储的水印设置
 			this.loadWatermarkSettings();
 
 			this.$forceUpdate()
@@ -1341,7 +1342,6 @@
 
 		},
 		onUnload() {
-			// 清理所有定时器
 			if (this.scrollTimer) {
 				clearTimeout(this.scrollTimer);
 				this.scrollTimer = null;
@@ -1361,11 +1361,7 @@
 			
 			// 移除键盘高度监听器
 			uni.offKeyboardHeightChange();
-			
-			// 重置拖拽状态
 			this.resetDragState();
-			
-			// 清理缓存（可选，如果内存紧张）
 			// this.messageParseCache.clear();
 			// this.itemHeightCache.clear();
 		},
@@ -1373,7 +1369,7 @@
 			return {
 				isIos: false,
 				showChatToolBar: true,
-				currentFontSize: 16, // 默认字体大小
+				currentFontSize: 16, // 榛樿瀛椾綋澶у皬
 				scrollTop: 0,
 				chatBodyLoading: false,
 				_hasInitialAutoScroll: false,
@@ -1389,6 +1385,7 @@
 				userInfo: {},
 
 				guestInfo: {},
+				emailIndexMsg: 0,
 				isMe: false,
 				openPopup: false,
 				inputValue: "",
@@ -1426,8 +1423,18 @@
 					gusetName: "付款人名称",
 					price: "价格"
 				},
+				timeInfo: {
+					time: ""
+				},
+				timeKey: {
+					time: "时间"
+				},
+				timePickerDate: "",
+				timePickerTime: "",
+				timeUse24Hour: false,
 				tipsInfo: {
-					gusetName: ""
+					gusetName: "",
+					tipType: "payment"
 				},
 				tipsKey: {
 					gusetName: "付款人名称"
@@ -1469,7 +1476,6 @@
 						icon: '/static/icon-contacts.png'
 					}
 				],
-				// 不同消息类型的菜单配置
 				messageMenuActions: {
 					// 时间消息
 					tips: [
@@ -1481,7 +1487,6 @@
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
-					// 提示消息
 					tipsContent: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
@@ -1491,7 +1496,14 @@
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
-					// 订单消息
+					tipsSimple: [
+						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
+						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
+						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
+						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
+						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+					],
 					order: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
@@ -1502,7 +1514,6 @@
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
-					// 转账消息
 					transfer: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
@@ -1514,7 +1525,7 @@
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
-					// 聊天消息
+					// 鑱婂ぉ消息
 					chat: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
@@ -1549,7 +1560,6 @@
 						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
-					// 语音消息
 					yuyin: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
@@ -1571,7 +1581,6 @@
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
 					],
-					// 红包消息
 					redBag: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
 						{ icon: 'info', label: '插入时间', method: 'insertTime' },
@@ -1608,7 +1617,6 @@
 
 					]
 				},
-				// 新增数据属性
 				timePopupVisible: false,
 				currentTime: '',
 
@@ -1622,16 +1630,16 @@
 				enableLongPressDrag: false, // 控制长按拖拽功能
 				
 				// 拖拽相关
-				dragStartIndex: -1, // 拖拽开始的消息索引 (在数据源中的索引)
-				dragOverIndex: -1, // 拖拽悬停的消息索引 (废弃，使用 placeholderIndex)
+				dragStartIndex: -1, // 拖拽开始的消息索引（在数据源中的索引）
+				dragOverIndex: -1, // 拖拽悬停的消息索引（已废弃，使用placeholderIndex）
 				isDragging: false, // 是否正在拖拽
 				isSortingMode: false, // 是否处于排序模式
-				draggingItem: null, // 当前拖拽的消息对象 (用于浮动显示)
+				draggingItem: null, // 当前拖拽的消息对象（用于浮动显示）
 				draggingItemParsedContent: [], // 缓存拖拽项的解析内容
 				dragItemHeight: 0, // 拖拽项的高度
-				dragY: 0, // 浮动项的 Y 坐标
-				placeholderIndex: -1, // 占位符当前的索引 (视觉上的位置)
-				dragOffsetY: 0, // 手指相对于 item 顶部的偏移
+				dragY: 0, // 浮动项的Y坐标
+				placeholderIndex: -1, // 占位符当前索引（视觉上的位置）
+				dragOffsetY: 0, // 手指相对item顶部的偏移
 				dragStartY: 0, // 拖拽开始的Y坐标
 				longPressTimer: null, // 长按定时器
 				autoScrollTimer: null, // 自动滚动定时器
@@ -1650,7 +1658,7 @@
 					
 					{
 						name: "tips",
-						label: "对外收款提示",
+						label: "提示",
 						icon: "/static/icon-time.png"
 					},
 					{
@@ -1707,7 +1715,6 @@
 					spacing: 180,
 					fontSize: 16
 				},
-				// 存储每张图片的显示尺寸
 				imageSizes: {},
 				// WXS 交互数据
 				wxsDragData: {
@@ -1722,7 +1729,6 @@
 				// initialScrollTop: 0 // 移至非响应式数据
 				// 消息解析缓存
 				messageParseCache: new Map(), // 缓存 parseMessage 结果
-				// 实际消息高度缓存（用于虚拟滚动）
 				itemHeightCache: new Map() // key: index, value: height
 			};
 		},
@@ -1735,12 +1741,17 @@
 				}
 				return pages;
 			},
-			// 虚拟滚动：计算可见的消息列表
+			hasEmailIndexMsg() {
+				return Number(this.emailIndexMsg) > 0;
+			},
+			emailIndexText() {
+				const count = Number(this.emailIndexMsg) || 0;
+				return count > 99 ? '99+' : String(count);
+			},
 			visibleMessageList() {
 				if (!this.useVirtualScroll) {
 					return this.massageList.map((item, index) => ({ item, index, isVisible: true }));
 				}
-				// 如果消息数量少于阈值或未启用虚拟滚动，返回全部消息
 				if (!this.virtualScrollEnabled || this.massageList.length <= this.virtualScrollThreshold) {
 					return this.massageList.map((item, index) => ({ item, index, isVisible: true }));
 				}
@@ -1760,8 +1771,6 @@
 				// 计算可见范围
 				const start = Math.max(0, this.visibleStartIndex - this.scrollBuffer);
 				const end = Math.min(this.massageList.length, this.visibleEndIndex + this.scrollBuffer);
-				
-				// 返回可见消息及其原始索引
 				return this.massageList.slice(start, end).map((item, relativeIndex) => ({
 					item,
 					index: start + relativeIndex,
@@ -1838,14 +1847,10 @@
 			}
 		},
 		mounted() {
-			// 非响应式数据初始化
 			this.cachedItemRects = [];
 			this.initialScrollTop = 0;
-			
-			// 初始化虚拟滚动
 			this.initVirtualScroll();
 			this.scrollToBottom({ initial: true });
-			// 初始化表情总数
 			this.total = 331; // 根据static/emoji文件夹中的表情数量
 		},
 		methods: {
@@ -1882,25 +1887,18 @@
 				this.watermarkText = this.watermarkForm.text;
 				this.watermarkSpacing = this.watermarkForm.spacing;
 				this.watermarkFontSize = this.watermarkForm.fontSize;
-
-				// 保存水印设置到本地存储
 				this.saveWatermarkSettings();
 
 				this.closeWatermarkSettings();
 			},
-
-			// 读取本地存储的水印设置
 			loadWatermarkSettings() {
 				try {
 					const savedSettings = uni.getStorageSync('watermarkSettings');
 					if (savedSettings) {
-						// 处理不同的存储格式（可能是字符串或对象）
 						let settings = savedSettings;
 						if (typeof savedSettings === 'string') {
 							settings = JSON.parse(savedSettings);
 						}
-
-						// 如果本地有保存的设置，则使用保存的值
 						if (settings && typeof settings === 'object') {
 							if (settings.visible !== undefined) {
 								this.watermarkVisible = settings.visible;
@@ -1914,17 +1912,14 @@
 							if (settings.fontSize !== undefined) {
 								this.watermarkFontSize = Number(settings.fontSize) || 16;
 							}
-							console.log('已加载本地水印设置:', settings);
+							console.log('已加载本地水印设置', settings);
 						}
 					}
 				} catch (error) {
 					console.error('读取水印设置失败:', error);
-					// 如果读取失败，使用默认值
 					console.log('使用默认水印设置');
 				}
 			},
-
-			// 保存水印设置到本地存储
 			saveWatermarkSettings() {
 				try {
 					const settings = {
@@ -1943,7 +1938,7 @@
 					});
 				}
 			},
-			// 计算图片显示尺寸（参数为 upx 单位）
+			// 计算图片显示尺寸（参数为upx单位）
 			calculateImageSize(originalWidth, originalHeight, imageKey) {
 				const maxWidth = 270; // upx
 				const maxHeight = 300; // upx
@@ -1952,8 +1947,6 @@
 
 				let displayWidth = originalWidth;
 				let displayHeight = originalHeight;
-
-				// 如果宽或高超出最大限制，则按比例缩小
 				if (displayWidth > maxWidth || displayHeight > maxHeight) {
 					const widthRatio = maxWidth / displayWidth;
 					const heightRatio = maxHeight / displayHeight;
@@ -1961,8 +1954,6 @@
 					displayWidth = displayWidth * ratio;
 					displayHeight = displayHeight * ratio;
 				}
-
-				// 如果宽和高同时小于最小限制，则按比例放大
 				if (displayWidth < minWidth && displayHeight < minHeight) {
 					const widthRatio = minWidth / displayWidth;
 					const heightRatio = minHeight / displayHeight;
@@ -1970,12 +1961,8 @@
 					displayWidth = displayWidth * ratio;
 					displayHeight = displayHeight * ratio;
 				}
-
-				// 确保最终尺寸在限制范围内
 				displayWidth = Math.max(minWidth, Math.min(maxWidth, displayWidth));
 				displayHeight = Math.max(minHeight, Math.min(maxHeight, displayHeight));
-
-				// 存储计算后的尺寸
 				if (imageKey) {
 					this.$set(this.imageSizes, imageKey, {
 						width: displayWidth,
@@ -2007,10 +1994,7 @@
 						});
 						return;
 					}
-
-					// 将像素单位转换为 upx
 					// uni-app 中，设计稿基准为 750px
-					// 转换公式：upx = (px / screenWidth) * designWidth
 					const systemInfo = uni.getSystemInfoSync();
 					const screenWidth = systemInfo.windowWidth || 375; // 设备屏幕宽度（px）
 					const designWidth = 750; // 设计稿宽度（upx）
@@ -2021,8 +2005,6 @@
 
 					// 计算显示尺寸
 					const size = this.calculateImageSize(upxWidth, upxHeight, imageKey);
-					
-					// 缓存实际高度用于虚拟滚动（转换为px，复用上面的变量）
 					const actualHeightPx = (size.height / designWidth) * screenWidth;
 					this.itemHeightCache.set(index, actualHeightPx + 20); // 20px 是消息的 padding/margin
 
@@ -2064,7 +2046,6 @@
 				};
 
 				if (size && size.width && size.height) {
-					// 动态计算 border-radius，确保不超过高度的一半，最小值为 8rpx
 					const borderRadius = Math.max(8, Math.min(15, size.height / 2)) * scale;
 					return {
 						...baseStyle,
@@ -2077,7 +2058,7 @@
 						minHeight: (80 * scale) + 'upx'
 					};
 				}
-				// 如果还没有计算尺寸，返回默认值
+				// 如果还没有计算尺寸，则返回默认值
 				return {
 					...baseStyle,
 					borderRadius: (15 * scale) + 'rpx',
@@ -2103,14 +2084,13 @@
 				};
 
 				if (size && size.width && size.height) {
-					// 动态计算 border-radius，确保不超过高度的一半，最小值为 8rpx
 					const borderRadius = Math.max(8, Math.min(15, size.height / 2)) * scale;
 					return {
 						...baseStyle,
 						borderRadius: borderRadius + 'rpx'
 					};
 				}
-				// 如果还没有计算尺寸，返回默认值
+				// 如果还没有计算尺寸，则返回默认值
 				return {
 					...baseStyle,
 					borderRadius: (15 * scale) + 'rpx',
@@ -2149,7 +2129,6 @@
 			onChatToolBarToggle(e) {
 				this.showChatToolBar = e.detail.value
 			},
-			// 滚动事件处理（虚拟滚动）
 			onScroll(e) {
 				if (!this.useVirtualScroll) return;
 				if (!this.virtualScrollEnabled || this.massageList.length <= this.virtualScrollThreshold) {
@@ -2158,8 +2137,6 @@
 				
 				const scrollTop = e.detail.scrollTop;
 				this.scrollPosition = scrollTop;
-				
-				// 使用节流优化性能
 				clearTimeout(this.scrollTimer);
 				this.scrollTimer = setTimeout(() => {
 					this.updateVisibleRange(scrollTop);
@@ -2171,7 +2148,7 @@
 				}, 120);
 			},
 			
-			// 更新可见区域范围
+			// 鏇存柊鍙区域范围
 			updateVisibleRange(scrollTop) {
 				if (!this.useVirtualScroll) {
 					this.virtualScrollEnabled = false;
@@ -2181,7 +2158,6 @@
 					this.bottomPlaceholderHeightPx = 0;
 					return;
 				}
-				// 拖拽过程中暂停虚拟滚动更新，防止DOM节点变化导致坐标计算错误
 				if (this.isDragging) return;
 
 				const listLen = this.massageList.length;
@@ -2192,12 +2168,9 @@
 					this.bottomPlaceholderHeightPx = 0;
 					return;
 				}
-
-				// 使用实际高度缓存计算可见区域（如果可用）
 				let startIndex = 0;
 				let heightBeforeStartIndex = 0;
 				if (this.itemHeightCache.size > 0) {
-					// 使用实际高度累加计算
 					let accumulatedHeight = 0;
 					let found = false;
 					for (let i = 0; i < listLen; i++) {
@@ -2216,7 +2189,6 @@
 						heightBeforeStartIndex = Math.max(0, accumulatedHeight - lastHeight);
 					}
 				} else {
-					// 回退到估算高度
 					startIndex = Math.floor(scrollTop / this.estimatedItemHeight);
 					heightBeforeStartIndex = startIndex * this.estimatedItemHeight;
 				}
@@ -2346,8 +2318,6 @@
 					this.updateVisibleRange(this.scrollPosition || 0);
 				});
 			},
-			
-			// 初始化虚拟滚动
 			initVirtualScroll() {
 				if (!this.useVirtualScroll) {
 					this.virtualScrollEnabled = false;
@@ -2392,9 +2362,7 @@
 			},
 			
 			scrollToBottom(opts = {}) {
-				// 确保DOM更新完成
 				this.$nextTick(() => {
-					// 使用定时器延迟执行，确保DOM完全渲染
 					setTimeout(() => {
 						uni.createSelectorQuery().select('.chat-body')
 							.fields({
@@ -2402,31 +2370,21 @@
 								scrollOffset: true // 获取滚动位置和内容尺寸
 							}, res => {
 								if (!res) return;
-								
-								// 更新容器高度（用于虚拟滚动）
 								if (res.height) {
 									this.containerHeight = res.height;
 								}
-								
-								// 只有当内容高度明显超过可视区域高度时（容差10px），才滚动到底部
 								const threshold = 10; // 容差值，单位px
 								const shouldScroll = res.scrollHeight > res.height + threshold;
-
-								// 刚进入页面且确实需要滚动时，在 chat-body 显示 load
 								if (opts.initial && !this._hasInitialAutoScroll && shouldScroll) {
 									this.chatBodyLoading = true;
 								}
 
 								if (shouldScroll) {
 									this.scrollTop = res.scrollHeight;
-									
-									// 如果是虚拟滚动，更新可见范围到底部
 									if (this.virtualScrollEnabled) {
 										this.visibleEndIndex = this.massageList.length;
 										this.visibleStartIndex = Math.max(0, this.massageList.length - Math.ceil(this.containerHeight / this.estimatedItemHeight) - this.scrollBuffer * 2);
 									}
-
-									// 首屏滚动完成后关闭 load
 									if (opts.initial && !this._hasInitialAutoScroll) {
 										this._hasInitialAutoScroll = true;
 										setTimeout(() => {
@@ -2434,7 +2392,6 @@
 										}, 60);
 									}
 								} else {
-									// 不需要滚动也标记首屏已处理，避免后续误触发
 									if (opts.initial && !this._hasInitialAutoScroll) {
 										this._hasInitialAutoScroll = true;
 										this.chatBodyLoading = false;
@@ -2464,7 +2421,6 @@
 				temp.contentType = 'wxtf'
 				temp.location = this.isMe ? 0 : 1;
 				this.massageList.push(temp)
-				// 删掉 i 位置的数据 在 i这里插入两条
 				this.updateMsg()
 			},
 			goReceipt(item) {
@@ -2478,6 +2434,11 @@
 					url: "/pages/collectionSuccess/collectionSuccess?info=" + encodeURIComponent(JSON.stringify(
 						item.content))
 				})
+			},
+			openCustomerDetail() {
+				uni.navigateTo({
+					url: "/pages/customerDetail/customerDetail?info=" + encodeURIComponent(JSON.stringify(this.guestInfo || {}))
+				});
 			},
 			clearQuoteDraft() {
 				this.quoteDraft = null;
@@ -2509,13 +2470,13 @@
 							previewText = `[文件] ${(item.content && item.content.fileName) ? item.content.fileName : ''}`.trim();
 							break;
 						case 'order':
-							previewText = `[对外收款] ${(item.content && item.content.shopName) ? ('收款给 ' + item.content.shopName) : ''}`.trim();
+							previewText = `[对外收款] ${(item.content && item.content.shopName) ? ('收款给' + item.content.shopName) : ''}`.trim();
 							break;
 						case 'transfer':
-							previewText = `[转账] ${(item.content && item.content.amount) ? ('￥' + item.content.amount) : ''}`.trim();
+							previewText = `[转账] ${(item.content && item.content.amount) ? ('¥' + item.content.amount) : ''}`.trim();
 							break;
 						case 'wxtf':
-							previewText = `[收款] ${(item.content && item.content.amount) ? ('￥' + item.content.amount) : ''}`.trim();
+							previewText = `[收款] ${(item.content && item.content.amount) ? ('¥' + item.content.amount) : ''}`.trim();
 							break;
 						case 'redBag':
 							previewText = '[红包]';
@@ -2575,12 +2536,9 @@
 
 
 			showPopupMenu(e, index) {
-				// 如果长按弹框功能被关闭，或者长按拖拽功能已开启，则不显示弹框
 				if (!this.enableLongPressPopup || this.enableLongPressDrag) {
 					return;
 				}
-
-				// 获取触摸坐标，适配弹出菜单位置
 				const touch = e.touches?.[0] || {};
 				const clientX = touch.clientX || 0;
 				const clientY = touch.clientY || 0;
@@ -2589,59 +2547,35 @@
 				const systemInfo = uni.getSystemInfoSync();
 				const windowWidth = systemInfo.windowWidth;
 				const windowHeight = systemInfo.windowHeight;
-
-				// 菜单最大宽度为视口的90%
 				const maxMenuWidth = windowWidth * 0.9;
-				// 估算每个菜单项的宽度（图标+文字+padding）
 				const estimatedItemWidth = 100; // px
 				// 获取当前消息的菜单项数量
 				const currentMsg = this.massageList[index];
 				const menuActions = this.getMessageMenuActions(currentMsg);
 				const itemCount = menuActions.length;
-				
-				// 估算菜单实际宽度（考虑换行）
-				// 如果菜单项总宽度超过最大宽度，会换行，实际宽度就是最大宽度
 				const estimatedMenuWidth = Math.min(
 					itemCount * estimatedItemWidth + 40, // 40px 是 padding
 					maxMenuWidth
 				);
-
-				// 计算菜单位置，确保不超出屏幕
-				// 改为左对齐：以触摸点为左边界
 				let left = clientX;
-				
-				// 确保不超出右边界
 				if (left + estimatedMenuWidth > windowWidth - 10) {
-					// 如果右边放不下，就靠右对齐（或者向左偏移）
 					left = windowWidth - estimatedMenuWidth - 10;
 				}
-				
-				// 确保不超出左边界（虽然以 clientX 开始通常不会，但为了保险）
 				if (left < 10) {
 					left = 10;
 				}
-
-				// 计算顶部位置，显示在触摸点下方
-				// 触摸点下方预留一些间距，例如 20px
+				// 触摸点下方预留一些间距，比如 20px
 				let top = clientY + 20;
 				const estimatedMenuHeight = Math.ceil(itemCount / Math.floor(maxMenuWidth / estimatedItemWidth)) * 100 + 30; // 估算高度
-				
-				// 检查底部是否溢出
 				if (top + estimatedMenuHeight > windowHeight - 20) {
 					// 如果底部放不下，尝试放在上方
-					// 上方位置 = 触摸点 - 菜单高度 - 间距
 					const topAbove = clientY - estimatedMenuHeight - 20;
-					
-					// 如果上方能放下，或者上方空间比下方大，就放上方
 					if (topAbove > 10 || (clientY > windowHeight / 2)) {
 						top = topAbove;
 					} else {
-						// 实在放不下，就贴底显示
 						top = windowHeight - estimatedMenuHeight - 10;
 					}
 				}
-				
-				// 确保不超出顶部
 				if (top < 10) {
 					top = 10;
 				}
@@ -2659,8 +2593,6 @@
 				// 延迟设置可见性，以便动画效果生效
 				this.activeMsgIndex = index;
 				this.popupVisible = true;
-
-				// 触发重绘后设置最终样式
 				setTimeout(() => {
 					this.popupStyle = {
 						...this.popupStyle,
@@ -2671,7 +2603,6 @@
 			},
 			closePopupMenu() {
 				console.log("0000");
-				// 添加关闭动画
 				this.popupStyle = {
 					...this.popupStyle,
 					opacity: 0,
@@ -2685,13 +2616,13 @@
 					this.popupVisible = false;
 				}, 200);
 			},
-			// 获取消息类型的菜单配置
 			getMessageMenuActions(item) {
 				let actions = this.messageMenuActions.default;
 				if (item.type === 'tips') {
 					actions = this.messageMenuActions.tips;
 				} else if (item.contentType === 'tips') {
-					actions = this.messageMenuActions.tipsContent;
+					const tipType = item?.content?.tipType || 'payment';
+					actions = tipType === 'payment' ? this.messageMenuActions.tipsContent : this.messageMenuActions.tipsSimple;
 				} else if (item.contentType === 'order') {
 					actions = this.messageMenuActions.order;
 				} else if (item.contentType === 'transfer') {
@@ -2718,7 +2649,6 @@
 				}
 				return actions;
 			},
-			// 统一处理菜单项点击
 			handleMenuAction({ action, index }) {
 				const method = this[action];
 				if (typeof method === 'function') {
@@ -2728,6 +2658,70 @@
 				}
 				// 关闭菜单
 				this.closePopupMenu();
+			},
+			getTipsText(messageItem) {
+				const content = (messageItem && messageItem.content) || {};
+				const tipType = content.tipType || 'payment';
+				if (tipType === 'revoke_other') {
+					return content.text || `${this.guestInfo.name || '对方'}撤回了一条消息`;
+				}
+				if (tipType === 'revoke_self') {
+					return content.text || '你撤回了一条消息';
+				}
+				return `你收到了${content.gusetName || ''}的付款`;
+			},
+			getTipsActionText(messageItem) {
+				const content = (messageItem && messageItem.content) || {};
+				const tipType = content.tipType || 'payment';
+				if (tipType === 'revoke_self') {
+					return '重新编辑';
+				}
+				if (tipType === 'revoke_other') {
+					return '';
+				}
+				return '查看';
+			},
+			closeTipsTypePopup() {
+				this.$refs.tipsTypePopup && this.$refs.tipsTypePopup.close();
+			},
+			onSelectTipsType(type) {
+				this.closeTipsTypePopup();
+				if (type === 'payment') {
+					this.editMsgIndex = -1;
+					this.tipsInfo = {
+						gusetName: '',
+						tipType: 'payment'
+					};
+					this.$refs.tipsPopup.open();
+					return;
+				}
+				this.addPresetTips(type);
+			},
+			addPresetTips(type) {
+				const location = this.isMe ? 1 : 0;
+				const content = type === 'revoke_other'
+					? {
+						tipType: 'revoke_other',
+						text: `${this.guestInfo.name || '对方'}撤回了一条消息`
+					}
+					: {
+						tipType: 'revoke_self',
+						text: '你撤回了一条消息'
+					};
+				const tipsInfo = {
+					type: 'content',
+					contentType: 'tips',
+					location,
+					content
+				};
+				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
+					this.massageList.splice(this.currentActionIndex, 0, tipsInfo);
+					this.invalidateVirtualScrollCaches();
+					this.currentActionIndex = -1;
+				} else {
+					this.massageList.push(tipsInfo);
+				}
+				this.updateMsg();
 			},
 			async getUserInfo(userId) {
 				try {
@@ -2844,8 +2838,6 @@
 						tip: this.isMe ? "你发起了一笔转账" : "请收款"
 					}
 				};
-				
-				// 如果有当前操作的索引，将转账插入到该消息上方
 				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, transferInfo);
 					this.invalidateVirtualScrollCaches();
@@ -2887,8 +2879,6 @@
 					location, // 1 表示我方
 					content: data
 				}
-
-				// 如果有当前操作的索引，将订单插入到该消息上方
 				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, orderInfo);
 					this.invalidateVirtualScrollCaches();
@@ -2899,9 +2889,9 @@
 				this.updateMsg()
 			},
 			onTipsSubmit(data) {
-				// 如果是编辑模式
 				if (this.editMsgIndex !== -1 && this.editMsgIndex < this.massageList.length) {
 					this.massageList[this.editMsgIndex].content.gusetName = data.gusetName || "";
+					this.massageList[this.editMsgIndex].content.tipType = 'payment';
 					this.editMsgIndex = -1;
 					this.updateMsg();
 					uni.showToast({
@@ -2911,18 +2901,17 @@
 					return;
 				}
 				
-				// 新增模式
+				// 鏂板妯″紡
 				const location = this.isMe ? 1 : 0;
 				const tipsInfo = {
 					type: "content",
 					contentType: "tips",
 					location,
 					content: {
-						gusetName: data.gusetName || ""
+						gusetName: data.gusetName || "",
+						tipType: 'payment'
 					}
 				};
-				
-				// 如果有当前操作的索引，将tips插入到该消息上方
 				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, tipsInfo);
 					this.invalidateVirtualScrollCaches();
@@ -2933,8 +2922,18 @@
 				this.updateMsg();
 			},
 			editTips(index) {
+				const tipType = this.massageList[index]?.content?.tipType || 'payment';
+				if (tipType !== 'payment') {
+					uni.showToast({
+						title: '该提示类型不支持编辑',
+						icon: 'none'
+					});
+					this.activeMsgIndex = -1;
+					return;
+				}
 				this.editMsgIndex = index;
 				this.tipsInfo.gusetName = this.massageList[index].content.gusetName || "";
+				this.tipsInfo.tipType = 'payment';
 				this.$refs.tipsPopup.open();
 				this.activeMsgIndex = -1;
 			},
@@ -2944,15 +2943,11 @@
 					contentType: "chat",
 					content: data.time
 				}
-
-				// 如果有当前操作的索引，将时间插入到该消息上方
 				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, timeInfo);
 					this.invalidateVirtualScrollCaches();
-					// 插入后重置索引
 					this.currentActionIndex = -1;
 				} else {
-					// 否则默认添加到末尾
 					this.massageList.push(timeInfo);
 				}
 
@@ -2967,21 +2962,15 @@
 
 			onLongPressPopupChange(e) {
 				const newValue = e.detail.value;
-				
-				// 如果开启长按弹框，则关闭长按拖拽
 				if (newValue && this.enableLongPressDrag) {
 					this.enableLongPressDrag = false;
 				}
 				
 				this.enableLongPressPopup = newValue;
-
-				// 如果关闭长按弹框功能，同时关闭当前显示的弹框
 				if (!this.enableLongPressPopup) {
 					this.activeMsgIndex = -1;
 					this.popupVisible = false;
 				}
-
-				// 显示状态提示
 				uni.showToast({
 					title: this.enableLongPressPopup ? '已开启长按弹框' : '已关闭长按弹框',
 					icon: 'none',
@@ -2991,18 +2980,13 @@
 			
 			onLongPressDragChange(e) {
 				const newValue = e.detail.value;
-				
-				// 如果开启长按拖拽，则关闭长按弹框
 				if (newValue && this.enableLongPressPopup) {
 					this.enableLongPressPopup = false;
-					// 关闭当前显示的弹框
 					this.activeMsgIndex = -1;
 					this.popupVisible = false;
 				}
 				
 				this.enableLongPressDrag = newValue;
-
-				// 显示状态提示
 				uni.showToast({
 					title: this.enableLongPressDrag ? '已开启长按拖拽' : '已关闭长按拖拽',
 					icon: 'none',
@@ -3016,7 +3000,8 @@
 						this.$refs.orderPopup.open()
 						break;
 					case "time":
-						this.$refs.timePopup.open()
+						this.currentActionIndex = -1;
+						this.openTimePicker();
 						break;
 					case "transfer":
 						this.$refs.transferPopup.open()
@@ -3035,8 +3020,8 @@
 						break;
 					case "tips":
 						this.editMsgIndex = -1; // 重置编辑索引，确保是新增模式
-						this.tipsInfo.gusetName = ""; // 清空内容
-						this.$refs.tipsPopup.open()
+						this.closePopupMenu();
+						this.$refs.tipsTypePopup.open();
 						break;
 					case "phone":
 						this.$refs.phonePopup.open()
@@ -3073,11 +3058,9 @@
 						fileType: data.fileType,
 						fileName: data.fileName,
 						fileSize: data.displaySize,
-						isCop: data.isCop || false // 添加 isCop 属性
+						isCop: data.isCop || false // 娣诲姞 isCop 灞炴€?
 					}
 				};
-				
-				// 如果有当前操作的索引，将文件插入到该消息上方
 				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 					this.massageList.splice(this.currentActionIndex, 0, fileInfo);
 					this.invalidateVirtualScrollCaches();
@@ -3098,7 +3081,6 @@
 			},
 			addMsgcomm(inputValue) {
 				if (inputValue.trim()) {
-					// 这里可以添加发送消息的逻辑
 					const location = this.isMe ? 1 : 0
 					const msgInfo = {
 						type: "content",
@@ -3106,15 +3088,11 @@
 						location,
 						content: inputValue
 					}
-
-					// 如果有当前操作的索引，将时间插入到该消息上方
 					if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
 						this.massageList.splice(this.currentActionIndex, 0, msgInfo);
 						this.invalidateVirtualScrollCaches();
-						// 插入后重置索引
 						this.currentActionIndex = -1;
 					} else {
-						// 否则默认添加到末尾
 						this.massageList.push(msgInfo);
 					}
 					// 清空输入框
@@ -3128,14 +3106,10 @@
 			toggleRole(index) {
 				// 获取当前消息
 				const currentMsg = this.massageList[index];
-
-				// 切换消息角色（1变0，0变1）
 				currentMsg.location = currentMsg.location === 1 ? 0 : 1;
 
 				// 更新消息
 				this.updateMsg();
-
-				// 显示切换成功提示
 				uni.showToast({
 					title: currentMsg.location === 1 ? '已切换为自己' : '已切换为客户',
 					icon: 'none'
@@ -3146,7 +3120,7 @@
 				this.popupVisible = false;
 			},
 
-			// 消息插入功能 (模仿wxChat)
+			// 消息插入功能 
 			addMsg(index) {
 
 				this.currentActionIndex = this.activeMsgIndex;
@@ -3154,35 +3128,132 @@
 				this.activeMsgIndex = -1;
 			},
 
-			// 消息编辑功能 (模仿wxChat)
+			// 消息编辑功能 
 			changeMsg(index) {
 				this.editMsgIndex = this.activeMsgIndex;
-				// 打开消息编辑弹窗，传入当前消息内容
 				this.$refs.editMsgPopup.open(this.massageList[this.editMsgIndex].content);
 				this.activeMsgIndex = -1;
 			},
 
 			insertTime(index) {
 				this.currentActionIndex = index;
-				this.$refs.timePopup.open();
+				this.openTimePicker();
 			},
-			
-			// 插入对外收款
+			openTimePicker() {
+				const now = new Date();
+				const year = now.getFullYear();
+				const month = String(now.getMonth() + 1).padStart(2, '0');
+				const day = String(now.getDate()).padStart(2, '0');
+				const hour = String(now.getHours()).padStart(2, '0');
+				const minute = String(now.getMinutes()).padStart(2, '0');
+				this.timePickerDate = `${year}-${month}-${day}`;
+				this.timePickerTime = `${hour}:${minute}`;
+				this.$refs.timePopup && this.$refs.timePopup.open();
+				this.activeMsgIndex = -1;
+			},
+			closeTimePicker() {
+				this.$refs.timePopup && this.$refs.timePopup.close();
+			},
+			onTimePickerDateChange(e) {
+				this.timePickerDate = e.detail.value;
+			},
+			onTimePickerTimeChange(e) {
+				this.timePickerTime = e.detail.value;
+			},
+			onTimeUse24HourChange(e) {
+				this.timeUse24Hour = !!e.detail.value;
+			},
+			formatDateDisplay(dateStr) {
+				if (!dateStr) return '';
+				const [year, month, day] = dateStr.split('-');
+				if (!year || !month || !day) return dateStr;
+				return `${Number(month)}月${Number(day)}日`;
+			},
+			format24HourTime(hour, minute) {
+				if (!Number.isInteger(hour) || !Number.isInteger(minute)) return '';
+				if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return '';
+				return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+			},
+			formatMeridiemTime(hour, minute) {
+				if (!Number.isInteger(hour) || !Number.isInteger(minute)) return '';
+				if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return '';
+				const period = hour < 12 ? '上午' : '下午';
+				const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+				return `${period} ${hour12}:${String(minute).padStart(2, '0')}`;
+			},
+			formatTimeByMode(hour, minute) {
+				return this.timeUse24Hour ? this.format24HourTime(hour, minute) : this.formatMeridiemTime(hour, minute);
+			},
+			formatPickerTimeDisplay(timeStr) {
+				if (!timeStr) return '';
+				const [hour, minute] = timeStr.split(':').map(Number);
+				const text = this.formatTimeByMode(hour, minute);
+				return text || timeStr;
+			},
+			formatWeekday(date) {
+				if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+				const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+				return weekdays[date.getDay()] || '';
+			},
+			formatSelectedTimeText(dateStr, timeStr) {
+				if (!dateStr || !timeStr) return '';
+				const [year, month, day] = dateStr.split('-').map(Number);
+				const [hour, minute] = timeStr.split(':').map(Number);
+				const selected = new Date(year, month - 1, day, hour, minute, 0);
+				if (Number.isNaN(selected.getTime())) return '';
+
+				const now = new Date();
+				const timeText = this.formatTimeByMode(selected.getHours(), selected.getMinutes());
+				if (!timeText) return '';
+				const isSameDay = selected.getFullYear() === now.getFullYear() &&
+					selected.getMonth() === now.getMonth() &&
+					selected.getDate() === now.getDate();
+				if (isSameDay) {
+					return timeText;
+				}
+
+				const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+				const startOfSelectedDay = new Date(selected.getFullYear(), selected.getMonth(), selected.getDate());
+				const dayDiff = Math.floor((startOfToday - startOfSelectedDay) / (24 * 60 * 60 * 1000));
+				if (dayDiff === 1) {
+					return `昨天 ${timeText}`;
+				}
+				if (dayDiff >= 2 && dayDiff <= 5) {
+					const weekdayText = this.formatWeekday(selected);
+					if (weekdayText) {
+						return `${weekdayText} ${timeText}`;
+					}
+				}
+
+				const monthText = selected.getMonth() + 1;
+				const dayText = selected.getDate();
+				if (selected.getFullYear() === now.getFullYear()) {
+					return `${monthText}月${dayText}日 ${timeText}`;
+				}
+				return `${selected.getFullYear()}年${monthText}月${dayText}日 ${timeText}`;
+			},
+			confirmTimeSelection() {
+				const formatted = this.formatSelectedTimeText(this.timePickerDate, this.timePickerTime);
+				if (!formatted) {
+					uni.showToast({
+						title: '请选择有效时间',
+						icon: 'none'
+					});
+					return;
+				}
+				this.onTimeSubmit({ time: formatted });
+				this.closeTimePicker();
+			},
 			insertOrder(index) {
 				this.currentActionIndex = index;
 				this.$refs.orderPopup.open();
 			},
-			
-			// 插入转账
 			insertTransfer(index) {
 				this.currentActionIndex = index;
 				this.$refs.transferPopup.open();
 			},
-			
-			// 插入红包
 			insertRedBag(index) {
 				this.currentActionIndex = index;
-				// 直接插入红包，不需要弹窗
 				const location = this.isMe ? 1 : 0;
 				const redBagInfo = {
 					type: "content",
@@ -3208,7 +3279,7 @@
 				this.$refs.filePopup.open();
 			},
 
-			// 消息插入提交 (模仿wxChat)
+			// 消息插入提交 (妯′豢wxChat)
 			addMsgSubmit(data) {
 				this.addMsgcomm(data.msg);
 			},
@@ -3235,7 +3306,7 @@
 				this.quoteDraft = null;
 			},
 
-			// 消息编辑提交 (模仿wxChat)
+			// 消息编辑提交 (妯′豢wxChat)
 			onEditMsgSubmit(data) {
 				if (this.editMsgIndex !== -1 && data.content && data.content.trim()) {
 					this.massageList[this.editMsgIndex].content = data.content;
@@ -3248,7 +3319,7 @@
 				this.editMsgIndex = -1;
 			},
 
-			// 表情相关方法
+			// 表情相关鏂规硶
 			changeEmoji() {
 				this.emoji = !this.emoji;
 				this.openPopup = false;
@@ -3268,16 +3339,12 @@
 					type: 'text',
 					content: ''
 				}];
-
-				// 使用缓存避免重复解析
 				if (this.messageParseCache.has(msg)) {
 					return this.messageParseCache.get(msg);
 				}
 
 				const result = [];
-				// 创建一个包含所有需要匹配的模式的正则表达式
-				// 优先级：表情 > URL > 邮箱 > 数字
-				// 注意：邮箱正则要放在数字正则之前，避免邮箱中的数字被单独匹配
+				// 浼樺厛绾э細琛ㄦ儏 > URL > 閭 > 鏁板瓧
 				const combinedRegex = /(\[emoji_(\d+)\])|(https?:\/\/[^\s]+|ftp:\/\/[^\s]+|www\.[^\s]+)|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|(\d{7,})/g;
 
 				let lastIndex = 0;
@@ -3287,13 +3354,10 @@
 					// 添加匹配之前的文本
 					if (match.index > lastIndex) {
 						const textBefore = msg.substring(lastIndex, match.index);
-						// 对文本部分也需要检查邮箱和数字（因为正则可能没有完全覆盖所有情况）
 						if (textBefore) {
 							this.parseTextForEmailAndNumber(textBefore, result);
 						}
 					}
-
-					// 判断匹配到的类型
 					if (match[1]) { // 是表情
 						result.push({
 							type: 'emoji',
@@ -3319,7 +3383,7 @@
 					lastIndex = combinedRegex.lastIndex;
 				}
 
-				// 添加剩余的文本
+				// 添加剩余文本
 				if (lastIndex < msg.length) {
 					const remainingText = msg.substring(lastIndex);
 					if (remainingText) {
@@ -3334,10 +3398,7 @@
 						content: msg
 					});
 				}
-
-				// 缓存结果（限制缓存大小，避免内存泄漏）
 				if (this.messageParseCache.size > 100) {
-					// 删除最旧的缓存项
 					const firstKey = this.messageParseCache.keys().next().value;
 					this.messageParseCache.delete(firstKey);
 				}
@@ -3345,19 +3406,13 @@
 
 				return result;
 			},
-
-			// 辅助函数：解析文本中的邮箱和数字（用于处理正则未匹配到的部分）
 			parseTextForEmailAndNumber(text, result) {
 				if (!text) return;
 
 				const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 				const numberRegex = /\d{7,}/g;
-
-				// 找到所有邮箱和数字的位置
 				const matches = [];
 				let match;
-
-				// 收集所有邮箱匹配
 				emailRegex.lastIndex = 0; // 重置正则
 				while ((match = emailRegex.exec(text)) !== null) {
 					matches.push({
@@ -3367,11 +3422,8 @@
 						length: match[0].length
 					});
 				}
-
-				// 收集所有数字匹配
 				numberRegex.lastIndex = 0; // 重置正则
 				while ((match = numberRegex.exec(text)) !== null) {
-					// 检查是否在邮箱中（邮箱中可能包含数字，但不应该单独匹配）
 					const isInEmail = matches.some(m => 
 						match.index >= m.index && match.index < m.index + m.length
 					);
@@ -3401,7 +3453,7 @@
 						});
 					}
 
-					// 添加匹配的内容
+					// 添加匹配内容
 					result.push({
 						type: current.type,
 						content: current.content
@@ -3409,8 +3461,6 @@
 
 					lastIndex = current.index + current.length;
 				}
-
-				// 添加剩余的文本（如果没有匹配项，则添加整个文本）
 				if (lastIndex < text.length) {
 					result.push({
 						type: 'text',
@@ -3455,8 +3505,6 @@
 
 			getItemStyle(index) {
 				if (!this.isDragging) return {};
-				
-				// 被拖拽的原位置元素隐藏（占位符）
 				if (index === this.dragStartIndex) {
 					return { opacity: 0, visibility: 'hidden' };
 				}
@@ -3464,17 +3512,15 @@
 				const style = {
 					transition: 'transform 0.2s ease'
 				};
-				
-				// 计算位移
 				// 向下拖拽：dragStartIndex < placeholderIndex
-				// index 在 (dragStartIndex, placeholderIndex] 之间 -> 上移
+				// index 鍦?(dragStartIndex, placeholderIndex] 涔嬮棿 -> 涓婄Щ
 				if (this.dragStartIndex < this.placeholderIndex) {
 					if (index > this.dragStartIndex && index <= this.placeholderIndex) {
 						style.transform = `translateY(-${this.dragItemHeight}px)`;
 					}
 				}
 				// 向上拖拽：dragStartIndex > placeholderIndex
-				// index 在 [placeholderIndex, dragStartIndex) 之间 -> 下移
+				// index 鍦?[placeholderIndex, dragStartIndex) 涔嬮棿 -> 涓嬬Щ
 				else if (this.dragStartIndex > this.placeholderIndex) {
 					if (index >= this.placeholderIndex && index < this.dragStartIndex) {
 						style.transform = `translateY(${this.dragItemHeight}px)`;
@@ -3486,7 +3532,7 @@
 
 			exitSortingMode() {
 				this.isSortingMode = false;
-				this.originalMessageList = []; // 清空备份
+				this.originalMessageList = []; // 娓呯┖备份
 				this.resetDragState();
 			},
 			
@@ -3524,39 +3570,28 @@
 			},
 
 			onMsgLongPress(e, index) {
-				// 只有开启了长按拖拽功能才执行
 				if (!this.enableLongPressDrag) {
-					// 如果拖拽未开启，尝试触发普通长按菜单
 					this.showPopupMenu(e, index);
 					return;
 				}
 
 				// 如果正在拖拽，先强制结束当前拖拽
 				if (this.isDragging) {
-					// 保存旧的拖拽索引，用于判断是否是同一个消息
 					const oldDragStartIndex = this.dragStartIndex;
-					
-					// 提交当前拖拽的移动（如果有）
 					if (this.dragStartIndex !== this.placeholderIndex && this.placeholderIndex !== -1 && this.dragStartIndex !== -1) {
 						this.moveMessage(this.dragStartIndex, this.placeholderIndex);
 					}
 					
 					// 强制结束当前拖拽
 					this.forceEndDrag();
-					
-					// 如果点击的是同一个消息，不重新开始拖拽
 					if (oldDragStartIndex === index) {
 						return;
 					}
-					
-					// 立即开始新的拖拽
 					this.$nextTick(() => {
 						this.touchStartTime = Date.now();
 						if (e.touches && e.touches[0]) {
 							this.dragStartY = e.touches[0].clientY;
 						}
-						
-						// 如果已经在排序模式，直接开始新拖拽
 						if (this.isSortingMode) {
 							this.startNewDrag(e, index);
 						} else {
@@ -3565,16 +3600,11 @@
 					});
 					return;
 				}
-
-				// 如果不在拖拽状态，正常开始
 				if (!this.isDragging) {
-					// 记录触摸开始 (WXS 会自动处理 touchstart，这里主要是逻辑状态)
 					this.touchStartTime = Date.now();
 					if (e.touches && e.touches[0]) {
 						this.dragStartY = e.touches[0].clientY;
 					}
-					
-					// 触发排序模式/拖拽
 					this.enterSortingMode(e, index);
 				}
 			},
@@ -3584,38 +3614,27 @@
 				try { uni.vibrateShort({ type: 'light' }); } catch(e) {}
 			},
 			
-			// WXS 回调: 拖拽结束
+			// WXS 鍥炶皟: 拖拽结束
 			onWxsDragEnd(data) {
 				const { from, to } = data;
-				
-				// 提交移动（如果有）- 先提交，再清理状态
 				if (from !== to && to !== -1 && from !== -1) {
 					this.moveMessage(from, to);
 				}
-				
-				// 立即清理拖拽状态，不等待异步操作，确保可以立即响应新的长按
 				this.isDragging = false;
 				this.draggingItem = null;
 				this.dragStartIndex = -1;
 				this.placeholderIndex = -1;
-				
-				// 清理自动滚动
 				if (this.autoScrollTimer) {
 					clearInterval(this.autoScrollTimer);
 					this.autoScrollTimer = null;
 				}
-				
-				// 立即更新 WXS 状态，确保状态同步
 				this.wxsDragData = {
 					...this.wxsDragData,
 					isDragging: false,
 					dragStartIndex: -1
 				};
-				
-				// 重新测量位置（异步执行，不阻塞状态清理）
 				// 这很重要，因为列表顺序可能已经改变
 				if (this.isSortingMode) {
-					// 使用 $nextTick 确保 DOM 更新完成
 					this.$nextTick(() => {
 						// 使用 requestAnimationFrame 优化性能，减少延迟
 						if (typeof requestAnimationFrame !== 'undefined') {
@@ -3623,7 +3642,6 @@
 								this.updateItemRects();
 							});
 						} else {
-							// 兼容不支持 requestAnimationFrame 的环境
 							setTimeout(() => {
 								this.updateItemRects();
 							}, 16); // 约一帧的时间
@@ -3631,8 +3649,6 @@
 					});
 				}
 			},
-			
-			// 更新消息项位置信息（用于拖拽）
 			updateItemRects() {
 				const query = uni.createSelectorQuery().in(this);
 				query.select('.chat-body').boundingClientRect(containerRect => {
@@ -3640,7 +3656,6 @@
 					itemQuery.selectAll('.msg-item-wrapper').boundingClientRect((rects) => {
 						if (rects && rects.length > 0) {
 							this.cachedItemRects = rects;
-							// 更新 WXS 数据，但不改变拖拽状态
 							this.wxsDragData = {
 								...this.wxsDragData,
 								rects: rects,
@@ -3650,16 +3665,12 @@
 					}).exec();
 				}).exec();
 			},
-
-			// WXS 调用：开始拖拽 (通过把手)
 			startDrag(index) {
 				if (!this.isSortingMode) return;
 				if (this.isDragging) return;
 				
 				this.startNewDrag(null, index);
 			},
-			
-			// 开始新的拖拽（内部方法，用于统一处理拖拽开始逻辑）
 			startNewDrag(e, index) {
 				if (this.isDragging) return;
 				
@@ -3675,11 +3686,7 @@
 				}
 				
 				try { uni.vibrateShort({ type: 'light' }); } catch (e) {}
-				
-				// 初始化滚动位置
 				this.initialScrollTop = this.scrollPosition;
-				
-				// 如果已有缓存的 rects，先使用缓存，然后异步更新
 				if (this.cachedItemRects && this.cachedItemRects.length > 0) {
 					// 立即更新 WXS 数据，使用缓存的 rects
 					const query = uni.createSelectorQuery().in(this);
@@ -3702,8 +3709,6 @@
 						}
 					}).exec();
 				}
-				
-				// 异步更新位置信息（确保使用最新数据）
 				const query = uni.createSelectorQuery().in(this);
 				query.select('.chat-body').boundingClientRect(containerRect => {
 					const itemQuery = uni.createSelectorQuery().in(this);
@@ -3737,7 +3742,6 @@
 				if (this.isDragging) return;
 				
 				this.isSortingMode = true;
-				// 备份原始列表
 				if (this.originalMessageList.length === 0) {
 					this.originalMessageList = JSON.parse(JSON.stringify(this.massageList));
 				}
@@ -3746,8 +3750,6 @@
 				this.placeholderIndex = index;
 				this.isDragging = true;
 				this.draggingItem = this.massageList[index];
-				
-				// 预先解析消息内容
 				if (this.draggingItem.contentType === 'chat') {
 					this.draggingItemParsedContent = this.parseMessage(this.draggingItem.content);
 				} else {
@@ -3756,21 +3758,14 @@
 				
 				// 震动反馈
 				try { uni.vibrateShort(); } catch (e) {}
-				
-				// 初始化滚动位置
 				this.initialScrollTop = this.scrollPosition;
-				
-				// 缓存位置信息并传递给 WXS
 				const query = uni.createSelectorQuery().in(this);
 				// 获取容器位置
 				query.select('.chat-body').boundingClientRect(containerRect => {
-					// 获取所有 item 位置
 					const itemQuery = uni.createSelectorQuery().in(this);
 					itemQuery.selectAll('.msg-item-wrapper').boundingClientRect((rects) => {
 						if (rects && rects.length > 0) {
 							this.cachedItemRects = rects;
-							
-							// 更新 WXS 数据，通知 WXS 开始接管
 							this.wxsDragData = {
 								isDragging: true,
 								dragStartIndex: index,
@@ -3778,8 +3773,6 @@
 								initialScrollTop: this.initialScrollTop,
 								containerTop: containerRect ? containerRect.top : 0
 							};
-							
-							// 获取当前项的高度 (WXS 也会计算，这里主要用于 Vue 层逻辑备用)
 							const relativeIndex = this.visibleMessageList.findIndex(item => item.index === index);
 							if (relativeIndex !== -1 && rects[relativeIndex]) {
 								const rect = rects[relativeIndex];
@@ -3821,14 +3814,7 @@
 				if (step !== 0) {
 					this.autoScrollTimer = setInterval(() => {
 						this.scrollTop += step;
-						// 同步更新 scrollPosition，确保计算平滑
 						this.scrollPosition = this.scrollTop;
-						
-						// 滚动时也需要更新 dragY ? 
-						// 不需要，dragY 是 fixed 的，相对于视口。
-						// 但是 items 的位置变了（相对于视口）。
-						// updatePlaceholderIndex 会用到 scrollDelta (scrollPosition - initialScrollTop)。
-						// 所以更新 scrollPosition 后，下一次 updatePlaceholderIndex 就会计算正确。
 					}, 16);
 				}
 			},
@@ -3840,12 +3826,8 @@
 				const scrollDelta = this.scrollPosition - this.initialScrollTop;
 				
 				// 遍历 rects 寻找命中项
-				// 注意：rects 是初始快照。
 				// 当前每个 item 的视觉位置 = rect.top - scrollDelta + (visualShift)
 				// visualShift 取决于 item 是否在 dragStartIndex 和 placeholderIndex 之间
-				// 这导致递归依赖。
-				// 简化逻辑：我们只看 "原始位置" + 滚动偏差。
-				// 如果手指跨过了某个 item 的 "中线"，就交换。
 				
 				let newPlaceholder = this.dragStartIndex;
 				
@@ -3854,17 +3836,12 @@
 					// 修正为当前视口位置
 					const currentTop = rect.top - scrollDelta;
 					const center = currentTop + rect.height / 2;
-					
-					// 找到当前手指所在的 item
 					if (touchY > currentTop && touchY < currentTop + rect.height) {
-						// 这是一个近似命中。
-						// 更精确的逻辑：
+						// 更精确的逻辑
 						// 如果当前 placeholder 在 i 之前，且 touchY > center -> placeholder 移到 i 之后
 						// 如果当前 placeholder 在 i 之后，且 touchY < center -> placeholder 移到 i 之前
 					}
 				}
-				
-				// 替代方案：直接找最近的 item
 				let minDistance = Infinity;
 				let targetIndex = -1;
 				
@@ -3876,7 +3853,6 @@
 					const dist = Math.abs(touchY - center);
 					if (dist < minDistance) {
 						minDistance = dist;
-						// 获取该 rect 对应的真实数据索引
 						// 假设 rects 顺序对应 visibleMessageList
 						if (this.visibleMessageList[i]) {
 							targetIndex = this.visibleMessageList[i].index;
@@ -3909,8 +3885,6 @@
 				if (this.dragStartIndex !== this.placeholderIndex && this.placeholderIndex !== -1) {
 					this.moveMessage(this.dragStartIndex, this.placeholderIndex);
 				}
-				
-				// 结束拖拽状态，但保持排序模式
 				this.isDragging = false;
 				this.draggingItem = null;
 				this.dragStartIndex = -1;
@@ -3932,20 +3906,15 @@
 			
 			// 强制结束拖拽（立即清理所有状态）
 			forceEndDrag() {
-				// 立即清理所有拖拽状态
 				this.isDragging = false;
 				this.draggingItem = null;
 				this.dragStartIndex = -1;
 				this.placeholderIndex = -1;
-				
-				// 立即更新 WXS 状态
 				this.wxsDragData = {
 					...this.wxsDragData,
 					isDragging: false,
 					dragStartIndex: -1
 				};
-				
-				// 清理自动滚动
 				if (this.autoScrollTimer) {
 					clearInterval(this.autoScrollTimer);
 					this.autoScrollTimer = null;
@@ -3978,6 +3947,36 @@
 	}
 </style>
 <style scoped>
+	.msgConut {
+		/* width: 56rpx;
+		height: 44rpx; */
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		/* margin-left: 8rpx; */
+	}
+	.msgView{
+		background-color: #d6d7dc;
+		color: #000;
+		border-radius: 30rpx;
+		/* width: 50rpx; */
+		padding: 2rpx 10rpx;
+		height: 45rpx;
+		min-width: 45rpx;
+		font-weight: 500;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-sizing: border-box;
+		overflow: hidden;
+	}
+	.msgView.more_red {
+		/* min-width: 50rpx; */
+		/* border-radius: 20rpx; */
+	}
+	.msgView_hidden {
+		visibility: hidden;
+	}
 	.toolbar-toggle {
 		display: flex;
 		margin-top: 20rpx;
@@ -4331,13 +4330,13 @@
 		/* background-color: rgba(0, 0, 0, 0.05); */
 		/* background-color: green; */
 		pointer-events: auto;
-		/* 确保能捕获事件 */
+		/* */
 	}
 
 	/* 美化后的弹出菜单 */
 	.popup-menu {
 		pointer-events: auto;
-		/* 菜单可点击 */
+		/* 鑿滃崟鍙偣鍑?*/
 		position: fixed;
 		background-color: rgba(0, 0, 0, 0.85);
 		color: white;
@@ -4420,7 +4419,7 @@
 		width: 58upx;
 	}
 
-	/* 顶部栏 */
+	/* */
 	.nav-bar {
 
 		height: 100upx;
@@ -4504,11 +4503,11 @@
 
 	}
 
-	/* 聊天内容 */
+	/* 鑱婂ぉ鍐呭 */
 	.chat-body {
 		flex: 1;
 		padding: 0 20upx;
-		/* 修正 padding 属性 */
+		/* */
 		box-sizing: border-box;
 		/* max-height: calc(100vh - 80upx - 100upx); */
 
@@ -4611,12 +4610,12 @@
 		display: flex;
 		align-items: center;
 		word-break: break-all;
-		/* 让长串字符换行 */
-		/* 兼容性辅助 */
+		/* 璁╅暱涓插瓧绗︽崲琛?*/
+		/* */
 		overflow-wrap: anywhere;
-		/* 允许任意换行点断行 */
+		/* */
 		white-space: pre-wrap;
-		/* 保留空白并允许换行 */
+		/* 淇濈暀绌虹櫧骞跺厑璁告崲琛?*/
 	}
 
 	.msg-text {
@@ -4624,7 +4623,7 @@
 		overflow-wrap: anywhere;
 		white-space: pre-wrap;
 		color: #333;
-		/* 非链接地址显示黑色 */
+		/* */
 	}
 
 	.msg-url {
@@ -4632,7 +4631,7 @@
 		overflow-wrap: anywhere;
 		white-space: pre-wrap;
 		color: #007AFF;
-		/* 网络地址显示蓝色 */
+		/* 缃戠粶鍦板潃鏄剧ず钃濊壊 */
 	}
 
 	.msg-email {
@@ -4640,7 +4639,7 @@
 		overflow-wrap: anywhere;
 		white-space: pre-wrap;
 		color: #3175d8;
-		/* 邮箱显示蓝色 */
+		/* 閭鏄剧ず钃濊壊 */
 	}
 
 	.msg-number {
@@ -4648,7 +4647,7 @@
 		overflow-wrap: anywhere;
 		white-space: pre-wrap;
 		color: #3175d8;
-		/* 7位及以上数字显示蓝色 */
+		/* */
 	}
 
 	.msg.right .bubble {
@@ -4674,11 +4673,11 @@
 		display: flex;
 		flex-direction: column;
 		flex-shrink: 0;
-		/* 防止收缩 */
+		/* 闃叉鏀剁缉 */
 		/* max-height: calc(100vh - 80upx); */
 		padding-bottom: env(safe-area-inset-bottom);
-		/* 防止内容被挡，但背景照样铺到底 */
-		/* 减去 nav-bar 的高度 */
+		/* 闃叉鍐呭琚尅锛屼絾鑳屾櫙鐓ф牱閾哄埌搴?*/
+		/* 鍑忓幓 nav-bar 鐨勯珮搴?*/
 		background-color: #f5f5f5;
 	}
 	
@@ -4703,7 +4702,7 @@
 		flex-direction: column;
 	}
 
-	/* 输入框 */
+	/* 杈撳叆妗?*/
 	.chat-input {
 		/* height: 120upx; */
 		/* padding: 20upx; */
@@ -4724,7 +4723,7 @@
 		font-size: 28upx;
 	}
 
-	.input—box {
+	.input-box {
 		flex: 1;
 		height: 80upx;
 		background-color: white;
@@ -4785,7 +4784,7 @@
 		display: flex;
 		justify-content: space-around;
 		transition: height 0.3s ease;
-		/* 添加过渡效果 */
+		/* 娣诲姞杩囨浮鏁堟灉 */
 	}
 
 	.drawer-item {
@@ -5015,7 +5014,7 @@
 	.msg-item-wrapper {
 		position: relative;
 		transition: transform 0.2s ease, opacity 0.2s ease;
-		will-change: transform; /* 开启硬件加速 */
+		will-change: transform; /* */
 	}
 
 	.msg-item-wrapper.dragging {
@@ -5082,11 +5081,11 @@
 	
 	.floating-msg-item {
 		position: fixed;
-		left: 20upx; /* 与 .chat-body padding 一致 */
+		left: 20upx; /* */
 		right: 20upx;
 		z-index: 9999;
 		pointer-events: none;
-		transform: scale(1.05) translateZ(0); /* 开启硬件加速 */
+		transform: scale(1.05) translateZ(0); /* */
 		opacity: 0.95; 
 		will-change: top, transform;
 		/* box-shadow: 0 10upx 40upx rgba(0,0,0,0.3); */
@@ -5104,8 +5103,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		z-index: 1001; /* 比内容高 */
-		background: rgba(255, 255, 255, 0.5); /* 半透明背景，可选 */
+		z-index: 1001; /* 姣斿唴瀹归珮 */
+		background: rgba(255, 255, 255, 0.5); /* */
 		backdrop-filter: blur(2px);
 	}
 	
@@ -5114,20 +5113,85 @@
 		color: #999;
 		font-weight: bold;
 	}
+
+	.time-select-popup {
+		width: 640rpx;
+		background: #fff;
+		border-radius: 20rpx;
+		overflow: hidden;
+	}
+
+	.time-select-title {
+		text-align: center;
+		font-size: 32rpx;
+		font-weight: 600;
+		padding: 30rpx 24rpx 20rpx;
+		color: #333;
+	}
+
+	.time-select-body {
+		padding: 0 24rpx 12rpx;
+	}
+
+	.time-select-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		height: 88rpx;
+		padding: 0 16rpx;
+		border: 1rpx solid #ececec;
+		border-radius: 14rpx;
+		margin-bottom: 16rpx;
+	}
+
+	.time-select-label {
+		font-size: 28rpx;
+		color: #666;
+	}
+
+	.time-select-value {
+		font-size: 28rpx;
+		color: #333;
+	}
+
+	.time-select-footer {
+		display: flex;
+		padding: 20rpx 24rpx 24rpx;
+		gap: 16rpx;
+	}
+
+	.time-select-btn {
+		flex: 1;
+		height: 82rpx;
+		line-height: 82rpx;
+		font-size: 30rpx;
+		border-radius: 14rpx;
+	}
+
+	.time-select-cancel {
+		background: #f2f2f2;
+		color: #666;
+	}
+
+	.time-select-confirm {
+		background: #007aff;
+		color: #fff;
+	}
 	
 	.msg-item-wrapper.sorting-mode {
 		padding-right: 60upx; /* 给把手留位置 */
 	}
 	
-	/* 让浮动项内部的 .cell 撑满宽度，保持左右对齐 */
+	/* */
 	.floating-msg-item .cell {
 		width: 100%;
 	}
 	
-	/* 移除原来的 msg-content-clone 样式，因为我们直接复用了结构 */
+	/* */
 	
 	.msg-item-wrapper.dragging-placeholder {
-		/* 占位符样式由 inline style opacity: 0 控制 */
+		/* */
 		opacity: 0;
 	}
 </style>
+

@@ -51,6 +51,7 @@
 									:class="item.chatIndex>100?'more_red':''">
 									{{(item.chatIndex)>100?'99+':item.chatIndex}}
 								</view>
+								
 								<image class="msg_avater" :src="item.avatarUrl"></image>
 							</view>
 							<view class="msg_info">
@@ -373,9 +374,9 @@
 				})
 			},
 			goChat(item) {
-				console.log(item);
+				console.log(this.totalChatIndex);
 				uni.navigateTo({
-					url: '/pages/chat/chat?guestInfo=' + encodeURIComponent(JSON.stringify(item))
+					url: '/pages/chat/chat?guestInfo=' + encodeURIComponent(JSON.stringify(item)) + '&emailIndexMsg=' + encodeURIComponent(String(this.totalChatIndex || 0))
 				});
 			},
 			addMsgbox() {
@@ -460,9 +461,12 @@
 					avatarUrl: imgUrl || '',
 					content: data.content || '',
 					createdAt: data.createdAt || '',
+					addTime: data.addTime || '',
 					type: 'chat', // 保持 chatList 的类型为 'chat'
 					chatIndex: parseInt(data.chatIndex) || 0,
-					description: data.description || ''
+					description: data.description || '',
+					soures: data.soures || '',
+					sex: Number(data.sex) || 0
 				}
 				
 				// 添加详细的数据验证
@@ -473,9 +477,12 @@
 				console.log('avatarUrl:', imgUrl);
 				console.log('content:', data.content);
 				console.log('createdAt:', data.createdAt);
+				console.log('addTime:', data.addTime);
 				console.log('type:', 'chat');
 				console.log('chatIndex:', data.chatIndex);
 				console.log('description:', data.description);
+				console.log('soures:', data.soures);
+				console.log('sex:', data.sex);
 				console.log('完整temp对象:', JSON.stringify(temp, null, 2));
 				
 				if (data.conversationId) {
@@ -788,7 +795,7 @@
 		
 	}
 	.roleList{
-		padding-bottom: 120rpx;
+		padding-bottom: 160rpx;
 		/* flex:1 */
 	}
 	/* .msgswipe{

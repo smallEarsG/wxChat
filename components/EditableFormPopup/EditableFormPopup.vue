@@ -41,7 +41,7 @@
                   @change="handleSliderChange(key, $event)"
                 />
               </view>
-              <view v-else-if="key === 'order' || key === 'showReward' || key === 'showAutoDeduction' || key === 'showService'" class="switch-container">
+              <view v-else-if="key === 'order' || key === 'showReward' || key === 'showAutoDeduction' || key === 'showService' || key === 'showMerchantContact'" class="switch-container">
                 <switch 
                   :checked="formData[key]" 
                   color="#007aff"
@@ -174,6 +174,7 @@ export default {
           showReward: newVal.hasOwnProperty('showReward') ? newVal.showReward : false,
           showAutoDeduction: newVal.hasOwnProperty('showAutoDeduction') ? newVal.showAutoDeduction : true,
           showService: newVal.hasOwnProperty('showService') ? newVal.showService : true,
+          showMerchantContact: newVal.hasOwnProperty('showMerchantContact') ? newVal.showMerchantContact : false,
           fontSize: typeof newVal.fontSize === 'number' ? newVal.fontSize : 100
         };
         this.errorFields = {};
@@ -186,7 +187,7 @@ export default {
       for (const key in this.fieldLabels) {
         if (!this.formData.hasOwnProperty(key)) {
           // 根据字段类型设置默认值
-          if (key === 'order' || key === 'showReward' || key === 'showAutoDeduction' || key === 'showService') {
+          if (key === 'order' || key === 'showReward' || key === 'showAutoDeduction' || key === 'showService' || key === 'showMerchantContact') {
             this.formData[key] = key === 'showService' ? true : false;
           } else if (key === 'padd') {
             this.formData[key] = 50;
@@ -430,6 +431,7 @@ export default {
              key !== 'showReward' && 
              key !== 'showAutoDeduction' && 
              key !== 'showService' && 
+             key !== 'showMerchantContact' && 
              key !== 'fontSize' && 
              key !== 'orderNumber';
     },

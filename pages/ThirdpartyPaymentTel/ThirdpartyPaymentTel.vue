@@ -3,7 +3,7 @@
 		<!-- 全局水印层 -->
 		<WatermarkLayer />
 		
-		<MiniThirdpartyPaymentBill 
+		<ThirdpartyPaymentTelBill 
 			:info="info" 
 			:statusBarHeight="statusBarHeight"
 			@goBack="goBack"
@@ -13,9 +13,13 @@
 
 		<uni-popup ref="popup" type="bottom" background-color="#fff" border-radius="10px">
 			<view class="roleList">
+				<!-- <view class=""  v-for="itme in roleList" >
+				<uni-list-chat :avatar-circle="true" :title="itme.nickname" :avatar="itme.avatar"
+												:note="itme.description"></uni-list-chat>
+				</view> -->
 				<view class="list_rl">
 					<uni-swipe-action v-if="roleList.length>0">
-						<uni-swipe-action-item v-for="(item ,index) in roleList" :right-options="options2" :auto-close="false"
+						<uni-swipe-action-item v-for="(item,index) in roleList" :right-options="options2" :auto-close="false"
 							@click="bindClick(index)">
 
 							<view class="content-box" @click="changeRl(item.avatar)">
@@ -39,17 +43,16 @@
 
 <script>
 import {
-		eadLocalFileToBase64,
-		
+		eadLocalFileToBase64
 	} from "../../utils/tool.js"
-import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
 import CommonHeader from "../../components/CommonHeader/CommonHeader.vue"
-import MiniThirdpartyPaymentBill from '@/components/bill-preview/MiniThirdpartyPaymentBill.vue'
+import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
+import ThirdpartyPaymentTelBill from '@/components/bill-preview/ThirdpartyPaymentTelBill.vue'
 
 	export default {
 		components: {
 			CommonHeader,
-			MiniThirdpartyPaymentBill
+			ThirdpartyPaymentTelBill
 		},
 		data() {
 			return {
@@ -77,13 +80,13 @@ import MiniThirdpartyPaymentBill from '@/components/bill-preview/MiniThirdpartyP
 					"shop": '商品', // 商品
 					"merchantName": '商户名称', // 商户名称
 					"institution": '收款机构', //收款机构
-					"shopNumber": ' 商户单号', // 商单号
+					"shopNumber": '', // 商单号
 					"desc2": "由互联网清算有限公司提供付款清算服务",
-					"miniName":"小七商行收款",
-						"padd":60,
-						"order":false,
-						"fontSize":100,
-						"showMerchantContact": false
+					"BoNumber":"",
+					"padd":60,
+					"order":false,
+					"fontSize":100,
+					"showService": true
 				},
 				infoKey: {
 					"time": "付款时间",
@@ -99,19 +102,25 @@ import MiniThirdpartyPaymentBill from '@/components/bill-preview/MiniThirdpartyP
 					"shopNumber": ' 商户单号', // 商单号
 					"desc":"收款机构备注",
 					"desc2":"支付方式备注",
-					"miniName":"收款小程序",
-						"padd":"边距",
-						"order":"全部账单",
-						"fontSize":"字体大小",
-						"showMerchantContact":"联系商家"
+					"BoNumber":"经营单号",
+					"padd":"边距",
+					"order":"全部账单",
+					"fontSize":"字体大小",
+					"showService": "显示服务模块"
 				}
 			}
 		},
+		computed: {
+			fontScale() {
+				return this.info.fontSize / 100;
+			}
+		},
 		async onLoad(options) {
-			// billId 优先：按ID从云端加载并覆盖 info
+			// 优先按 billId 查询账单并覆盖 info
 			const rawId = options && (options.billId || options.id);
 			if (rawId !== undefined && rawId !== null && rawId !== '') {
-				this.id = rawId
+				// 云端按ID查询覆盖 info：保持原始字符串，不转数字（避免长数字精度丢失/前导零丢失/字母ID被改写）
+				this.id = String(rawId);
 				try {
 					const res = await getBillById(this.id);
 					const bill = res && res.data ? res.data : res;
@@ -129,10 +138,11 @@ import MiniThirdpartyPaymentBill from '@/components/bill-preview/MiniThirdpartyP
 				this.info = { ...this.info, ...temp };
 			}
 
+			// 云端头像列表
 			this.loadAvatarList();
 		},
 		methods: {
-			// 云端头像列表（cloudOnly）
+			// 云端加载头像列表
 			async loadAvatarList() {
 				try {
 					const userId = uni.getStorageSync('userId');
@@ -168,7 +178,7 @@ import MiniThirdpartyPaymentBill from '@/components/bill-preview/MiniThirdpartyP
 					if (this.id === null || this.id === undefined) {
 						const billData = {
 							platform: 'wechat',
-							billType: 5, // 第三方小程序
+							billType: 4, // 第三方付款
 							billDetail,
 							createUserId: userId,
 							remark: this.info.desc || this.info.name || ''
@@ -183,23 +193,37 @@ import MiniThirdpartyPaymentBill from '@/components/bill-preview/MiniThirdpartyP
 				}
 			},
 			async changeRl(url) {
+				// console.log(url);
+				// 如果头像不是网络地址（是本地路径），需要先上传到云端
 				const isLocalPath = url && !url.startsWith('http://') && !url.startsWith('https://');
+				
 				if (isLocalPath) {
 					try {
 						uni.showLoading({ title: '上传头像中...', mask: true });
+						
 						const userId = uni.getStorageSync('userId');
-						if (!userId) throw new Error('用户未登录');
-						const result = await uploadAvatar(url, userId, 'wechat', this.info.name || '');
+						if (!userId) {
+							throw new Error('用户未登录');
+						}
+						
+						// 上传头像到云端
+						const result = await uploadAvatar(url, userId, 'shop', this.info.name || '');
 						url = result.avatarUrl;
+						
 						uni.hideLoading();
-					} catch (e) {
+					} catch (error) {
+						console.error('上传头像失败:', error);
 						uni.hideLoading();
-						uni.showToast({ title: e.message || '上传头像失败，请重试', icon: 'none' });
+						uni.showToast({
+							title: error.message || '上传头像失败，请重试',
+							icon: 'none'
+						});
 						return;
 					}
 				}
-				this.info.url = url;
-				this.saveBill();
+				
+				this.info.url = url
+				this.saveBill()
 			},
 			openAddPopup() {
 				this.$refs.cradPopup.open()
@@ -232,6 +256,7 @@ import MiniThirdpartyPaymentBill from '@/components/bill-preview/MiniThirdpartyP
 				}
 			},
 			async onCradSubmitz(data) {
+				// 头像应为云端 URL（若是本地路径，这里也兼容先上传）
 				let avatarUrl = data.avatar;
 				const isLocalPath = avatarUrl && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://');
 				if (isLocalPath) {
@@ -252,7 +277,12 @@ import MiniThirdpartyPaymentBill from '@/components/bill-preview/MiniThirdpartyP
 				try {
 					const userId = uni.getStorageSync('userId');
 					if (!userId) throw new Error('用户未登录');
-					await createAvatar({ userId, module: 'wechat', avatarUrl, name: data.nickname || this.info.name || '' });
+					await createAvatar({
+						userId,
+						module: 'wechat',
+						avatarUrl,
+						name: data.nickname || this.info.name || ''
+					});
 					await this.loadAvatarList();
 				} catch (e) {
 					uni.showToast({ title: e.message || '保存头像失败，请重试', icon: 'none' });
@@ -278,11 +308,6 @@ import MiniThirdpartyPaymentBill from '@/components/bill-preview/MiniThirdpartyP
 			goBack() {
 				uni.navigateBack();
 			},
-		},
-		computed: {
-			fontScale() {
-				return (this.info.fontSize || 100) / 100;
-			}
 		}
 	}
 </script>
@@ -298,5 +323,247 @@ import MiniThirdpartyPaymentBill from '@/components/bill-preview/MiniThirdpartyP
 		flex-direction: column;
 		width: 600rpx;
 		height: 800rpx;
+	}
+
+	.gthIcon {
+	/* 	width: 30rpx;
+		height: 30rpx; */
+		margin-left: 10rpx;
+		/* position: relative;
+		top: -4rpx; */
+	}
+
+	.rightIcon {
+		display: flex;
+		align-items: center;
+	}
+	.tips{
+		margin-top: 12rpx;
+		color: #9b9b9b;
+		font-size: 26rpx;
+	}
+
+	.footer {
+		width: 100%;
+		flex: 1;
+		font-size: 24rpx;
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		flex-direction: column;
+		color: #a2a2a2;
+		min-height: 170rpx;
+		padding-bottom: 60rpx;
+		/* position: absolute;
+	bottom: 0rpx; */
+	}
+
+	.serivce {
+		margin-top: 20rpx;
+		background-color: #fff;
+		padding: 0 60rpx;
+		box-sizing: border-box;
+	}
+
+	.serivce_line {
+		border-top: 1px solid #eaeaea;
+	}
+
+	.serivce_bx {
+		display: flex;
+		align-items: center;
+		margin: 35rpx 0;
+		box-sizing: border-box;
+	}
+
+	.se_title {
+		font-size: 28rpx;
+		padding-top: 30rpx;
+		padding-bottom: 35rpx;
+		/* font-weight: 500; */
+		box-sizing: border-box;
+	}
+
+	.se_item {
+		font-size: 26rpx;
+		color: #5c6e96;
+		flex: 1;
+		display: flex;
+		align-items: center;
+		/* margin: 0 40rpx; */
+	}
+
+	.cordIcon {
+		width: 38rpx;
+		height: 38rpx;
+		position: relative;
+		top: 4rpx;
+		margin-right: 10rpx;
+	}
+
+	.skIcon {
+		width: 36rpx;
+		height: 36rpx;
+		position: relative;
+		top: 4rpx;
+		margin-right: 10rpx;
+	}
+
+	.wticon {
+		width: 30rpx;
+		height: 30rpx;
+		margin-right: 14rpx;
+		position: relative;
+		top: 6rpx;
+	}
+
+	.startIcon {
+		width: 32rpx;
+		height: 32rpx;
+		margin-right: 12rpx;
+		position: relative;
+		top: 6rpx;
+	}
+
+	.chatIcon {
+		width: 32rpx;
+		height: 32rpx;
+		margin-right: 14rpx;
+		position: relative;
+		top: 6rpx;
+	}
+
+	.transferIcon {
+		width: 34rpx;
+		height: 34rpx;
+		margin-right: 14rpx;
+		position: relative;
+		top: 6rpx;
+	}
+
+	.order_info {
+		margin-top: 40rpx;
+		padding-bottom: 60rpx;
+	}
+
+	.sub {
+		height: 8rpx;
+		width: 26rpx;
+		background-color: #000
+	}
+
+	.num {
+		font-family: 'WeChat Sans Std';
+		display: flex;
+		align-items: center;
+		margin-top: 40rpx;
+		/* font-weight: bold; */
+		font-size: 56rpx;
+	}
+
+	.num_txt {
+		font-variant-numeric: tabular-nums;
+		/* 强制使用等宽数字 */
+		font-family: -apple-system, 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+	}
+
+	.name {
+		margin-top: 30rpx;
+		font-size: 32rpx;
+
+		text-align: center;
+	}
+
+	.left {
+		color: #878787;
+		width:	170rpx;
+	}
+	.right{
+		flex:1;
+		word-wrap: break-word; 
+		overflow-wrap: break-word;
+		overflow: auto;
+	
+	}
+
+	.item {
+		flex: 1;
+		display: flex;
+		font-size: 28rpx;
+		margin-bottom: 20rpx;
+	}
+
+	.order_info {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.line {
+		margin-top: 88rpx;
+		width: 100%;
+		height: 1px;
+		background-color: #eaeaea;
+	}
+
+	.avatar {
+		width: 92rpx;
+		height: 92rpx;
+		overflow: hidden;
+		margin-top: 40rpx;
+		border-radius: 50%;
+	}
+
+	.avatar image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.order_top {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.order {
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		background-color: #fff;
+		padding: 0 60rpx;
+	}
+
+	.close {
+		/* background-color: aqua; */
+		/* padding-top: 160px; */
+		padding-left: 20rpx;
+		position: relative;
+		top: 30rpx;
+		transform: scale(0.8);
+	}
+
+	.nav {
+		height: 86rpx;
+		background-color: #fff;
+		position: relative;
+	}
+	.allOrder{
+		position: absolute;
+		right: 40upx;
+		font-size: 36upx;
+		bottom:  10upx;
+	}
+	.container {
+		background-color: #eaeaea;
+		display: flex;
+		flex-direction: column;
+		height: 100vh;
+	}
+
+	.content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		/* position: relative; */
 	}
 </style>
