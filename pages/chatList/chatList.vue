@@ -639,8 +639,10 @@
 			});
 		},
 		goWorkbench() {
+			
+			const isIos = uni.getSystemInfoSync().platform === 'ios'
 			uni.navigateTo({
-				url: '/pages/Workbench/Workbench'
+				url: isIos?'/pages/WorkbenchIos/WorkbenchIos' :'/pages/Workbench/Workbench'
 			});
 		},
 		}

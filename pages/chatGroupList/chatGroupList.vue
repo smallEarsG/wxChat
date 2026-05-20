@@ -21,7 +21,14 @@
           :right-options="swipeOptions"
           @click="handleSwipeClick($event, index)">
           <view class="group-item" @click="enterGroup(group)">
-            <image class="group-avatar" :src="group.avatar || '/static/avatar-other.png'"></image>
+            <view class="group-avatar">
+              <template v-if="group.avatarList && group.avatarList.length > 0">
+                <view v-for="(url, aIndex) in buildCompositeAvatarList(group)" :key="aIndex" class="group-avatar__item">
+                  <image class="group-avatar__img" :src="url" mode="aspectFill"></image>
+                </view>
+              </template>
+              <image v-else class="group-avatar__single" :src="group.avatarUrl || '/static/avatar-other.png'" mode="aspectFill"></image>
+            </view>
             <view class="group-info">
               <view class="group-name">{{ group.name }}</view>
               <view class="group-desc">{{ group.description || '暂无描述' }}</view>
@@ -54,7 +61,7 @@
           <view class="form-item">
             <text class="label">群聊头像</text>
             <view class="avatar-upload" @click="chooseAvatar">
-              <image v-if="currentGroup.avatar" :src="currentGroup.avatar" class="avatar-preview"></image>
+              <image v-if="currentGroup.avatar || currentGroup.avatarUrl" :src="currentGroup.avatarUrl || currentGroup.avatar" class="avatar-preview"></image>
               <text v-else class="upload-text">点击上传</text>
             </view>
           </view>
@@ -100,6 +107,7 @@ import {
   createGroup,
   updateGroup,
   deleteGroup,
+  getGroupMembers,
   searchGroups,
   GROUP_TYPE
 } from '@/api/groups.js'
@@ -107,10 +115,14 @@ export default {
   data() {
     return {
       groupList: [],
+      groupAvatarCache: {},
+      groupAvatarLoading: {},
+      avatarPrefetchSeq: 0,
       currentGroup: {
         id: '',
         name: '',
         avatar: '',
+        avatarUrl: '',
         description: ''
       },
       isEdit: false,
@@ -147,11 +159,16 @@ export default {
           this.groupList = res.data.map(group => ({
             id: group.id,
             name: group.name || '未命名群聊',
-            avatar: group.avatar || '/static/avatar-other.png',
+            avatar: group.avatar || '',
+            avatarUrl: this.resolveAvatarUrl(group.avatar) || '/static/avatar-other.png',
+            avatarList: [],
             description: group.description || '暂无描述',
             createTime: group.createTime || group.created_at ? new Date(group.created_at).getTime() : Date.now(),
             lastMessageTime: group.lastMessageTime || (group.last_message_time ? new Date(group.last_message_time).getTime() : (group.created_at ? new Date(group.created_at).getTime() : Date.now()))
           }));
+          this.avatarPrefetchSeq += 1;
+          const seq = this.avatarPrefetchSeq;
+          this.prefetchGroupAvatarLists(seq);
         }
       } catch (e) {
         console.error('加载企业群聊列表失败:', e);
@@ -160,6 +177,94 @@ export default {
           icon: 'none'
         });
       }    },
+
+    resolveAvatarUrl(avatar) {
+      if (!avatar) return '';
+      const s = String(avatar);
+      if (
+        s.startsWith('http://') ||
+        s.startsWith('https://') ||
+        s.startsWith('/static/') ||
+        s.startsWith('data:') ||
+        s.startsWith('wxfile:') ||
+        s.startsWith('file:') ||
+        s.startsWith('cloud://')
+      ) {
+        return s;
+      }
+      return `http://106.15.137.235:8080/upload/${s.replace(/^\/+/, '')}`;
+    },
+
+    normalizeMemberAvatarList(members) {
+      if (!Array.isArray(members)) return [];
+      return members
+        .map(m => this.resolveAvatarUrl(m && m.avatar))
+        .filter(Boolean)
+        .slice(0, 9);
+    },
+
+    extractMembersFromResponse(res) {
+      if (Array.isArray(res)) return res;
+      if (!res || typeof res !== 'object') return [];
+      if (Array.isArray(res.data)) return res.data;
+      if (res.data && Array.isArray(res.data.list)) return res.data.list;
+      if (res.data && Array.isArray(res.data.rows)) return res.data.rows;
+      if (Array.isArray(res.list)) return res.list;
+      if (Array.isArray(res.rows)) return res.rows;
+      return [];
+    },
+
+    buildCompositeAvatarList(group) {
+      const list = Array.isArray(group && group.avatarList) ? group.avatarList.filter(Boolean).slice(0, 9) : [];
+      if (list.length === 0) return [];
+      const fill = group.avatarUrl || '/static/avatar-other.png';
+      while (list.length < 9) {
+        list.push(fill);
+      }
+      return list;
+    },
+
+    async fetchGroupAvatarList(groupId) {
+      const key = String(groupId);
+      if (!key || key === 'undefined' || key === 'null') return [];
+      if (Array.isArray(this.groupAvatarCache[key])) return this.groupAvatarCache[key];
+      if (this.groupAvatarLoading[key]) return [];
+
+      this.$set(this.groupAvatarLoading, key, true);
+      try {
+        const res = await getGroupMembers(groupId);
+        const members = this.extractMembersFromResponse(res);
+        const urls = this.normalizeMemberAvatarList(members);
+        this.$set(this.groupAvatarCache, key, urls);
+        return urls;
+      } catch (e) {
+        return [];
+      } finally {
+        this.$set(this.groupAvatarLoading, key, false);
+      }
+    },
+
+    async prefetchGroupAvatarLists(seq) {
+      const groups = Array.isArray(this.groupList) ? this.groupList : [];
+      const concurrency = 4;
+      let cursor = 0;
+
+      const worker = async () => {
+        while (cursor < groups.length) {
+          if (seq !== this.avatarPrefetchSeq) return;
+          const index = cursor++;
+          const group = groups[index];
+          if (!group || !group.id) continue;
+          const urls = await this.fetchGroupAvatarList(group.id);
+          if (seq !== this.avatarPrefetchSeq) return;
+          const targetIndex = this.groupList.findIndex(g => g && g.id === group.id);
+          if (targetIndex === -1) continue;
+          this.$set(this.groupList[targetIndex], 'avatarList', urls);
+        }
+      };
+
+      await Promise.all(Array.from({ length: concurrency }, worker));
+    },
     
     // 打开新建群聊对话框
     openAddGroupDialog() {
@@ -168,6 +273,7 @@ export default {
         id: '',
         name: '',
         avatar: '',
+        avatarUrl: '',
         description: ''
       };
       this.$refs.groupPopup.open();
@@ -197,9 +303,11 @@ export default {
             const uploadRes = await uploadImage(tempFilePath);
             if (uploadRes && uploadRes.data) {
               this.currentGroup.avatar = uploadRes.data;
+              this.currentGroup.avatarUrl = this.resolveAvatarUrl(uploadRes.data);
             } else {
               // 如果上传失败，仍然使用临时路径（至少当前会话可用）
               this.currentGroup.avatar = tempFilePath;
+              this.currentGroup.avatarUrl = tempFilePath;
               uni.showToast({
                 title: '上传头像失败',
                 icon: 'none'
@@ -209,6 +317,7 @@ export default {
             console.error('上传头像失败:', err);
             // 如果上传失败，仍然使用临时路径（至少当前会话可用）
             this.currentGroup.avatar = tempFilePath;
+            this.currentGroup.avatarUrl = tempFilePath;
             uni.showToast({
               title: '上传头像失败',
               icon: 'none'
@@ -371,7 +480,7 @@ export default {
     // 进入群聊
     enterGroup(group) {
       uni.navigateTo({
-        url: `/pages/chatGrop/chatGrop?guestInfo=${encodeURIComponent(JSON.stringify({ nickname: group.name, avatar: group.avatar }))}`
+        url: `/pages/chatGrop/chatGrop?guestInfo=${encodeURIComponent(JSON.stringify({ nickname: group.name, avatar: group.avatarUrl || group.avatar }))}`
       });
     },
     
@@ -441,6 +550,28 @@ export default {
   height: 100rpx;
   border-radius: 10rpx;
   margin-right: 20rpx;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: space-between;
+  justify-content: space-between;
+  background-color: #f0f0f0;
+}
+
+.group-avatar__single {
+  width: 100%;
+  height: 100%;
+}
+
+.group-avatar__item {
+  width: 32%;
+  height: 32%;
+}
+
+.group-avatar__img {
+  width: 100%;
+  height: 100%;
+  border-radius: 6rpx;
 }
 
 .group-info {

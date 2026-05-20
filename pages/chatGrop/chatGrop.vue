@@ -429,7 +429,7 @@
 				isIos: false,
 				keyboardHeight: 0,
 				keyboard: false,
-				guestList: [], // 修复拼写：gusetList -> guestList
+				guestList: [], 
 				activeMsgIndex: -1, // 当前激活的消息索引				
 				userInfo: {},
 
