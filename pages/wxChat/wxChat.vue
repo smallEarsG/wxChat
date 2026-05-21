@@ -505,6 +505,7 @@
 					this.massageList = []
 				}
 			}
+			this.loadChatBackground();
 			// 获取账号信息
 			const userId = uni.getStorageSync('userId');
 			console.log(userId);
@@ -722,6 +723,36 @@
 			});
 		},
 		methods: {
+			getChatBgStorageKey() {
+				const userId = uni.getStorageSync('userId') || 'guest';
+				const conversationId = this.guestInfo?.conversationId || this.guestInfo?.userId || 'default';
+				return `chat_bg_${userId}_${conversationId}`;
+			},
+			loadChatBackground() {
+				const key = this.getChatBgStorageKey();
+				const saved = uni.getStorageSync(key);
+				if (!saved) {
+					this.contentbg = "null";
+					return;
+				}
+				if (typeof saved === 'string') {
+					this.contentbg = saved || "null";
+					return;
+				}
+				this.contentbg = saved.url || "null";
+			},
+			saveChatBackground(url) {
+				const key = this.getChatBgStorageKey();
+				uni.setStorageSync(key, {
+					url,
+					updatedAt: Date.now()
+				});
+			},
+			clearChatBackground() {
+				const key = this.getChatBgStorageKey();
+				uni.removeStorageSync(key);
+				this.contentbg = "null";
+			},
 			updateMsg(){
 				this.guestInfo.content = JSON.stringify(this.massageList)
 				updateConversation(this.guestInfo.conversationId,this.guestInfo)
@@ -1042,7 +1073,13 @@
 			},
 			
 			onBgSubmit(data) {
-				this.contentbg = data.avatar;
+				const bgUrl = data?.avatar || "null";
+				if (bgUrl === "null") {
+					this.clearChatBackground();
+					return;
+				}
+				this.contentbg = bgUrl;
+				this.saveChatBackground(bgUrl);
 			},
 			
 			// 角色切换
