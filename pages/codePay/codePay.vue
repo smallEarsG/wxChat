@@ -167,6 +167,37 @@
 				</button>
 			</view>
 
+			<!-- 自定义模板入口 -->
+			<view class="action-buttons" style="margin-bottom: 20px;">
+				<button class="action-btn" @click="goTemplateConfig" style="background: linear-gradient(135deg, #9B59B6, #8E44AD);">
+					<uni-icons type="compose" size="24" color="#fff" />
+					<text>创建自定义模板</text>
+				</button>
+			</view>
+
+			<!-- 自定义模板列表 -->
+			<view class="template-list-section" v-if="customTemplates.length > 0">
+				<view class="section-title">
+					<text>我的自定义模板</text>
+				</view>
+				<view class="template-list">
+					<view class="template-item" v-for="(template, index) in customTemplates" :key="template.id">
+						<view class="template-info" @click="goCustomTemplate(template.id)">
+							<view class="template-name">{{ template.name }}</view>
+							<view class="template-time">{{ formatTime(template.updateTime) }}</view>
+						</view>
+						<view class="template-actions">
+							<view class="action-btn-icon" @click="editTemplate(template.id)">
+								<uni-icons type="compose" size="20" color="#4A90E2" />
+							</view>
+							<view class="action-btn-icon delete-btn" @click="deleteTemplate(template.id, index)">
+								<uni-icons type="trash" size="20" color="#F56C6C" />
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+
 			<!-- 操作按钮  v-if="resultList.length > 0" -->
 			<view class="action-buttons">
 				<button class="action-btn" @click="goCodePayChild(0)">
@@ -255,17 +286,20 @@
 				showFirstTimeModal: false, // 是否显示首次进入弹框
 				countdown: 10, // 倒计时（秒）
 				countdownTimer: null, // 倒计时定时器
+				customTemplates: [], // 自定义模板列表
 				// 百度云OCR配置（需替换为你的真实信息）
 				baiduConfig: {
 					apiKey: 'Rk9atFNERmi0vduxtu3zrF0x',
 					secretKey: 'iylst8nEtnr5fTek3QWjuXPcruzCFJnK',
 					apiUrl: 'https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic' // 高精度通用识别接口
 				}
-			};
+			}
 		},
 		onShow() {
 			// 检查是否首次进入
 			this.checkFirstTime();
+			// 加载自定义模板
+			this.loadCustomTemplates();
 		},
 		onUnload() {
 			// 清除定时器
@@ -275,6 +309,76 @@
 			}
 		},
 		methods: {
+			// 加载自定义模板
+			loadCustomTemplates() {
+				try {
+					this.customTemplates = uni.getStorageSync('customTemplates') || [];
+				} catch (e) {
+					console.error('加载自定义模板失败', e);
+					this.customTemplates = [];
+				}
+			},
+			// 格式化时间
+			formatTime(timestamp) {
+				if (!timestamp) return '';
+				const date = new Date(timestamp);
+				const year = date.getFullYear();
+				const month = String(date.getMonth() + 1).padStart(2, '0');
+				const day = String(date.getDate()).padStart(2, '0');
+				const hour = String(date.getHours()).padStart(2, '0');
+				const minute = String(date.getMinutes()).padStart(2, '0');
+				return `${year}-${month}-${day} ${hour}:${minute}`;
+			},
+			// 跳转到模板配置页面
+			goTemplateConfig() {
+				uni.navigateTo({
+					url: '/pages/template-config/template-config'
+				});
+			},
+			// 编辑模板
+			editTemplate(templateId) {
+				uni.navigateTo({
+					url: `/pages/template-config/template-config?id=${templateId}`
+				});
+			},
+			// 删除模板
+			deleteTemplate(templateId, index) {
+				uni.showModal({
+					title: '确认删除',
+					content: '确定要删除这个模板吗？',
+					success: (res) => {
+						if (res.confirm) {
+							try {
+								let templates = uni.getStorageSync('customTemplates') || [];
+								templates = templates.filter(t => t.id !== templateId);
+								uni.setStorageSync('customTemplates', templates);
+								this.customTemplates = templates;
+								uni.showToast({ title: '删除成功', icon: 'success' });
+							} catch (e) {
+								console.error('删除模板失败', e);
+								uni.showToast({ title: '删除失败', icon: 'none' });
+							}
+						}
+					}
+				});
+			},
+			// 跳转到自定义模板页面
+			goCustomTemplate(templateId) {
+				let url = `/pages/custom-template-page/custom-template-page?templateId=${templateId}`;
+				
+				// 判断是否进行了扫描（有图片路径或识别结果）
+				const hasScanned = this.imagePath || (this.resultList && this.resultList.length > 0);
+				
+				if (hasScanned) {
+					// 如果进行了扫描，确保信息已提取
+					if (!this.extractedInfo) {
+						this.extractedInfo = this.extractInfoWithRegex(this.resultList);
+					}
+					url += `&info=${encodeURIComponent(JSON.stringify(this.extractedInfo))}`;
+				}
+
+				uni.navigateTo({ url });
+			},
 			// 检查是否首次进入
 			checkFirstTime() {
 				const hasSeenGuide = uni.getStorageSync('codePay_hasSeenGuide');
@@ -1117,10 +1221,77 @@
 	}
 
 	.history-btn uni-icons {
-		margin-right: 15rpx;
-	}
+				margin-right: 15rpx;
+			}
 
-	/* 加载状态 */
+			/* 自定义模板列表样式 */
+			.template-list-section {
+				margin-bottom: 20px;
+			}
+
+			.template-list-section .section-title {
+				font-size: 30rpx;
+				font-weight: 600;
+				color: #333;
+				margin-bottom: 15rpx;
+				padding-left: 10rpx;
+			}
+
+			.template-list {
+				background-color: #fff;
+				border-radius: 16rpx;
+				overflow: hidden;
+			}
+
+			.template-item {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 30rpx;
+				border-bottom: 1rpx solid #f0f0f0;
+			}
+
+			.template-item:last-child {
+				border-bottom: none;
+			}
+
+			.template-info {
+				flex: 1;
+			}
+
+			.template-name {
+				font-size: 30rpx;
+				font-weight: 500;
+				color: #333;
+				margin-bottom: 8rpx;
+			}
+
+			.template-time {
+				font-size: 24rpx;
+				color: #999;
+			}
+
+			.template-actions {
+				display: flex;
+				align-items: center;
+				gap: 20rpx;
+			}
+
+			.action-btn-icon {
+				width: 60rpx;
+				height: 60rpx;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border-radius: 50%;
+				background-color: #f5f7fa;
+			}
+
+			.action-btn-icon.delete-btn {
+				background-color: #fef0f0;
+			}
+
+			/* 加载状态 */
 	.loading-overlay {
 		position: fixed;
 		top: 0;

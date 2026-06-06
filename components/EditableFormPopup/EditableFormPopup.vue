@@ -52,8 +52,22 @@
               <view v-else-if="key === 'fontSize'" class="slider-container">
                 <slider 
                   v-model="formData[key]" 
-                  min="50" 
-                  max="200" 
+                  min="24" 
+                  max="100" 
+                  step="2"
+                  show-value
+                  activeColor="#007aff"
+                  backgroundColor="#e6e6e6"
+                  :class="{ 'input-error': errorFields[key] }"
+                  @change="handleSliderChange(key, $event)"
+                />
+              </view>
+              <view v-else-if="key === 'fontWeight'" class="slider-container">
+                <slider 
+                  v-model="formData[key]" 
+                  min="100" 
+                  max="900" 
+                  step="100"
                   show-value
                   activeColor="#007aff"
                   backgroundColor="#e6e6e6"
@@ -175,7 +189,8 @@ export default {
           showAutoDeduction: newVal.hasOwnProperty('showAutoDeduction') ? newVal.showAutoDeduction : true,
           showService: newVal.hasOwnProperty('showService') ? newVal.showService : true,
           showMerchantContact: newVal.hasOwnProperty('showMerchantContact') ? newVal.showMerchantContact : false,
-          fontSize: typeof newVal.fontSize === 'number' ? newVal.fontSize : 100
+          fontSize: typeof newVal.fontSize === 'number' ? newVal.fontSize : 48,
+          fontWeight: typeof newVal.fontWeight === 'number' ? newVal.fontWeight : 600
         };
         this.errorFields = {};
       }
@@ -192,7 +207,9 @@ export default {
           } else if (key === 'padd') {
             this.formData[key] = 50;
           } else if (key === 'fontSize') {
-            this.formData[key] = 100;
+            this.formData[key] = 48;
+          } else if (key === 'fontWeight') {
+            this.formData[key] = 600;
           } else {
             this.formData[key] = '';
           }
@@ -392,7 +409,8 @@ export default {
         description: 'edit',
         padd: 'progress',
         order: 'switch',
-        fontSize: 'font'
+        fontSize: 'font',
+        fontWeight: 'font'
       };
       
       // 优先使用传入的图标映射
@@ -433,6 +451,7 @@ export default {
              key !== 'showService' && 
              key !== 'showMerchantContact' && 
              key !== 'fontSize' && 
+             key !== 'fontWeight' && 
              key !== 'orderNumber';
     },
     toggleEmoji(fieldKey) {

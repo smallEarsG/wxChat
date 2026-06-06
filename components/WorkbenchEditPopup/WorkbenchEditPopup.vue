@@ -41,6 +41,24 @@
               @change="handleWeightChange"
             />
           </view>
+
+          <view class="form-item" v-if="fieldLabels.fontSize">
+            <text class="form-label">{{ fieldLabels.fontSize }}</text>
+            <view class="weight-row">
+              <text class="weight-label">font-size</text>
+              <text class="weight-value">{{ formData.fontSize }}rpx</text>
+            </view>
+            <slider
+              :value="formData.fontSize"
+              min="24"
+              max="100"
+              step="2"
+              show-value
+              activeColor="#007aff"
+              backgroundColor="#e6e6e6"
+              @change="handleFontSizeChange"
+            />
+          </view>
         </view>
 
         <view class="form-footer">
@@ -97,6 +115,8 @@ export default {
         nextData.fontWeight || nextData.t1FontWeight || nextData.t2FontWeight || nextData.t3FontWeight
       );
 
+      nextData.fontSize = this.normalizeSize(nextData.fontSize);
+
       return nextData;
     },
     normalizeWeight(value) {
@@ -109,9 +129,20 @@ export default {
       const safeValue = Math.min(900, Math.max(100, numericValue));
       return Math.round(safeValue / 100) * 100;
     },
+    normalizeSize(value) {
+      const numericValue = Number(value);
+      if (isNaN(numericValue)) {
+        return 48;
+      }
+      return Math.min(100, Math.max(24, numericValue));
+    },
     handleWeightChange(event) {
       const rawValue = event && event.detail ? event.detail.value : 600;
       this.$set(this.formData, 'fontWeight', this.normalizeWeight(rawValue));
+    },
+    handleFontSizeChange(event) {
+      const rawValue = event && event.detail ? event.detail.value : 48;
+      this.$set(this.formData, 'fontSize', this.normalizeSize(rawValue));
     },
     open() {
       this.formData = this.buildFormData(this.value);

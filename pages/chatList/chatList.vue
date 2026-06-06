@@ -77,7 +77,7 @@
 						{{totalChatIndex>99?'99+':totalChatIndex}}
 					</view>
 					<image class="qwMsgIcon" src="/static/qiw/qwMsgIcon_b.png"></image>
-					<view class="btn_txt">
+					<view class="btn_txt" style="color: #267ef0;">
 						消息
 					</view>
 				</view>
@@ -958,7 +958,7 @@
 		position: absolute;
 		background-color: #ee4c25;
 		z-index: 1;
-		right: 28rpx;
+		right: 30rpx;
 		top: 8rpx;
 		color: #fffffd;
 		font-size: 20rpx;

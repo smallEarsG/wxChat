@@ -11,7 +11,7 @@
 			<view class="order" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<view class="order_top">
 					<view class="avatar" @click="handleAvatarClick">
-						<image :src="info.url||'/static/logo.png'"></image>
+						<image :src="info.url||'/static/paySe.png'"></image>
 					</view>
 					<view class="name" :style="{ fontSize: (32 * fontScale) + 'rpx' }">
 						{{info.name}}

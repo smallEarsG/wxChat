@@ -4,22 +4,22 @@
 		<view class="head" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<image src="/static/conelse/head_ios.png" mode="widthFix"></image>
 		</view>
-		<view class="content"  >
+		<view class="content"   style="margin-top: -8rpx;">
 			<!-- 工作台内容 -->
-			<image src="/static/conelse/a1_ios.png" mode="widthFix"></image>
+			<image src="/static/conelse/a1_ios.png" mode="widthFix" style="margin-top: -4rpx;"></image>
 			<view style="position: relative;" @click="openEditPopup">
 				<view class="t_content">
 					<view class="txt t1" :style="getWorkbenchTextStyle()">{{workbenchData.t1}}</view>
 					<view class="txt t2" :style="getWorkbenchTextStyle()">{{workbenchData.t2}}</view>
 					<view class="txt t3" :style="getWorkbenchTextStyle()"><text class="moneyIcon">￥</text>{{workbenchData.t3}}</view>
 				</view>
-				<image src="/static/conelse/a2.png" mode="widthFix"></image>
+				<image src="/static/conelse/ios_a2.png" mode="widthFix"></image>
 			</view>
-			<image src="/static/conelse/a3.png" mode="widthFix"></image>
-			<image src="/static/conelse/aa_ios.png" mode="widthFix" style="margin-top: -15rpx;"></image>
-			<image src="/static/conelse/a4.png" mode="widthFix"></image>
-			<image src="/static/conelse/a6.png" mode="widthFix" style="margin-top: -20rpx;"></image>
-			<image src="/static/conelse/a6_ios.png" mode="widthFix"  style="margin-top: -20rpx;"></image>
+			<image src="/static/conelse/ios_a3.png" mode="widthFix" style="margin-top: 2rpx;"></image>
+			<image src="/static/conelse/aa_ios.png" mode="widthFix" style="margin-top: -4rpx;"></image>
+			<image src="/static/conelse/ios_a4.png" mode="widthFix"></image>
+			<!-- <image src="/static/conelse/a6.png" mode="widthFix" style="margin-top: -20rpx;"></image> -->
+			<image src="/static/conelse/a6_ios.png" mode="widthFix"  style="margin-top: -10rpx;"></image>
 			
 		</view>
 		<view class="footer_btn">
@@ -27,7 +27,7 @@
 				<view class="totalIndex" v-if="totalChatIndex>0" :class="totalChatIndex>99 ? 'more_red':''">
 					{{totalChatIndex>99?'99+':totalChatIndex}}
 				</view>
-				<image class="qwMsgIcon" src="/static/qiw/qwMsgIcon_b.png"></image>
+				<image class="qwMsgIcon" src="/static/qiw/qwMsgIcon.png"></image>
 				<view class="btn_txt">
 					消息
 				</view>
@@ -51,8 +51,8 @@
 				</view>
 			</view>
 			<view class="foot_item">
-				<image class="qw_con" src="/static/qiw/qw_con.png"></image>
-				<view class="btn_txt">
+				<image class="qw_con" src="/static/qiw/qw_con_action.png"></image>
+				<view class="btn_txt" style="color: #267ef0;">
 					工作台
 				</view>
 			</view>
@@ -88,12 +88,14 @@
 					t1: '1',
 					t2: '0',
 					t3: '0.00',
-					fontWeight: 600
+					fontWeight: 600,
+					fontSize: 48
 				},
 				workbenchLabels: {
 					t1: '第一个数值',
 					t2: '第二个数值',
-					t3: '金额'
+					t3: '金额',
+					fontSize: '字体大小'
 				}
 			}
 		},
@@ -147,9 +149,17 @@
 				const safeValue = Math.min(900, Math.max(100, numericValue));
 				return Math.round(safeValue / 100) * 100;
 			},
+			normalizeFontSize(value) {
+				const numericValue = Number(value);
+				if (isNaN(numericValue)) {
+					return 48;
+				}
+				return Math.min(100, Math.max(24, numericValue));
+			},
 			getWorkbenchTextStyle() {
 				return {
-					fontWeight: this.normalizeFontWeight(this.workbenchData.fontWeight)
+					fontWeight: this.normalizeFontWeight(this.workbenchData.fontWeight),
+					fontSize: this.workbenchData.fontSize + 'rpx'
 				};
 			},
 			// 从 storage 加载工作台数据
@@ -162,7 +172,8 @@
 						t3: savedData.t3 || '0.00',
 						fontWeight: this.normalizeFontWeight(
 							savedData.fontWeight || savedData.t1FontWeight || savedData.t2FontWeight || savedData.t3FontWeight
-						)
+						),
+						fontSize: savedData.fontSize || 48
 					};
 				}
 			},
@@ -177,7 +188,8 @@
 					t1: data.t1 || '1',
 					t2: data.t2 || '0',
 					t3: data.t3 || '0.00',
-					fontWeight: this.normalizeFontWeight(data.fontWeight)
+					fontWeight: this.normalizeFontWeight(data.fontWeight),
+					fontSize: this.normalizeFontSize(data.fontSize)
 				};
 				this.saveWorkbenchData();
 				uni.showToast({
@@ -314,7 +326,7 @@
 		position: absolute;
 		background-color: #ee4c25;
 		z-index: 1;
-		right: 28rpx;
+		right: 30rpx;
 		top: 8rpx;
 		color: #fffffd;
 		font-size: 20rpx;

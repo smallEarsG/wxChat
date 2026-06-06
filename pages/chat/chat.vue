@@ -1,4 +1,4 @@
-﻿﻿<template>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<template>
 
 	<view class="chat-page" :style="{ '--global-font-size': currentFontSize + 'px', '--font-scale': Number(scale) || 1 }">
 		<!-- 全局水印层 -->
@@ -336,6 +336,12 @@
 										mode="widthFix" :style="{ width: rpx(60),marginRight: rpx(8)}"></image>
 									<template v-if="draggingItem.content === '已取消'">
 										已取消
+									</template>
+									<template v-else-if="draggingItem.content === '未接听'">
+										对方未接听
+									</template>
+									<template v-else-if="draggingItem.content === '对方已取消'">
+										对方已取消
 									</template>
 									<template v-else>
 										通话时长
@@ -681,12 +687,18 @@
 									<image src="/static/chat/phone_hs.png" :class="isIos?'videobox-ios':'videobox-and'"
 										mode="widthFix" :style="{ width: rpx(56),marginRight: rpx(6)}"></image>
 									<template v-if="msgData.item.content === '已取消'">
-										已取消
-									</template>
-									<template v-else>
-										通话时长
-										<text>{{msgData.item.content}}</text>
-									</template>
+											已取消
+										</template>
+										<template v-else-if="msgData.item.content === '未接听'">
+											对方未接听
+										</template>
+										<template v-else-if="msgData.item.content === '对方已取消'">
+											对方已取消
+										</template>
+										<template v-else>
+											通话时长
+											<text>{{msgData.item.content}}</text>
+										</template>
 								</view>
 							</view>
 						</view>
@@ -700,13 +712,19 @@
 										<template v-if="msgData.item.content === '已取消'">
 											已取消
 										</template>
+										<template v-else-if="msgData.item.content === '未接听'">
+											对方未接听
+										</template>
+										<template v-else-if="msgData.item.content === '对方已取消'">
+											对方已取消
+										</template>
 										<template v-else>
 											通话时长
 											<text>{{msgData.item.content}}</text>
 										</template>
-										<image :class="isIos?'videobox-ios':'videobox-and'" style="margin-left: 16upx;"
-											src="/static/chat/phone_ls.png" mode="widthFix"
-											:style="{ width: rpx(56),marginLeft: rpx(12)}"></image>
+									<image :class="isIos?'videobox-ios':'videobox-and'" style="margin-left: 16upx;"
+										src="/static/chat/phone_ls.png" mode="widthFix"
+										:style="{ width: rpx(56),marginLeft: rpx(12)}"></image>
 									</view>
 								</view>
 							</view>
@@ -859,6 +877,7 @@
 						<view class="calltype-item" @click="onSelectTipsType('payment')">收款提示</view>
 						<view class="calltype-item" @click="onSelectTipsType('revoke_other')">对方撤回提示</view>
 						<view class="calltype-item" @click="onSelectTipsType('revoke_self')">我方撤回提示</view>
+						<view class="calltype-item" @click="onSelectTipsType('add_contact')">添加好友提示</view>
 						<view class="calltype-cancel" @click="closeTipsTypePopup">取消</view>
 					</view>
 				</uni-popup>
@@ -870,6 +889,15 @@
 						<view class="calltype-item" @click="onSelectCallType('video')">视频通话</view>
 						<view class="calltype-item" @click="onSelectCallType('phone')">语音通话</view>
 						<view class="calltype-cancel" @click="closeCallTypePopup">取消</view>
+					</view>
+				</uni-popup>
+				<!-- 通话状态选择弹窗 -->
+				<uni-popup ref="callStatusPopup" type="bottom">
+					<view class="calltype-sheet">
+						<view class="calltype-item" @click="onInsertCallStatus('未接听')">对方未接听</view>
+						<view class="calltype-item" @click="onInsertCallStatus('对方已取消')">对方已取消</view>
+						<view class="calltype-item" @click="onInsertCallStatus('已取消')">我方已取消</view>
+						<view class="calltype-cancel" @click="closeCallStatusPopup">取消</view>
 					</view>
 				</uni-popup>
 				<!-- 水印设置 -->
@@ -1485,7 +1513,8 @@
 						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
 					tipsContent: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
@@ -1494,7 +1523,8 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
 					tipsSimple: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
@@ -1502,7 +1532,8 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
 					order: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
@@ -1512,7 +1543,8 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
 					transfer: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
@@ -1523,7 +1555,8 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
 					// 鑱婂ぉ消息
 					chat: [
@@ -1535,7 +1568,8 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
 					// 收款消息
 					wxtf: [
@@ -1546,7 +1580,8 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
 					// 视频电话消息
 					video: [
@@ -1558,7 +1593,8 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
 					yuyin: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
@@ -1568,7 +1604,8 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
 					// 名片消息
 					crad: [
@@ -1579,7 +1616,8 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
 					redBag: [
 						{ icon: 'close', label: '删除', method: 'deleteMessage_1' },
@@ -1590,7 +1628,8 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
 					// 文件消息
 					file: [
@@ -1602,7 +1641,8 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
 					// 默认配置（用于其他类型）
 					default: [
@@ -1613,7 +1653,8 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
-						{ icon: 'info', label: '插入红包', method: 'insertRedBag' }
+						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
+						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 
 					]
 				},
@@ -1694,7 +1735,12 @@
 					{
 						name: "phone",
 						label: "语音通话",
-						icon: "/static/icon-phone.png"
+						icon: "/static/tell.png"
+					},
+					{
+						name: "callStatus",
+						label: "通话状态",
+						icon: "/static/tell.png"
 					}
 				],
 
@@ -2493,6 +2539,10 @@
 						case 'phone':
 							if (String(item.content || '') === '已取消') {
 								previewText = '[语音通话] 已取消';
+							} else if (String(item.content || '') === '未接听') {
+								previewText = '[语音通话] 对方未接听';
+							} else if (String(item.content || '') === '对方已取消') {
+								previewText = '[语音通话] 对方已取消';
 							} else {
 								previewText = `[语音通话] 通话时长${(item.content !== undefined && item.content !== null) ? String(item.content) : ''}`.trim();
 							}
@@ -2668,6 +2718,9 @@
 				if (tipType === 'revoke_self') {
 					return content.text || '你撤回了一条消息';
 				}
+				if (tipType === 'add_contact') {
+					return `你已添加了${content.friendName || '好友'}，现在可以开始聊天了`;
+				}
 				return `你收到了${content.gusetName || ''}的付款`;
 			},
 			getTipsActionText(messageItem) {
@@ -2677,6 +2730,9 @@
 					return '重新编辑';
 				}
 				if (tipType === 'revoke_other') {
+					return '';
+				}
+				if (tipType === 'add_contact') {
 					return '';
 				}
 				return '查看';
@@ -2692,6 +2748,21 @@
 						gusetName: '',
 						tipType: 'payment'
 					};
+					this.tipsKey = {
+						gusetName: "付款人名称"
+					};
+					this.$refs.tipsPopup.open();
+					return;
+				}
+				if (type === 'add_contact') {
+					this.editMsgIndex = -1;
+					this.tipsInfo = {
+						friendName: '',
+						tipType: 'add_contact'
+					};
+					this.tipsKey = {
+						friendName: "好友名称"
+					};
 					this.$refs.tipsPopup.open();
 					return;
 				}
@@ -2699,15 +2770,24 @@
 			},
 			addPresetTips(type) {
 				const location = this.isMe ? 1 : 0;
-				const content = type === 'revoke_other'
-					? {
+				let content;
+				if (type === 'revoke_other') {
+					content = {
 						tipType: 'revoke_other',
 						text: `${this.guestInfo.name || '对方'}撤回了一条消息`
-					}
-					: {
+					};
+				} else if (type === 'revoke_self') {
+					content = {
 						tipType: 'revoke_self',
 						text: '你撤回了一条消息'
 					};
+				} else if (type === 'add_contact') {
+					content = {
+						tipType: 'add_contact',
+						text: `你已添加了${this.guestInfo.name || '对方'}，现在可以开始聊天了`
+					};
+				}
+				if (!content) return;
 				const tipsInfo = {
 					type: 'content',
 					contentType: 'tips',
@@ -2764,6 +2844,35 @@
 			},
 			closeCallTypePopup() {
 				this.$refs.callTypePopup && this.$refs.callTypePopup.close()
+			},
+			// 打开通话状态选择弹窗
+			openCallStatusPopup(index) {
+				this.currentActionIndex = index;
+				this.$refs.callStatusPopup && this.$refs.callStatusPopup.open()
+			},
+			closeCallStatusPopup() {
+				this.$refs.callStatusPopup && this.$refs.callStatusPopup.close()
+			},
+			// 插入通话状态消息
+			onInsertCallStatus(status) {
+				this.closeCallStatusPopup();
+				const location = status === '已取消' ? 1 : 0; // 我方取消显示在右侧，其他显示在左侧
+				const phoneInfo = {
+					type: "content",
+					contentType: "phone",
+					location,
+					content: status
+				};
+
+				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
+					this.massageList.splice(this.currentActionIndex, 0, phoneInfo);
+					this.invalidateVirtualScrollCaches();
+					this.currentActionIndex = -1;
+				} else {
+					this.massageList.push(phoneInfo);
+				}
+				this.updateMsg();
+				this.activeMsgIndex = -1;
 			},
 			onSelectCallType(type) {
 				this.closeCallTypePopup()
@@ -2889,6 +2998,40 @@
 				this.updateMsg()
 			},
 			onTipsSubmit(data) {
+				if (data.tipType === 'add_contact') {
+					if (this.editMsgIndex !== -1 && this.editMsgIndex < this.massageList.length) {
+						this.massageList[this.editMsgIndex].content.friendName = data.friendName || "";
+						this.massageList[this.editMsgIndex].content.tipType = 'add_contact';
+						this.editMsgIndex = -1;
+						this.updateMsg();
+						uni.showToast({
+							title: '提示已更新',
+							icon: 'success'
+						});
+						return;
+					}
+					
+					const location = this.isMe ? 1 : 0;
+					const tipsInfo = {
+						type: "content",
+						contentType: "tips",
+						location,
+						content: {
+							friendName: data.friendName || "",
+							tipType: 'add_contact'
+						}
+					};
+					if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
+						this.massageList.splice(this.currentActionIndex, 0, tipsInfo);
+						this.invalidateVirtualScrollCaches();
+						this.currentActionIndex = -1;
+					} else {
+						this.massageList.push(tipsInfo);
+					}
+					this.updateMsg();
+					return;
+				}
+				
 				if (this.editMsgIndex !== -1 && this.editMsgIndex < this.massageList.length) {
 					this.massageList[this.editMsgIndex].content.gusetName = data.gusetName || "";
 					this.massageList[this.editMsgIndex].content.tipType = 'payment';
@@ -2923,7 +3066,7 @@
 			},
 			editTips(index) {
 				const tipType = this.massageList[index]?.content?.tipType || 'payment';
-				if (tipType !== 'payment') {
+				if (tipType !== 'payment' && tipType !== 'add_contact') {
 					uni.showToast({
 						title: '该提示类型不支持编辑',
 						icon: 'none'
@@ -2932,8 +3075,19 @@
 					return;
 				}
 				this.editMsgIndex = index;
-				this.tipsInfo.gusetName = this.massageList[index].content.gusetName || "";
-				this.tipsInfo.tipType = 'payment';
+				if (tipType === 'add_contact') {
+					this.tipsInfo.friendName = this.massageList[index].content.friendName || "";
+					this.tipsInfo.tipType = 'add_contact';
+					this.tipsKey = {
+						friendName: "好友名称"
+					};
+				} else {
+					this.tipsInfo.gusetName = this.massageList[index].content.gusetName || "";
+					this.tipsInfo.tipType = 'payment';
+					this.tipsKey = {
+						gusetName: "付款人名称"
+					};
+				}
 				this.$refs.tipsPopup.open();
 				this.activeMsgIndex = -1;
 			},
@@ -3025,6 +3179,10 @@
 						break;
 					case "phone":
 						this.$refs.phonePopup.open()
+						break;
+					case "callStatus":
+						this.currentActionIndex = -1;
+						this.$refs.callStatusPopup.open()
 						break;
 					default:
 						uni.showToast({
@@ -4557,6 +4715,7 @@
 	.tips-content {
 		text-align: center;
 		color: #999;
+		padding: 0 30rpx;
 	}
 
 	.order-tips {

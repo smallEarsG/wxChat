@@ -153,6 +153,15 @@
 						iconColor: 'text-teal-600',
 						handler: 'gotoGuset'
 					},
+					{
+						category: 'enterprise',
+						title: '收款账单',
+						subtitle: '管理企业收款账单记录',
+						icon: '📑',
+						iconBg: 'bg-pink-100',
+						iconColor: 'text-pink-600',
+						handler: 'gotoCollectionBill'
+					},
 					// 威信类
 					{
 						category: 'wechat',
@@ -453,6 +462,22 @@
 			gotoGuset() {
 				uni.navigateTo({
 					url: '/pages/getGuset/getGuset'
+				});
+			},
+			gotoCollectionBill() {
+				if (isMemberExpired(this.guestInfo.memberExpireAt)) {
+					if (this.guestInfo.tryCount == 0) {
+						uni.showToast({
+							title: '使用次数已用完请充值会员',
+							icon: 'none'
+						});
+						return
+					} else {
+						updateUseFeature(this.guestInfo.id)
+					}
+				}
+				uni.navigateTo({
+					url: '/pages/collectionBill/collectionBill'
 				});
 			},
 			gotoCodePay() {

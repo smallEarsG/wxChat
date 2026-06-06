@@ -76,7 +76,8 @@ export default {
 			return avatar;
 		},
 		displayAddTime() {
-			return this.detail.addTime || this.detail.createdAt || this.formatNow();
+			const rawTime = this.detail.addTime || this.detail.createdAt || this.formatNow();
+			return this.formatTimeWithoutSeconds(rawTime);
 		},
 		displaySource() {
 			return this.detail.soures || this.detail.source || '通过微信好友添加';
@@ -107,6 +108,14 @@ export default {
 			const hh = String(d.getHours()).padStart(2, '0');
 			const mm = String(d.getMinutes()).padStart(2, '0');
 			return `${y}-${m}-${day} ${hh}:${mm}`;
+		},
+		formatTimeWithoutSeconds(timeStr) {
+			if (!timeStr) return '';
+			const match = timeStr.match(/^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})(:\d{2})?$/);
+			if (match) {
+				return match[1];
+			}
+			return timeStr;
 		},
 		goBack() {
 			uni.navigateBack();

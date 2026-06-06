@@ -51,7 +51,7 @@
 						<view class="left">收单机构</view>
 						<view class="right" style="display: flex; align-items: center;">{{info.acquirer}} </view>
 					</view>
-					<view class="info-item">
+					<view class="info-item" v-if="info.herAccount">
 						<view class="left">收款方全称</view>
 						<view class="right">{{info.herAccount}}</view>
 					</view>

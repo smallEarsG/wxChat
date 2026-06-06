@@ -54,38 +54,26 @@
       </view>
     </view>
     
-    <!-- 数据卡片 -->
-    <view class="data-cards">
-      <view class="data-card" @click="Recharge">
-        <view class="card-header">
-          <uni-icons type="crown" size="24" color="#FFD700" />
-          <view class="card-title">会员特权</view>
-        </view>
-        <view class="card-value">
-		  <text v-if="_isMemberExpired(userInfo.memberExpireAt)">{{ userInfo.tryCount || 0 }} 次免费使用</text>
-          <text v-else >不限次免费使用</text>
-        </view>
-        <view class="card-arrow">
-          <uni-icons type="right" size="20" color="#ccc" />
-        </view>
-      </view>
-      <view class="data-card" @click="withdrawPoints">
-        <view class="card-header">
-          <uni-icons type="star" size="24" color="#FF9500" />
-          <view class="card-title">我的积分</view>
-        </view>
-        <view class="card-value">
-          <text>{{ userInfo.points || 0 }} 积分</text>
-        </view>
-        <view class="card-arrow">
-          <uni-icons type="right" size="20" color="#ccc" />
-        </view>
-      </view>
-      
-    </view>
+  
     
     <!-- 主要信息区域 -->
     <view class="info-section">
+      <!-- 分享下载卡片 -->
+      <view class="share-card" @click="copyDownloadLink">
+        <view class="share-content">
+          <view class="share-icon-box">
+            <uni-icons type="download" size="32" color="#fff" />
+          </view>
+          <view class="share-text">
+            <text class="share-title">分享下载链接</text>
+            <text class="share-desc">点击复制下载地址</text>
+          </view>
+        </view>
+        <view class="share-arrow">
+          <uni-icons type="right" size="20" color="#c0c0c0" />
+        </view>
+      </view>
+
       <view class="info-card">
         <view class="card-header">
           <span class="header-dot"></span>
@@ -161,6 +149,26 @@ export default {
     this.getUserInfo(userId)
   },
   methods: {
+    
+    // 复制下载地址功能
+    copyDownloadLink() {
+      const downloadLink = 'https://www.pgyer.com/77studio_1';
+      uni.setClipboardData({
+        data: downloadLink,
+        success: () => {
+          uni.showToast({ 
+            title: '下载地址已复制', 
+            icon: 'success' 
+          });
+        },
+        fail: () => {
+          uni.showToast({ 
+            title: '复制失败', 
+            icon: 'none' 
+          });
+        }
+      });
+    },
     
     // 复制邀请码功能
     copyInviteCode() {
@@ -659,6 +667,71 @@ export default {
 }
 .item-operate:hover {
   color: #7c3aed;
+}
+
+/* 分享下载卡片样式 */
+.share-card {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 25rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.share-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+}
+.share-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+.share-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+.share-icon-box {
+  width: 80rpx;
+  height: 80rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 25rpx;
+  backdrop-filter: blur(10rpx);
+}
+.share-text {
+  display: flex;
+  flex-direction: column;
+}
+.share-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8rpx;
+}
+.share-desc {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+.share-arrow {
+  position: relative;
+  z-index: 1;
 }
 
 /* 操作按钮 */

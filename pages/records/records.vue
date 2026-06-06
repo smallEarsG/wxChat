@@ -255,7 +255,7 @@
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				showMenu: false,
 				selectedTypeIndex: 0,
-				typeOptions: ['收款通知', '提现通知'],
+				typeOptions: ['收款通知', '提现通知', '模板修改'],
 				deleteOptions: [{
 					text: '删除',
 					style: {
