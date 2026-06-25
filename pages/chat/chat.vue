@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<template>
+﻿﻿<template>
 
 	<view class="chat-page" :style="{ '--global-font-size': currentFontSize + 'px', '--font-scale': Number(scale) || 1 }">
 		<!-- 全局水印层 -->
@@ -757,7 +757,7 @@
 					<image class="icon" :style="{ width: rpx(60), height: rpx(60) }" src="/static/icon-voice.png"
 						@click="addYuyin"></image>
 					<view class="input-box" :style="{  height: rpx(70) }"><textarea class="input"
-							:adjustPosition="false" v-model="inputValue" @confirm="onEnterKey" />
+							:adjustPosition="false" :maxlength="-1" v-model="inputValue" @confirm="onEnterKey" />
 					</view>
 					<image class="icon_face" :style="{ width: rpx(60), height: rpx(60) }" src="/static/icon-face.png"
 						@click="changeEmoji">
@@ -1513,6 +1513,7 @@
 						{ icon: 'wallet', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
@@ -1523,6 +1524,7 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
@@ -1532,6 +1534,7 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
@@ -1543,6 +1546,7 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
@@ -1555,6 +1559,7 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
@@ -1568,6 +1573,7 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
@@ -1580,6 +1586,7 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
@@ -1593,6 +1600,7 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
@@ -1604,6 +1612,7 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'folder', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
@@ -1616,6 +1625,7 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
@@ -1628,6 +1638,7 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
@@ -1638,9 +1649,11 @@
 						{ icon: 'person', label: '切换角色', method: 'toggleRole' },
 						{ icon: 'chatbubble', label: '消息插入', method: 'addMsg' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 					],
@@ -1653,6 +1666,7 @@
 						{ icon: 'info', label: '插入收款', method: 'insertOrder' },
 						{ icon: 'info', label: '插入转账', method: 'insertTransfer' },
 						{ icon: 'info', label: '插入文件', method: 'insertFile' },
+						{ icon: 'image', label: '插入图片', method: 'insertImage' },
 						{ icon: 'info', label: '插入红包', method: 'insertRedBag' },
 						{ icon: 'phone', label: '插入通话状态', method: 'openCallStatusPopup' }
 
@@ -2482,6 +2496,7 @@
 				})
 			},
 			openCustomerDetail() {
+				console.log(this.guestInfo)
 				uni.navigateTo({
 					url: "/pages/customerDetail/customerDetail?info=" + encodeURIComponent(JSON.stringify(this.guestInfo || {}))
 				});
@@ -2926,7 +2941,13 @@
 							avatar: res.data
 						}
 					};
-					this.massageList.push(photoInfo);
+					if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
+						this.massageList.splice(this.currentActionIndex, 0, photoInfo);
+						this.invalidateVirtualScrollCaches();
+						this.currentActionIndex = -1;
+					} else {
+						this.massageList.push(photoInfo);
+					}
 					this.updateMsg()
 				} catch (err) {
 					console.error('上传图片失败:', err);
@@ -3435,6 +3456,12 @@
 			insertFile(index) {
 				this.currentActionIndex = index;
 				this.$refs.filePopup.open();
+			},
+			
+			// 插入图片
+			insertImage(index) {
+				this.currentActionIndex = index;
+				this.$refs.photoPopup.open();
 			},
 
 			// 消息插入提交 (妯′豢wxChat)
@@ -4295,6 +4322,7 @@
 		display: flex;
 		/* text-align: center; */
 		align-items: center;
+		color: #333;
 
 	}
 

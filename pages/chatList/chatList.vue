@@ -352,7 +352,7 @@
 			async getMessageList() {
 
 				const res = await getConversationsByUser(this.userId, 'chat')
-				
+				console.log("=====原始数据=====",res)
 				this.msgList = res.data.sort((a, b) => this.parseCreatedAt(b.createdAt) - this.parseCreatedAt(a.createdAt));
 				// 保存数据到 storage（totalChatIndex 会通过 computed 自动更新）
 				this.$nextTick(() => {
@@ -374,7 +374,7 @@
 				})
 			},
 			goChat(item) {
-				console.log(this.totalChatIndex);
+				console.log("======",item);
 				uni.navigateTo({
 					url: '/pages/chat/chat?guestInfo=' + encodeURIComponent(JSON.stringify(item)) + '&emailIndexMsg=' + encodeURIComponent(String(this.totalChatIndex || 0))
 				});

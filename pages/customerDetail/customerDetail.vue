@@ -80,6 +80,7 @@ export default {
 			return this.formatTimeWithoutSeconds(rawTime);
 		},
 		displaySource() {
+			console.log( this.detail)
 			return this.detail.soures || this.detail.source || '通过微信好友添加';
 		},
 		genderText() {

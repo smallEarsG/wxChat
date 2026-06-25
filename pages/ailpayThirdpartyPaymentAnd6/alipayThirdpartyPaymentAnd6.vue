@@ -43,14 +43,15 @@
 						<view class="left">支付奖励</view>
 						<view class="right jfbg" > <image style="width: 34upx;margin-right: 10upx;"  src="/static/zfb/jf.png" mode="widthFix"></image>立即领取{{info.points || 15}}积分 </view>
 					</view>
-					<view class="info-item" v-if="info.clearingAgency" @click="exitInfo">
-						<view class="left">清算机构</view>
-						<view class="right" style="display: flex; align-items: center;">{{info.clearingAgency}} </view>
-					</view>
 					<view class="info-item" v-if="info.acquirer" @click="exitInfo">
 						<view class="left">收单机构</view>
 						<view class="right" style="display: flex; align-items: center;">{{info.acquirer}} </view>
 					</view>
+					<view class="info-item" v-if="info.clearingAgency" @click="exitInfo">
+						<view class="left">清算机构</view>
+						<view class="right" style="display: flex; align-items: center;">{{info.clearingAgency}} </view>
+					</view>
+					
 					<view class="info-item" v-if="info.herAccount">
 						<view class="left">收款方全称</view>
 						<view class="right">{{info.herAccount}}</view>

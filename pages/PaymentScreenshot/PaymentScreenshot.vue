@@ -26,8 +26,8 @@
 					</view>
 				</view>
 			</view>
-			<image src="/static/zfb/jietu.png" mode="widthFix"></image>
-			<view class="backBtn" @click="goBack">
+			<image :src="randomImage" mode="widthFix"></image>
+			<view class="backBtn"  @click="goBack">
 				
 			</view>
 		</view>
@@ -51,6 +51,7 @@
 		data() {
 			return {
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
+				randomImage: '/static/zfb/1.png',
 				// 付款截图上方的所有文案
 				textData: {
 					bigMoney: '1.00',          // 大金额
@@ -70,7 +71,8 @@
 			}
 		},
 		onLoad() {
-
+			const randomIndex = Math.floor(Math.random() * 5) + 1
+			this.randomImage = `/static/zfb/${randomIndex}.png`
 		},
 		onShow() {
 			uni.setNavigationBarColor({
@@ -107,9 +109,9 @@
 		position: absolute;
 		z-index: 1;
 		/* background-color: #1678ff; */
-		height: 100rpx;
+		height: 120rpx;
 		width: 100%;
-		bottom: 90rpx;
+		bottom: 50rpx;
 		/* width: 200rpx; */
 		
 	}
@@ -149,11 +151,12 @@
 		background:linear-gradient(to bottom,#1678ff,#2c8dff);
 		position: absolute;
 		z-index: 1;
-		margin-top: 188rpx;
+		margin-top: 240rpx;
 		display: flex;
 		flex-direction: column;
 		width: 100%;
 		color: #fff;
+		/* padding-top:10rpx */
 		/* background-color: antiquewhite; */
 	}
 	.content {

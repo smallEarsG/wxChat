@@ -4,6 +4,9 @@
 		<view class="nav" :style="{ paddingTop: (previewMode ? 20 : statusBarHeight) + 'px' }">
 			<uni-icons v-if="!previewMode" class="close" type="closeempty" color="#000" size="22" @click="$emit('goBack')"></uni-icons>
 			<uni-icons v-else class="close" type="closeempty" color="#000" size="22"></uni-icons>
+			<view v-if="isIos" class="nav-title">
+				账单
+			</view>
 			<view class="allOrder" v-if="info.order" :style="{ fontSize: (36 * fontScale) + 'rpx' }">全部账单</view>
 		</view>
 
@@ -87,7 +90,7 @@
 					<view class="serivce_bx">
 					<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
 						<view class="se_icon">
-							<image class="cordIcon" src="/static/cordIcon.png" mode=""></image>
+							<image class="cordIcon" src="/static/cordIcon.png" mode="widthFix"></image>
 						</view>
 						收款方名片
 					</view>
@@ -125,6 +128,9 @@
 			};
 		},
 		computed: {
+			isIos() {
+				return uni.getSystemInfoSync().platform === 'ios';
+			},
 			fontScale() {
 				return (this.info.fontSize || 100) / 100;
 			}

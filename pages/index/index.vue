@@ -208,6 +208,15 @@
 						iconColor: 'text-green-600',
 						handler: 'goToWxPayment'
 					},
+					{
+						category: 'wechat',
+						title: '收账单',
+						subtitle: '快速生成微信收账单页面',
+						icon: '📑',
+						iconBg: 'bg-pink-100',
+						iconColor: 'text-pink-600',
+						handler: 'gotoWxCollectionBill'
+					},
 					// 支付宝类
 					{
 						category: 'alipay',
@@ -478,6 +487,22 @@
 				}
 				uni.navigateTo({
 					url: '/pages/collectionBill/collectionBill'
+				});
+			},
+			gotoWxCollectionBill() {
+				if (isMemberExpired(this.guestInfo.memberExpireAt)) {
+					if (this.guestInfo.tryCount == 0) {
+						uni.showToast({
+							title: '使用次数已用完请充值会员',
+							icon: 'none'
+						});
+						return
+					} else {
+						updateUseFeature(this.guestInfo.id)
+					}
+				}
+				uni.navigateTo({
+					url: '/pages/wxCollectionBill/wxCollectionBill'
 				});
 			},
 			gotoCodePay() {

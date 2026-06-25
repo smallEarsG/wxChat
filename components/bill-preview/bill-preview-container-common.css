@@ -24,6 +24,15 @@
 	bottom: 10upx;
 }
 
+.bill-preview .nav-title {
+	position: absolute;
+	left: 50%;
+	bottom: 10upx;
+	transform: translateX(-50%);
+	font-size: 36upx;
+	line-height: 1;
+}
+
 .bill-preview .close {
 	padding-left: 20rpx;
 	position: relative;

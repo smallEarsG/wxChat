@@ -4,6 +4,9 @@
 		<view class="nav" :style="{ paddingTop: (previewMode ? 20 : statusBarHeight) + 'px' }">
 			<uni-icons v-if="!previewMode" class="close" type="closeempty" color="#000" size="22" @click="$emit('goBack')"></uni-icons>
 			<uni-icons v-else class="close" type="closeempty" color="#000" size="22"></uni-icons>
+			<view v-if="isIos" class="nav-title">
+				账单
+			</view>
 			<view class="allOrder" v-if="info.order" :style="{ fontSize: (36 * fontScale) + 'rpx' }">全部账单</view>
 		</view>
 		
@@ -121,6 +124,9 @@
 			}
 		},
 		computed: {
+			isIos() {
+				return uni.getSystemInfoSync().platform === 'ios';
+			},
 			fontScale() {
 				return (this.info.fontSize || 100) / 100;
 			}
@@ -160,5 +166,16 @@
 		width: 28rpx;
 		height: 28rpx;
 		top: 4rpx;
+	}
+
+	.bill-preview .nav-title {
+		position: absolute;
+		left: 50%;
+		bottom: 24upx;
+		transform: translateX(-50%);
+		font-size: 36upx;
+		line-height: 1;
+		font-weight: 500;
+		
 	}
 </style>
