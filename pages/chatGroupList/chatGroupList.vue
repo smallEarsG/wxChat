@@ -480,7 +480,7 @@ export default {
     // 进入群聊
     enterGroup(group) {
       uni.navigateTo({
-        url: `/pages/chatGrop/chatGrop?guestInfo=${encodeURIComponent(JSON.stringify({ nickname: group.name, avatar: group.avatarUrl || group.avatar }))}`
+        url: `/pages/chatGrop/chatGrop?guestInfo=${encodeURIComponent(JSON.stringify({ nickname: group.name, avatar: group.avatarUrl || group.avatar ,description:group.description}))}`
       });
     },
     
