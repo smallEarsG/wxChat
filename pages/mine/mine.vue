@@ -126,7 +126,7 @@ import {
   logout,
   withdraw,
   getPayMember,
-  activateMember
+  queryPayStatus
 } from '@/api/index.js'
 import VipRechargeDialog from '../../components/VipRechargeDialog/VipRechargeDialog.vue';
 import { isMemberExpired } from '@/utils/tool.js'
@@ -147,6 +147,7 @@ export default {
   onShow() {
     const userId = uni.getStorageSync('userId')
     this.getUserInfo(userId)
+    this.checkPendingPayOrder()
   },
   methods: {
     
@@ -185,31 +186,95 @@ export default {
     },
     
     async pay(data) {
-      let srt = await getPayMember(this.userInfo.id, data.price)
-      
-      if (!srt || !srt.data || typeof srt.data !== 'string') {
-        console.error('支付订单信息无效', srt);
-        uni.showToast({
-          title: '获取支付信息失败',
-          icon: 'none'
-        });
-        return;
-      }
-      
-      uni.requestPayment({
-        provider: 'alipay',
-        orderInfo: srt.data,
-        success: async (res) => {
-          uni.showToast({ title: '支付成功' });
-          const resl = await activateMember(this.userInfo.id, data.type)
-          this.getUserInfo(this.userInfo.id)
-          this.Recharge()
-        },
-        fail: function(err) {
-          console.log('支付失败', err);
-          uni.showToast({ title: '支付失败', icon: 'none' });
+      try {
+        const res = await getPayMember(this.userInfo.id, data.price, data.type)
+        const payData = res?.data
+        const orderStr = typeof payData === 'string' ? payData : payData?.orderStr
+        const orderNo = typeof payData === 'object' ? payData?.orderNo : null
+
+        if (!orderStr) {
+          console.error('支付订单信息无效', res)
+          uni.showToast({ title: '获取支付信息失败', icon: 'none' })
+          return
         }
-      });
+
+        if (orderNo) {
+          uni.setStorageSync('pendingPayOrderNo', orderNo)
+        }
+
+        uni.requestPayment({
+          provider: 'alipay',
+          orderInfo: orderStr,
+          success: () => {
+            if (orderNo) {
+              this.checkPayResult(orderNo)
+            } else {
+              uni.showToast({ title: '支付成功', icon: 'none' })
+              this.getUserInfo(this.userInfo.id)
+              this.Recharge()
+            }
+          },
+          fail: (err) => {
+            console.log('支付回调失败，尝试查单确认', err)
+            if (orderNo) {
+              this.checkPayResult(orderNo)
+            } else {
+              uni.showToast({ title: '支付失败', icon: 'none' })
+            }
+          }
+        })
+      } catch (err) {
+        console.error('创建支付订单失败', err)
+        uni.showToast({ title: '获取支付信息失败', icon: 'none' })
+      }
+    },
+
+    sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms))
+    },
+
+    async checkPayResult(orderNo) {
+      uni.showLoading({ title: '确认支付结果...' })
+      try {
+        for (let i = 0; i < 5; i++) {
+          const res = await queryPayStatus(orderNo)
+          const status = res?.data?.status
+          if (status === 'PAID') {
+            uni.hideLoading()
+            uni.removeStorageSync('pendingPayOrderNo')
+            uni.showToast({ title: '支付成功' })
+            this.getUserInfo(this.userInfo.id)
+            this.Recharge()
+            return
+          }
+          if (i < 4) {
+            await this.sleep(2000)
+          }
+        }
+        uni.hideLoading()
+        uni.showToast({ title: '支付结果确认中，请稍后刷新', icon: 'none' })
+      } catch (err) {
+        uni.hideLoading()
+        console.error('查询支付状态失败', err)
+        uni.showToast({ title: '支付结果确认中，请稍后刷新', icon: 'none' })
+      }
+    },
+
+    async checkPendingPayOrder() {
+      const orderNo = uni.getStorageSync('pendingPayOrderNo')
+      if (!orderNo) return
+      try {
+        const res = await queryPayStatus(orderNo)
+        if (res?.data?.status === 'PAID') {
+          uni.removeStorageSync('pendingPayOrderNo')
+          const userId = uni.getStorageSync('userId')
+          if (userId) {
+            this.getUserInfo(userId)
+          }
+        }
+      } catch (err) {
+        console.error('补查支付订单失败', err)
+      }
     },
     
     _isMemberExpired(at) {
