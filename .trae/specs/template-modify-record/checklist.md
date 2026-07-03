@@ -1,0 +1,5 @@
+- [x] Checkpoint 1: 保存新模板时自动创建修改记录
+- [x] Checkpoint 2: 编辑模板时自动创建修改记录（action为'update'）
+- [ ] Checkpoint 3: 修改记录页面显示模板修改记录卡片
+- [ ] Checkpoint 4: 点击模板修改记录跳转到模板编辑页面
+- [ ] Checkpoint 5: 删除模板时清理相关修改记录
