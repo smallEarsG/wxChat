@@ -118,6 +118,7 @@
 		</view>
 		<EditableFormPopup ref="indexPopup" :value="indexInfo" :fieldLabels="indexKey" @submit="onIndexSubmit" />
 		<ProMsgEditPopup ref="wxChatPopup" @submit="onSubmitWx"></ProMsgEditPopup>
+		<AgentConversationPopup ref="agentPopup" @success="onAgentCreateSuccess"></AgentConversationPopup>
 		<MessageEditPopup ref="msgEditPopup" @submit="onSubmitMessageEdit"></MessageEditPopup>
 	</view>
 </template>
@@ -134,11 +135,13 @@
 		getUUid
 	} from '@/utils/tool.js'
 	import ProMsgEditPopup from '@/components/ProMsgEditPopup/ProMsgEditPopup.vue'
+	import AgentConversationPopup from '@/components/AgentConversationPopup/AgentConversationPopup.vue'
 	import EditableFormPopup from '@/components/EditableFormPopup/EditableFormPopup.vue'
 	import MessageEditPopup from '@/components/MessageEditPopup/MessageEditPopup.vue'
 	export default {
 		components: {
 			ProMsgEditPopup,
+			AgentConversationPopup,
 			EditableFormPopup,
 			MessageEditPopup
 		},
@@ -380,23 +383,50 @@
 				});
 			},
 			addMsgbox() {
-				// 打开添加对话弹窗
-				// 组件内部会自动生成随机用户名和头像（如果是新增模式）
-				const defaultData = {
-					createdAt: '上午 8:15',
-					type: 'chat',
-					chatIndex: 0,
-					description: '@微信'
-				};
-				
-				if (this.$refs.wxChatPopup) {
-					this.$refs.wxChatPopup.open(defaultData);
-				} else {
-					uni.showToast({
-						title: '添加对话功能暂不可用',
-						icon: 'none'
-					});
-				}
+				uni.showActionSheet({
+					itemList: ['AI生成对话', '自定义对话'],
+					success: (res) => {
+						if (res.tapIndex === 0) {
+							if (!this.msgList || this.msgList.length === 0) {
+								uni.showToast({
+									title: '请先添加对话后再使用AI生成',
+									icon: 'none'
+								})
+								return
+							}
+							if (this.$refs.agentPopup) {
+								this.$refs.agentPopup.open(this.msgList)
+							} else {
+								uni.showToast({
+									title: 'AI生成对话功能暂不可用',
+									icon: 'none'
+								})
+							}
+							return
+						}
+						const defaultData = {
+							createdAt: '上午 8:15',
+							type: 'chat',
+							chatIndex: 0,
+							description: '@微信'
+						}
+						if (this.$refs.wxChatPopup) {
+							this.$refs.wxChatPopup.open(defaultData)
+						} else {
+							uni.showToast({
+								title: '添加对话功能暂不可用',
+								icon: 'none'
+							})
+						}
+					}
+				})
+			},
+			onAgentCreateSuccess() {
+				this.getMessageList()
+				uni.showToast({
+					title: 'AI对话创建成功',
+					icon: 'success'
+				})
 			},
 			hasHttp(str) {
 				// 正则说明：

@@ -15,6 +15,13 @@ export const withdraw = (data) => request({ url: '/user/withdraw', method: 'POST
 export const getWithdrawRecords = (userId) => request({ url: '/user/info/'+userId, method: 'GET' })
 export const getPayMember = (userId, price, memberType) =>
   request({ url: `/user/pay/member?userId=${userId}&priceOne=${price}&memberType=${memberType}&port=${getApiPort()}`, method: 'GET' })
+export const getPayPoints = (userId, packageCode) =>
+  request({ url: `/user/pay/points?userId=${userId}&packageCode=${packageCode}&port=${getApiPort()}`, method: 'GET' })
+export const deductPoints = (userId, points = 20, reason = 'ai_conversation') =>
+  request({
+    url: `/user/points/deduct?userId=${encodeURIComponent(userId)}&points=${points}&reason=${encodeURIComponent(reason)}`,
+    method: 'POST'
+  })
 export const queryPayStatus = (orderNo) => request({ url: `/user/pay/status/${orderNo}`, method: 'GET' })
 export const logout = (userId) => request({ url: '/user/logout/'+userId, method: 'POST' })
 export const activateMember = (userId,time) => request({ url: '/user/activate-member/'+userId+"/"+time, method: 'POST' })

@@ -9,6 +9,9 @@
 // export  const REMOTE_API = 'http://106.15.137.235:9093/api';
 export  const REMOTE_API = 'http://106.15.137.235:8080/api';
 const H5_PROXY = '/pawlapi';
+const H5_LOCAL_API = 'http://localhost:9092/api';
+// 请求超时：5 分钟（毫秒）
+export const REQUEST_TIMEOUT = 5 * 60 * 1000;
 
 // 判断当前环境是否为H5
 function isH5Env() {
@@ -20,8 +23,20 @@ function isH5Env() {
 	// #endif
 }
 
+function resolveBaseUrl() {
+	if (!isH5Env()) {
+		return REMOTE_API;
+	}
+	// #ifdef H5
+	if (process.env.NODE_ENV === 'development') {
+		return H5_LOCAL_API;
+	}
+	// #endif
+	return H5_PROXY;
+}
+
 // 根据环境动态选择BASE_URL
-export const BASE_URL = isH5Env() ? H5_PROXY : REMOTE_API;
+export const BASE_URL = resolveBaseUrl();
 
 // 将对象转为 URL 编码形式
 function formatFormData(data) {
@@ -51,6 +66,7 @@ function createRequest(options = {}) {
 			uni.request({
 				url: BASE_URL + url,
 				method,
+				timeout: REQUEST_TIMEOUT,
 				sslVerify: false,
 				data: shouldUseFormData ? formatFormData(data) : data,
 				header: {
@@ -166,6 +182,7 @@ export function Filerequest(filePath, conversationId) {
 			url: uploadUrl,
 			filePath: filePath,
 			name: 'file',
+			timeout: REQUEST_TIMEOUT,
 			header: {
 				// 不要手动设置 Content-Type，uni.uploadFile 会自动设置正确的 multipart/form-data 和 boundary
 				'Authorization': uni.getStorageSync('token') || ''

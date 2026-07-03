@@ -386,14 +386,14 @@
                 "enablePullDownRefresh" : false
             }
         },
-        {
-            "path" : "pages/wxCollectionBill/wxCollectionBill",
-            "style" : {
-                "navigationBarTitleText" : "收账单",
-                "navigationStyle" : "custom",
-                "enablePullDownRefresh" : false
-            }
-        },
+        // {
+        //     "path" : "pages/wxCollectionBill/wxCollectionBill",
+        //     "style" : {
+        //         "navigationBarTitleText" : "收账单",
+        //         "navigationStyle" : "custom",
+        //         "enablePullDownRefresh" : false
+        //     }
+        // },
         {
             "path" : "pages/template-config/template-config",
             "style" : {

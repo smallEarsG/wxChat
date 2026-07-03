@@ -74,17 +74,33 @@
         </view>
       </view>
 
+      <view class="points-card" @click="openPointsRecharge">
+        <view class="points-content">
+          <view class="points-icon-box">
+            <uni-icons type="wallet" size="36" color="#fff" />
+          </view>
+          <view class="points-text">
+            <text class="points-label">我的积分</text>
+            <text class="points-value">{{ displayPoints }}</text>
+          </view>
+        </view>
+        <view class="points-recharge-hint">
+          <text class="points-hint-text">去充值</text>
+          <uni-icons type="right" size="16" color="rgba(255,255,255,0.85)" />
+        </view>
+      </view>
+
       <view class="info-card">
         <view class="card-header">
           <span class="header-dot"></span>
           个人信息
         </view>
-        <view class="info-item">
+        <!-- <view class="info-item">
           <uni-icons type="code" size="24" color="#666" class="item-icon" />
           <text class="item-label">邀请码</text>
           <text class="item-value">{{ userInfo.inviteCode || '--' }}</text>
           <uni-icons type="copy" size="20" color="#ccc" class="item-operate" @click="copyInviteCode" />
-        </view>
+        </view> -->
         <view class="info-item">
           <uni-icons type="phone" size="24" color="#666" class="item-icon" />
           <text class="item-label">管理员</text>
@@ -93,9 +109,9 @@
       </view>
       
       <view class="action-card">
-        <button class="btn-withdraw" @click="withdrawPoints">
+        <button class="btn-withdraw" @click="openPointsRecharge">
           <uni-icons type="arrowdown" size="22" />
-          积分提现
+          积分充值
         </button>
         <button class="btn-recharge" @click="Recharge">
           <uni-icons type="plus" size="22" />
@@ -116,6 +132,7 @@
     
     <!-- 充值对话框 -->
     <VipRechargeDialog ref="vipRecharge" :show="payShow" @pay="pay" @close="Recharge" />
+    <PointsRechargeDialog :show="pointsPayShow" @pay="payPoints" @close="closePointsRecharge" />
   </view>
 </template>
 
@@ -126,21 +143,25 @@ import {
   logout,
   withdraw,
   getPayMember,
+  getPayPoints,
   queryPayStatus
 } from '@/api/index.js'
 import VipRechargeDialog from '../../components/VipRechargeDialog/VipRechargeDialog.vue';
+import PointsRechargeDialog from '../../components/PointsRechargeDialog/PointsRechargeDialog.vue';
 import { isMemberExpired } from '@/utils/tool.js'
-import { BASE_URL } from '@/utils/request.js' 
+import { BASE_URL, REQUEST_TIMEOUT } from '@/utils/request.js'
 
 
 export default {
   components:{
-    VipRechargeDialog
+    VipRechargeDialog,
+    PointsRechargeDialog
   },
   data() {
     return {
 	  statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
       payShow: false,
+      pointsPayShow: false,
       userInfo: {}
     };
   },
@@ -148,6 +169,18 @@ export default {
     const userId = uni.getStorageSync('userId')
     this.getUserInfo(userId)
     this.checkPendingPayOrder()
+    if (uni.getStorageSync('openPointsRecharge')) {
+      uni.removeStorageSync('openPointsRecharge')
+      this.$nextTick(() => {
+        this.openPointsRecharge()
+      })
+    }
+  },
+  computed: {
+    displayPoints() {
+      const points = this.userInfo.points
+      return points === null || points === undefined || points === '' ? 0 : points
+    }
   },
   methods: {
     
@@ -186,8 +219,22 @@ export default {
     },
     
     async pay(data) {
+      await this.startPayment(
+        () => getPayMember(this.userInfo.id, data.price, data.type),
+        () => this.Recharge()
+      )
+    },
+
+    async payPoints(data) {
+      await this.startPayment(
+        () => getPayPoints(this.userInfo.id, data.code),
+        () => this.closePointsRecharge()
+      )
+    },
+
+    async startPayment(createOrder, onSuccessClose) {
       try {
-        const res = await getPayMember(this.userInfo.id, data.price, data.type)
+        const res = await createOrder()
         const payData = res?.data
         const orderStr = typeof payData === 'string' ? payData : payData?.orderStr
         const orderNo = typeof payData === 'object' ? payData?.orderNo : null
@@ -207,17 +254,17 @@ export default {
           orderInfo: orderStr,
           success: () => {
             if (orderNo) {
-              this.checkPayResult(orderNo)
+              this.checkPayResult(orderNo, onSuccessClose)
             } else {
               uni.showToast({ title: '支付成功', icon: 'none' })
               this.getUserInfo(this.userInfo.id)
-              this.Recharge()
+              onSuccessClose()
             }
           },
           fail: (err) => {
             console.log('支付回调失败，尝试查单确认', err)
             if (orderNo) {
-              this.checkPayResult(orderNo)
+              this.checkPayResult(orderNo, onSuccessClose)
             } else {
               uni.showToast({ title: '支付失败', icon: 'none' })
             }
@@ -233,7 +280,7 @@ export default {
       return new Promise(resolve => setTimeout(resolve, ms))
     },
 
-    async checkPayResult(orderNo) {
+    async checkPayResult(orderNo, onSuccessClose = () => this.Recharge()) {
       uni.showLoading({ title: '确认支付结果...' })
       try {
         for (let i = 0; i < 5; i++) {
@@ -244,7 +291,7 @@ export default {
             uni.removeStorageSync('pendingPayOrderNo')
             uni.showToast({ title: '支付成功' })
             this.getUserInfo(this.userInfo.id)
-            this.Recharge()
+            onSuccessClose()
             return
           }
           if (i < 4) {
@@ -293,6 +340,14 @@ export default {
     Recharge() {
       this.payShow = !this.payShow 
     },
+
+    openPointsRecharge() {
+      this.pointsPayShow = true
+    },
+
+    closePointsRecharge() {
+      this.pointsPayShow = false
+    },
     
     async getUserInfo(userId) {
       const res = await getUserInfo(userId)
@@ -318,6 +373,7 @@ export default {
           url: `${BASE_URL}/user/update/${this.userInfo.id}`,
           filePath,
           name: 'avatar',
+          timeout: REQUEST_TIMEOUT,
           formData,
           success: (res) => this.handleResponse(res),
           fail: (err) => {
@@ -329,6 +385,7 @@ export default {
         uni.request({
           url: `${BASE_URL}/user/update/${this.userInfo.id}`,
           method: 'POST',
+          timeout: REQUEST_TIMEOUT,
           header: { 'Content-Type': 'application/x-www-form-urlencoded' },
           data: formData,
           success: (res) => this.handleResponse(res),
@@ -370,41 +427,6 @@ export default {
         }
       });
     },
-
-    withdrawPoints() {
-      if (!this.userInfo.points) {
-        uni.showToast({ title: '积分不足', icon: 'none' });
-        return;
-      }
-      
-      uni.showModal({
-        title: '积分提现',
-        content: `您当前有 ${this.userInfo.points} 积分，确定要全部提现吗？`,
-        success: async (res) => {
-          if (res.confirm) {
-            uni.showLoading({ title: '提现中...' });
-            
-            const form = {
-              points: this.userInfo.points,
-              userId: this.userInfo.id,
-              alipayAccount: "18216267971",
-              realName: "郭治金"
-            }
-            
-            const svl = await withdraw(form)
-            uni.hideLoading();
-            
-            if (svl.code === 200) {
-              uni.showToast({ title: '提现成功', icon: 'success' });
-              this.getUserInfo(this.userInfo.id);
-            } else {
-              uni.showToast({ title: svl.message || '提现失败', icon: 'none' });
-            }
-          }
-        }
-      });
-    },
-
     logout() {
       uni.showModal({
         title: '确认退出',
@@ -732,6 +754,84 @@ export default {
 }
 .item-operate:hover {
   color: #7c3aed;
+}
+
+/* 积分卡片 */
+.points-card {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 25rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8rpx 20rpx rgba(245, 158, 11, 0.35);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.points-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 12rpx rgba(245, 158, 11, 0.35);
+}
+.points-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.points-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+.points-icon-box {
+  width: 80rpx;
+  height: 80rpx;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 25rpx;
+  backdrop-filter: blur(10rpx);
+}
+.points-text {
+  display: flex;
+  flex-direction: column;
+}
+.points-label {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 6rpx;
+}
+.points-value {
+  font-size: 52rpx;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: 1rpx;
+}
+.points-recharge-hint {
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10rpx 20rpx;
+  border-radius: 30rpx;
+  backdrop-filter: blur(10rpx);
+}
+.points-hint-text {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.9);
+  margin-right: 4rpx;
 }
 
 /* 分享下载卡片样式 */
