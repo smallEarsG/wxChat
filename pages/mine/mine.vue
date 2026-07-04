@@ -144,7 +144,7 @@ import {
   withdraw,
   getPayMember,
   getPayPoints,
-  queryPayStatus
+  confirmPayOrder
 } from '@/api/index.js'
 import VipRechargeDialog from '../../components/VipRechargeDialog/VipRechargeDialog.vue';
 import PointsRechargeDialog from '../../components/PointsRechargeDialog/PointsRechargeDialog.vue';
@@ -168,7 +168,6 @@ export default {
   onShow() {
     const userId = uni.getStorageSync('userId')
     this.getUserInfo(userId)
-    this.checkPendingPayOrder()
     if (uni.getStorageSync('openPointsRecharge')) {
       uni.removeStorageSync('openPointsRecharge')
       this.$nextTick(() => {
@@ -245,29 +244,25 @@ export default {
           return
         }
 
-        if (orderNo) {
-          uni.setStorageSync('pendingPayOrderNo', orderNo)
-        }
-
         uni.requestPayment({
           provider: 'alipay',
           orderInfo: orderStr,
-          success: () => {
-            if (orderNo) {
-              this.checkPayResult(orderNo, onSuccessClose)
-            } else {
-              uni.showToast({ title: '支付成功', icon: 'none' })
-              this.getUserInfo(this.userInfo.id)
+          success: async () => {
+            try {
+              if (orderNo) {
+                await confirmPayOrder(orderNo)
+              }
+              await this.getUserInfo(this.userInfo.id)
+              uni.showToast({ title: '支付成功', icon: 'success' })
               onSuccessClose()
+            } catch (err) {
+              console.error('确认充值失败', err)
+              uni.showToast({ title: '充值确认失败', icon: 'none' })
             }
           },
           fail: (err) => {
-            console.log('支付回调失败，尝试查单确认', err)
-            if (orderNo) {
-              this.checkPayResult(orderNo, onSuccessClose)
-            } else {
-              uni.showToast({ title: '支付失败', icon: 'none' })
-            }
+            console.log('支付失败', err)
+            uni.showToast({ title: '支付失败', icon: 'none' })
           }
         })
       } catch (err) {
@@ -276,54 +271,6 @@ export default {
       }
     },
 
-    sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms))
-    },
-
-    async checkPayResult(orderNo, onSuccessClose = () => this.Recharge()) {
-      uni.showLoading({ title: '确认支付结果...' })
-      try {
-        for (let i = 0; i < 5; i++) {
-          const res = await queryPayStatus(orderNo)
-          const status = res?.data?.status
-          if (status === 'PAID') {
-            uni.hideLoading()
-            uni.removeStorageSync('pendingPayOrderNo')
-            uni.showToast({ title: '支付成功' })
-            this.getUserInfo(this.userInfo.id)
-            onSuccessClose()
-            return
-          }
-          if (i < 4) {
-            await this.sleep(2000)
-          }
-        }
-        uni.hideLoading()
-        uni.showToast({ title: '支付结果确认中，请稍后刷新', icon: 'none' })
-      } catch (err) {
-        uni.hideLoading()
-        console.error('查询支付状态失败', err)
-        uni.showToast({ title: '支付结果确认中，请稍后刷新', icon: 'none' })
-      }
-    },
-
-    async checkPendingPayOrder() {
-      const orderNo = uni.getStorageSync('pendingPayOrderNo')
-      if (!orderNo) return
-      try {
-        const res = await queryPayStatus(orderNo)
-        if (res?.data?.status === 'PAID') {
-          uni.removeStorageSync('pendingPayOrderNo')
-          const userId = uni.getStorageSync('userId')
-          if (userId) {
-            this.getUserInfo(userId)
-          }
-        }
-      } catch (err) {
-        console.error('补查支付订单失败', err)
-      }
-    },
-    
     _isMemberExpired(at) {
       return isMemberExpired(at)
     },

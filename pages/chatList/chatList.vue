@@ -58,7 +58,7 @@
 								<view class="msg_box">
 									<view class="msg_top">
 										<view class="msg_title">{{item.name}} <text
-												class="title_desc">{{item.description}}</text></view>
+												class="title_desc">@微信</text></view>
 										<view class="msg_time">{{item.createdAt}}</view>
 									</view>
 									<view class="msg_desc">

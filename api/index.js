@@ -23,6 +23,7 @@ export const deductPoints = (userId, points = 20, reason = 'ai_conversation') =>
     method: 'POST'
   })
 export const queryPayStatus = (orderNo) => request({ url: `/user/pay/status/${orderNo}`, method: 'GET' })
+export const confirmPayOrder = (orderNo) => request({ url: `/user/pay/confirm/${orderNo}`, method: 'POST' })
 export const logout = (userId) => request({ url: '/user/logout/'+userId, method: 'POST' })
 export const activateMember = (userId,time) => request({ url: '/user/activate-member/'+userId+"/"+time, method: 'POST' })
 export const selectInfoFormPhone = (phone) => request({ url: '/user/phone/'+phone, method: 'GET' })

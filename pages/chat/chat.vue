@@ -1,4 +1,4 @@
-﻿﻿<template>
+<template>
 
 	<view class="chat-page" :style="{ '--global-font-size': currentFontSize + 'px', '--font-scale': Number(scale) || 1 }">
 		<!-- 全局水印层 -->
@@ -12,7 +12,7 @@
 				<view class="nikeName" :style="{ fontSize: rpx(34),fontWeight:'500' }">
 					{{guestInfo.name || "企业微信工坊"}}
 				</view>
-				<view class="desc" :style="{ fontSize: rpx(24),color: '#4bc768' }">{{guestInfo.description}}</view>
+				<view class="desc" :style="{ fontSize: rpx(24),color: '#4bc768' }" >@微信</view>
 			</view>
 			<view class="icons">
 				<image @click="addVideo" class="nav-icon_phone" mode="widthFix" src="/static/icon-phone.png"></image>
@@ -878,6 +878,7 @@
 						<view class="calltype-item" @click="onSelectTipsType('revoke_other')">对方撤回提示</view>
 						<view class="calltype-item" @click="onSelectTipsType('revoke_self')">我方撤回提示</view>
 						<view class="calltype-item" @click="onSelectTipsType('add_contact')">添加好友提示</view>
+						<view class="calltype-item" @click="onSelectTipsType('greeting')">打招呼内容提示</view>
 						<view class="calltype-cancel" @click="closeTipsTypePopup">取消</view>
 					</view>
 				</uni-popup>
@@ -2734,7 +2735,10 @@
 					return content.text || '你撤回了一条消息';
 				}
 				if (tipType === 'add_contact') {
-					return `你已添加了${content.friendName || '好友'}，现在可以开始聊天了`;
+					return `你已添加了${content.friendName || '好友'}，现在可以开始聊天了。`;
+				}
+				if (tipType === 'greeting') {
+					return content.text || '以上是打招呼内容';
 				}
 				return `你收到了${content.gusetName || ''}的付款`;
 			},
@@ -2748,6 +2752,9 @@
 					return '';
 				}
 				if (tipType === 'add_contact') {
+					return '';
+				}
+				if (tipType === 'greeting') {
 					return '';
 				}
 				return '查看';
@@ -2800,6 +2807,11 @@
 					content = {
 						tipType: 'add_contact',
 						text: `你已添加了${this.guestInfo.name || '对方'}，现在可以开始聊天了`
+					};
+				} else if (type === 'greeting') {
+					content = {
+						tipType: 'greeting',
+						text: '以上是打招呼内容'
 					};
 				}
 				if (!content) return;

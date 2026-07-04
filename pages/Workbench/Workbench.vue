@@ -16,6 +16,7 @@
 				<image src="/static/conelse/a2.png" mode="widthFix"></image>
 			</view>
 			<image src="/static/conelse/a3.png" mode="widthFix"></image>
+			<image src="/static/conelse/a3.1.png" mode="widthFix"></image>
 			<image src="/static/conelse/a4.png" mode="widthFix"></image>
 			<image src="/static/conelse/a5.png" mode="widthFix"></image>
 			<image src="/static/conelse/a6.png" mode="widthFix"></image>
@@ -87,7 +88,7 @@
 					t1: '1',
 					t2: '0',
 					t3: '0.00',
-					fontWeight: 600,
+					fontWeight: 500,
 					fontSize: 48
 				},
 				workbenchLabels: {
