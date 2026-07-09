@@ -74,9 +74,17 @@
 						</view>
 						<view class="se_item" v-if="isGroup" @longpress="showGroup" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
 							<view class="se_icon">
-								<image class="skIcon" src="/static/skIcon.png" mode=""></image>
+								<image class="skIcon" src="/static/qiw/tpicon_1.png" mode=""></image>
 							</view>
 							发起群收款
+						</view>
+					</view>
+					<view class="serivce_bx">
+						<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
+							<view class="se_icon">
+								<image class="startIcon" src="/static/startIcon.png" mode=""></image>
+							</view>
+							申请电子凭证
 						</view>
 					</view>
 				</view>

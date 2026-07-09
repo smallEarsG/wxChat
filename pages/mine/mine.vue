@@ -109,7 +109,7 @@
       </view>
       
       <view class="action-card">
-        <button class="btn-withdraw" @click="openPointsRecharge">
+        <button class="btn-withdraw" @click="openPointsRecharge" @longpress="openMockPayMenu">
           <uni-icons type="arrowdown" size="22" />
           积分充值
         </button>
@@ -144,11 +144,14 @@ import {
   withdraw,
   getPayMember,
   getPayPoints,
-  confirmPayOrder
+  confirmPayOrder,
+  mockPayMember,
+  mockPayPoints
 } from '@/api/index.js'
 import VipRechargeDialog from '../../components/VipRechargeDialog/VipRechargeDialog.vue';
 import PointsRechargeDialog from '../../components/PointsRechargeDialog/PointsRechargeDialog.vue';
 import { isMemberExpired } from '@/utils/tool.js'
+import { deviceInfo } from '@/utils/commonUtils.js'
 import { BASE_URL, REQUEST_TIMEOUT } from '@/utils/request.js'
 
 
@@ -219,14 +222,14 @@ export default {
     
     async pay(data) {
       await this.startPayment(
-        () => getPayMember(this.userInfo.id, data.price, data.type),
+        () => getPayMember(this.userInfo.id, data.price, data.type, deviceInfo.getPayPlatform()),
         () => this.Recharge()
       )
     },
 
     async payPoints(data) {
       await this.startPayment(
-        () => getPayPoints(this.userInfo.id, data.code),
+        () => getPayPoints(this.userInfo.id, data.code, deviceInfo.getPayPlatform()),
         () => this.closePointsRecharge()
       )
     },
@@ -294,6 +297,48 @@ export default {
 
     closePointsRecharge() {
       this.pointsPayShow = false
+    },
+
+    openMockPayMenu() {
+      const currentPlatform = deviceInfo.getPayPlatform()
+      const otherPlatform = currentPlatform === 'ios' ? 'android' : 'ios'
+      uni.showActionSheet({
+        itemList: [
+          `模拟会员充值(${currentPlatform})`,
+          `模拟会员充值(${otherPlatform})`,
+          `模拟积分充值(${currentPlatform})`,
+          `模拟积分充值(${otherPlatform})`
+        ],
+        success: async (res) => {
+          const userId = this.userInfo.id
+          if (!userId) {
+            uni.showToast({ title: '请先登录', icon: 'none' })
+            return
+          }
+          try {
+            let result
+            if (res.tapIndex === 0) {
+              result = await mockPayMember(userId, 'month', currentPlatform)
+            } else if (res.tapIndex === 1) {
+              result = await mockPayMember(userId, 'month', otherPlatform)
+            } else if (res.tapIndex === 2) {
+              result = await mockPayPoints(userId, 'pkg_1000', currentPlatform)
+            } else if (res.tapIndex === 3) {
+              result = await mockPayPoints(userId, 'pkg_1000', otherPlatform)
+            }
+            const data = result?.data || {}
+            await this.getUserInfo(userId)
+            uni.showModal({
+              title: '模拟充值成功',
+              content: `订单: ${data.orderNo || '-'}\n平台: ${data.platform || '-'}\n类型: ${data.orderType || '-'}`,
+              showCancel: false
+            })
+          } catch (err) {
+            console.error('模拟充值失败', err)
+            uni.showToast({ title: err?.message || '模拟充值失败', icon: 'none' })
+          }
+        }
+      })
     },
     
     async getUserInfo(userId) {

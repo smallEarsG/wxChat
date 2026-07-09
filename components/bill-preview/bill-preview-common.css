@@ -218,6 +218,22 @@
 	top: 6rpx;
 }
 
+.bill-preview .phoneIcon {
+	width: 32rpx;
+	height: 32rpx;
+	margin-right: 14rpx;
+	position: relative;
+	top: 6rpx;
+}
+
+.bill-preview .msgicon1 {
+	width: 32rpx;
+	height: 32rpx;
+	margin-right: 14rpx;
+	position: relative;
+	top: 6rpx;
+}
+
 .bill-preview .skIcon {
 	width: 36rpx;
 	height: 36rpx;

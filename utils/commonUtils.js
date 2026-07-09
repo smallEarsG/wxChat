@@ -111,6 +111,11 @@ export const deviceInfo = {
 	isAndroid() {
 		return this.getSystemInfo().platform === 'android';
 	},
+
+	// 获取充值下单平台
+	getPayPlatform() {
+		return this.getSystemInfo().platform === 'ios' ? 'ios' : 'android';
+	},
 	
 	// 获取状态栏高度
 	getStatusBarHeight() {

@@ -13,10 +13,19 @@ export const updateUserInfo = (data) => request({ url: '/user/update', method: '
 export const updateUseFeature = (userId) => request({ url: '/user/use-feature/'+userId, method: 'GET' })
 export const withdraw = (data) => request({ url: '/user/withdraw', method: 'POST', data })
 export const getWithdrawRecords = (userId) => request({ url: '/user/info/'+userId, method: 'GET' })
-export const getPayMember = (userId, price, memberType) =>
-  request({ url: `/user/pay/member?userId=${userId}&priceOne=${price}&memberType=${memberType}&port=${getApiPort()}`, method: 'GET' })
-export const getPayPoints = (userId, packageCode) =>
-  request({ url: `/user/pay/points?userId=${userId}&packageCode=${packageCode}&port=${getApiPort()}`, method: 'GET' })
+export const getPayMember = (userId, price, memberType, platform) =>
+  request({ url: `/user/pay/member?userId=${userId}&priceOne=${price}&memberType=${memberType}&platform=${platform}&port=${getApiPort()}`, method: 'GET' })
+export const getPayPoints = (userId, packageCode, platform) =>
+  request({ url: `/user/pay/points?userId=${userId}&packageCode=${packageCode}&platform=${platform}&port=${getApiPort()}`, method: 'GET' })
+/** 模拟会员充值（跳过支付宝，需后端 pay.mock-enabled=true） */
+export const mockPayMember = (userId, memberType, platform, priceOne) => {
+  let url = `/user/pay/mock/member?userId=${userId}&memberType=${memberType}&platform=${platform}&port=${getApiPort()}`
+  if (priceOne != null) url += `&priceOne=${priceOne}`
+  return request({ url, method: 'POST' })
+}
+/** 模拟积分充值（跳过支付宝，需后端 pay.mock-enabled=true） */
+export const mockPayPoints = (userId, packageCode, platform) =>
+  request({ url: `/user/pay/mock/points?userId=${userId}&packageCode=${packageCode}&platform=${platform}&port=${getApiPort()}`, method: 'POST' })
 export const deductPoints = (userId, points = 20, reason = 'ai_conversation') =>
   request({
     url: `/user/points/deduct?userId=${encodeURIComponent(userId)}&points=${points}&reason=${encodeURIComponent(reason)}`,

@@ -69,10 +69,10 @@ export default {
     ];
     const applyIosPricing = (items) => {
       const iosPriceMap = {
-        day: 10,
-        month: 28,
-        year: 128,
-        forever: 268
+        day: 8.1,
+        month: 16.1,
+        year: 99.1,
+        forever: 168.1
       };
       return items.map((item) => ({
         ...item,

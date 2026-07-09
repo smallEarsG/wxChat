@@ -32,11 +32,18 @@
 			<view class="section">
 				<view class="section-row">
 					<text class="section-title">订单信息字段</text>
-					<text class="subtitle">勾选要显示的字段</text>
+					<text class="subtitle">勾选要显示的字段，拖动排序</text>
 				</view>
 				<view class="field-list-single">
-					<view v-for="(field, index) in templateConfig.orderInfoFields" :key="index" 
-						  class="field-item-row" :class="{ disabled: !field.enabled }">
+					<view v-for="(field, index) in templateConfig.orderInfoFields" :key="field.key" 
+						  class="field-item-row"
+						  :class="{ disabled: !field.enabled, dragging: dragState.type === 'field' && dragState.itemIndex === index }"
+						  @touchstart="onDragStart('field', index, $event)"
+						  @touchmove="onDragMove($event)"
+						  @touchend="onDragEnd">
+						<view class="drag-handle">
+							<uni-icons type="bars" size="22" color="#999" />
+						</view>
 						<view class="checkbox-wrap">
 							<checkbox :checked="field.enabled" @click="toggleField(index)" color="#4A90E2" />
 						</view>
@@ -87,8 +94,8 @@
 						<view class="service-items-list">
 							<view v-for="(item, index) in module.items" :key="item._id || index" 
 								  class="service-item-row"
-								  :class="{ dragging: dragState.moduleIndex === moduleIndex && dragState.itemIndex === index }"
-								  @touchstart="onDragStart(moduleIndex, index, $event)"
+								  :class="{ dragging: dragState.type === 'service' && dragState.moduleIndex === moduleIndex && dragState.itemIndex === index }"
+								  @touchstart="onDragStart('service', index, $event, moduleIndex)"
 								  @touchmove="onDragMove($event)"
 								  @touchend="onDragEnd">
 								<view class="drag-handle">
@@ -131,7 +138,10 @@
 		{ key: 'BoNumber', label: '经营单号', enabled: false },
 		{ key: 'miniName', label: '商家小程序', enabled: false },
 		{ key: 'message', label: '留言/备注', enabled: false },
-		{ key: 'remark', label: '备注信息', enabled: false }
+		{ key: 'remark', label: '备注信息', enabled: false },
+		{ key: 'payeeRemark', label: '收款方备注', enabled: false },
+		{ key: 'transferTime', label: '转账时间', enabled: false },
+		{ key: 'transferOrderNumber', label: '转账单号', enabled: false }
 	]
 
 	// 默认的服务项（参考其他模板组件补充）
@@ -144,7 +154,8 @@
 		{ _id: 's6', label: '申请转账电子凭证', enabled: false, icon: '/static/startIcon.png', iconClass: 'startIcon' },
 		{ _id: 's7', label: '查看往来转账', enabled: false, icon: '/static/transferIcon.png', iconClass: 'transferIcon' },
 		{ _id: 's8', label: '商家电话', enabled: false, icon: '/static/wxchat/phone.png', iconClass: 'phoneIcon' },
-		{ _id: 's9', label: '申请电子凭证', enabled: false, icon: '/static/startIcon.png', iconClass: 'startIcon' }
+		{ _id: 's9', label: '申请电子凭证', enabled: false, icon: '/static/startIcon.png', iconClass: 'startIcon' },
+		{ _id: 's10', label: '向收款方留言', enabled: false, icon: '/static/msgicon1.png', iconClass: 'msgicon1' }
 	]
 
 	export default {
@@ -165,6 +176,7 @@
 					showBarcode: false
 				},
 				dragState: {
+					type: null,
 					moduleIndex: -1,
 					itemIndex: -1,
 					startY: 0,
@@ -191,6 +203,9 @@
 					miniName: '小七商行收款',
 					message: '这是一条留言备注',
 					remark: '备注信息内容',
+					payeeRemark: '收款方备注内容',
+					transferTime: '2025年6月13日 16:19:30',
+					transferOrderNumber: '1000050001202506130129831495334',
 					padd: 60,
 					order: false,
 					fontSize: 100
@@ -241,8 +256,9 @@
 					this.templateConfig.serviceModules.splice(moduleIndex, 1);
 				}
 			},
-			onDragStart(moduleIndex, itemIndex, event) {
+			onDragStart(type, itemIndex, event, moduleIndex = -1) {
 				this.dragState = {
+					type,
 					moduleIndex,
 					itemIndex,
 					startY: event.touches[0].clientY,
@@ -253,13 +269,15 @@
 			onDragMove(event) {
 				if (!this.dragState.isDragging) return;
 				this.dragState.currentY = event.touches[0].clientY;
-				
-				const { moduleIndex, itemIndex } = this.dragState;
-				const items = this.templateConfig.serviceModules[moduleIndex].items;
+
+				const { type, moduleIndex, itemIndex } = this.dragState;
+				const items = type === 'field'
+					? this.templateConfig.orderInfoFields
+					: this.templateConfig.serviceModules[moduleIndex].items;
 				const deltaY = this.dragState.currentY - this.dragState.startY;
-				const itemHeight = 80; // 每个item的高度约为80rpx
+				const itemHeight = 80;
 				const moveCount = Math.round(deltaY / itemHeight);
-				
+
 				if (moveCount !== 0) {
 					const newIndex = itemIndex + moveCount;
 					if (newIndex >= 0 && newIndex < items.length && newIndex !== itemIndex) {
@@ -272,6 +290,7 @@
 			},
 			onDragEnd() {
 				this.dragState = {
+					type: null,
 					moduleIndex: -1,
 					itemIndex: -1,
 					startY: 0,
@@ -279,13 +298,23 @@
 					isDragging: false
 				};
 			},
+			mergeOrderInfoFields(savedFields) {
+				const savedKeys = new Set((savedFields || []).map(f => f.key));
+				const merged = [...(savedFields || [])];
+				DEFAULT_FIELDS.forEach(def => {
+					if (!savedKeys.has(def.key)) merged.push({ ...def });
+				});
+				return merged;
+			},
 			loadTemplate(id) {
 				try {
 					const templates = uni.getStorageSync('customTemplates') || [];
 					const template = templates.find(t => t.id === id);
 					if (template) {
 						this.templateName = template.name;
-						this.templateConfig = JSON.parse(JSON.stringify(template.config));
+						const config = JSON.parse(JSON.stringify(template.config));
+						config.orderInfoFields = this.mergeOrderInfoFields(config.orderInfoFields);
+						this.templateConfig = config;
 					}
 				} catch (e) {
 					console.error('加载模板失败', e);
@@ -531,6 +560,20 @@
 
 	.field-item-row.disabled {
 		opacity: 0.5;
+	}
+
+	.field-item-row.dragging {
+		opacity: 0.9;
+		background: linear-gradient(145deg, #e8f0fe, #d7e6fa);
+		transform: scale(1.02);
+		box-shadow: 0 8rpx 24rpx rgba(74, 144, 226, 0.2);
+		z-index: 1000;
+		position: relative;
+		border-color: #4A90E2;
+	}
+
+	.field-item-row:active .drag-handle {
+		opacity: 0.8;
 	}
 
 	.checkbox-wrap {

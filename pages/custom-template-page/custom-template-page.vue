@@ -64,6 +64,9 @@
 		"miniName": '商家小程序',
 		"message": '留言/备注',
 		"remark": '备注信息',
+		"payeeRemark": '收款方备注',
+		"transferTime": '转账时间',
+		"transferOrderNumber": '转账单号',
 		"padd": "边距",
 		"order": "全部账单",
 		"fontSize": "字体大小"
@@ -122,6 +125,9 @@
 					"miniName": '',
 					"message": '',
 					"remark": '',
+					"payeeRemark": '收款方备注内容',
+					"transferTime": '2025年6月13日 16:19:30',
+					"transferOrderNumber": '1000050001202506130129831495334',
 					"padd": 60,
 					"order": false,
 					"fontSize": 100
