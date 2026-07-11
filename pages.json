@@ -95,9 +95,38 @@
         {
             "path" : "pages/codePay/codePay",
             "style" : {
-                "navigationBarTitleText" : "图文识别",
+                "navigationBarTitleText" : "付款模板",
                 "safeAreaInsetBottom" : false,
                 "enablePullDownRefresh" : false
+            }
+        },
+        {
+            "path" : "pages/bill-template-gallery/bill-template-gallery",
+            "style" : {
+                "navigationBarTitleText" : "模板库",
+                "enablePullDownRefresh" : false
+            }
+        },
+        {
+            "path" : "pages/bill-recognition-result/bill-recognition-result",
+            "style" : {
+                "navigationBarTitleText" : "确认识别结果",
+                "enablePullDownRefresh" : false
+            }
+        },
+        {
+            "path" : "pages/custom-templates/custom-templates",
+            "style" : {
+                "navigationBarTitleText" : "我的模板",
+                "enablePullDownRefresh" : false
+            }
+        },
+        {
+            "path" : "pages/previewGallery/previewGallery",
+            "style" : {
+                "navigationBarTitleText" : "模板预览",
+                "enablePullDownRefresh" : false,
+                "navigationStyle" : "custom"
             }
         },
         {
@@ -119,7 +148,7 @@
         {
             "path" : "pages/msgList/msgList",
             "style" : {
-                "navigationBarTitleText" : "修改记录"
+                "navigationBarTitleText" : "付款记录"
             }
         },
         {

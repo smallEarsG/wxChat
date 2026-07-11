@@ -99,10 +99,8 @@
 			}
 		},
 		async onLoad(options) {
-			// 支持从路由读取 billId，并优先从云端按ID查询覆盖 info
 			const rawId = options && (options.billId || options.id);
 			if (rawId !== undefined && rawId !== null && rawId !== '') {
-				// 云端按ID查询覆盖 info：保持原始字符串，不转数字（避免长数字精度丢失/前导零丢失/字母ID被改写）
 				this.id = String(rawId);
 				try {
 					const res = await getBillById(this.id);
@@ -112,17 +110,14 @@
 						this.info = { ...this.info, ...(detail || {}) };
 					}
 				} catch (e) {
-					// 404：账单不存在 -> 提示并返回
 					uni.showToast({ title: '账单不存在', icon: 'none' });
 					setTimeout(() => uni.navigateBack(), 300);
 					return;
 				}
 			} else if (options && options.info) {
-				// 无 billId 时才使用路由传入 info
 				const temp = JSON.parse(decodeURIComponent(options.info));
 				this.info = { ...this.info, ...temp };
 			}
-			// 从云端获取头像列表
 			this.loadAvatarList();
 		},
 		methods: {
@@ -167,20 +162,14 @@
 				}
 			},
 			async saveTflist() {
-				// 如果 id 为 null，调用创建账单接口
 				if (this.id === null || this.id === undefined) {
 					try {
 						const userId = uni.getStorageSync('userId');
 						if (!userId) {
 							console.warn('用户未登录，跳过创建账单');
 						} else {
-							// 账单类型（数字映射）：1=转账
 							const billType = 1
-							
-							// 将 info 转换为 JSON 字符串作为账单详情
 							const billDetail = JSON.stringify(this.info);
-							
-							// 调用创建账单接口
 							const billData = {
 								platform: 'wechat',
 								billType: billType,
@@ -188,37 +177,20 @@
 								createUserId: userId,
 								remark: this.info.desc || this.info.name || ''
 							};
-							
 							const result = await createBill(billData);
-							
-							// 如果创建成功，保存返回的 id
 							if (result && result.data && result.data.id) {
 								this.id = result.data.id;
 							}
-							
-							console.log('账单创建成功:', result);
 						}
 					} catch (error) {
 						console.error('创建账单失败:', error);
-						// 不阻止流程继续，仅记录错误
 					}
 				} else {
-					// 如果 id 存在，调用更新账单接口
 					try {
-						// 将 info 转换为 JSON 字符串作为账单详情（只更新账单详情）
 						const billDetail = JSON.stringify(this.info);
-						
-						// 调用更新账单接口，只更新账单详情
-						const updateData = {
-							billDetail: billDetail
-						};
-						
-						const result = await updateBill(this.id, updateData);
-						
-						console.log('账单更新成功:', result);
+						await updateBill(this.id, { billDetail });
 					} catch (error) {
 						console.error('更新账单失败:', error);
-						// 不阻止流程继续，仅记录错误
 					}
 				}
 			},
