@@ -43,7 +43,7 @@
 
 		<scroll-view scroll-y class="content">
 			<view v-if="fromRecognition" class="tip-banner">
-				<text>确认识别结果后，请选择要使用的模板</text>
+				<text>识别完成，请选择要使用的模板</text>
 			</view>
 
 			<BillTemplateCard

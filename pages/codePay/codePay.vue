@@ -133,7 +133,7 @@
 				guidePage: 0,
 				guidePages: [
 					'导入图片或直接选择模板',
-					'确认识别出的金额、时间和单号',
+					'选择模板并编辑内容',
 					'编辑完成后保存到记录'
 				],
 				recentTemplateKeys: [],
@@ -325,7 +325,7 @@
 				const extractedInfo = extractInfoWithRegex(this.resultList)
 				const info = encodeURIComponent(JSON.stringify(extractedInfo))
 				uni.navigateTo({
-					url: `/pages/bill-recognition-result/bill-recognition-result?info=${info}`
+					url: `/pages/bill-template-gallery/bill-template-gallery?from=recognition&info=${info}`
 				})
 			}
 		}

@@ -7,19 +7,19 @@
 			<view v-if="isIos" class="nav-title">
 				账单
 			</view>
-			<view class="allOrder" v-if="info.order" :style="{ fontSize: (36 * fontScale) + 'rpx' }">全部账单</view>
+			<view class="allOrder" v-if="info.order" @click="handleMoneyClick" :style="{ fontSize: (36 * fontScale) + 'rpx' }">全部账单</view>
 		</view>
 
 		<view class="content">
-			<view class="order" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
+			<view class="order" @click="handleMoneyClick" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<view class="order_top">
-					<view class="avatar" @click="handleAvatarClick">
+					<view class="avatar" @click.stop="handleAvatarClick">
 						<image :src="info.url||'/static/paySe.png'"></image>
 					</view>
 					<view class="name" :style="{ fontSize: (32 * fontScale) + 'rpx' }">
 						扫二维码付款-{{info.name}}
 					</view>
-					<view class="num" @click="handleMoneyClick" :style="{ fontSize: (56 * fontScale) + 'rpx' }">
+					<view class="num" :style="{ fontSize: (56 * fontScale) + 'rpx' }">
 						{{info.money}}
 					</view>
 					<view class="line" />
@@ -72,12 +72,20 @@
 							</view>
 							对订单有疑惑
 						</view>
-						<!-- <view class="se_item" v-if="isGroup" @longpress="showGroup" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
+						<view class="se_item" v-if="isGroup" @longpress="showGroup" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
 							<view class="se_icon">
 								<image class="skIcon" src="/static/qiw/tpicon_1.png" mode=""></image>
 							</view>
 							发起群收款
+						</view>
+						<!-- <view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
+							<view class="se_icon">
+								<image class="startIcon" src="/static/startIcon.png" mode=""></image>
+							</view>
+							申请电子凭证
 						</view> -->
+					</view>
+					<view class="serivce_bx">
 						<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
 							<view class="se_icon">
 								<image class="startIcon" src="/static/startIcon.png" mode=""></image>
@@ -85,14 +93,6 @@
 							申请电子凭证
 						</view>
 					</view>
-				<!-- 	<view class="serivce_bx">
-						<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
-							<view class="se_icon">
-								<image class="startIcon" src="/static/startIcon.png" mode=""></image>
-							</view>
-							申请电子凭证
-						</view>
-					</view> -->
 				</view>
 			</view>
 			

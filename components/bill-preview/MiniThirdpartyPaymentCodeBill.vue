@@ -5,18 +5,18 @@
 			<view v-if="isIos" class="nav-title">
 				账单
 			</view>
-			<view class="allOrder" v-if="info.order" :style="{ fontSize: (36 * fontScale) + 'rpx' }">全部账单</view>
+			<view class="allOrder" v-if="info.order" @click.stop="exitInfo" :style="{ fontSize: (36 * fontScale) + 'rpx' }">全部账单</view>
 		</view>
 		<view class="content">
-			<view class="order" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
+			<view class="order" @click="exitInfo" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<view class="order_top">
-					<view class="avatar" @click="changeRole">
+					<view class="avatar" @click.stop="changeRole">
 						<image :src="info.url||'/static/paySe.png'"></image>
 					</view>
 					<view class="name" :style="{ fontSize: (32 * fontScale) + 'rpx' }">
 						{{info.name}}
 					</view>
-					<view class="num" @click="exitInfo" :style="{ fontSize: (56 * fontScale) + 'rpx' }">
+					<view class="num" :style="{ fontSize: (56 * fontScale) + 'rpx' }">
 						{{info.money}}
 					</view>
 					<view class="line" />
@@ -113,7 +113,7 @@
 				</view>
 			</view>
 			
-			<view class="mini" style="align-items: center;"  :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx', fontSize: (28 * fontScale) + 'rpx' }">
+			<view class="mini" style="align-items: center;" @click="exitInfo" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx', fontSize: (28 * fontScale) + 'rpx' }">
 						<view class="left" style="color: black;">
 							商家小程序
 						</view>
@@ -201,7 +201,9 @@
 				this.$emit('changeRole');
 			},
 			exitInfo() {
-				this.$emit('exitInfo');
+				if (!this.previewMode) {
+					this.$emit('exitInfo');
+				}
 			}
 		}
 	}

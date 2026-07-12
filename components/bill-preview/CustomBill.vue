@@ -7,20 +7,20 @@
 			<view v-if="isIos" class="nav-title">
 				账单
 			</view>
-			<view class="allOrder" v-if="info.order" :style="{ fontSize: (36 * fontScale) + 'rpx' }">全部账单</view>
+			<view class="allOrder" v-if="info.order" @click="handleMoneyClick" :style="{ fontSize: (36 * fontScale) + 'rpx' }">全部账单</view>
 		</view>
 
 		<view class="content">
-			<view class="order" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
+			<view class="order" @click="handleMoneyClick" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<!-- order_top 保持不变 -->
 				<view class="order_top">
-					<view class="avatar" @click="handleAvatarClick">
+					<view class="avatar" @click.stop="handleAvatarClick">
 						<image :src="info.url||'/static/paySe.png'"></image>
 					</view>
 					<view class="name" :style="{ fontSize: (32 * fontScale) + 'rpx' }">
 						{{info.name}}
 					</view>
-					<view class="num" @click="handleMoneyClick" :style="{ fontSize: (56 * fontScale) + 'rpx' }">
+					<view class="num" :style="{ fontSize: (56 * fontScale) + 'rpx' }">
 						{{info.money}}
 					</view>
 					<view class="line" />

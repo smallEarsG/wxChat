@@ -1,14 +1,19 @@
 <template>
 	<view class="template-card" @click="$emit('use', template.key)">
-		<view class="card-preview">
+		<!-- <view class="card-preview">
 			<view class="preview-placeholder">
 				<uni-icons type="image" size="36" color="#bbb" />
 			</view>
 			<view class="badge recent" v-if="isRecent">最近</view>
 			<view class="badge favorite" v-if="isFavorite">收藏</view>
-		</view>
+		</view> -->
 		<view class="card-body">
-			<view class="card-title-row">
+			<view class="badge-row" style="height: 40rpx;float: right;">
+				<view class="badge recent" v-if="isRecent">最近</view>
+				<view class="badge favorite" v-if="isFavorite">收藏</view>
+			</view>
+			<view class="card-title-row" style="overflow: hidden;">
+				
 				<text class="card-title">{{ template.title }}</text>
 				<view class="favorite-btn" @click.stop="$emit('toggle-favorite', template.key)">
 					<uni-icons :type="isFavorite ? 'star-filled' : 'star'" size="20" :color="isFavorite ? '#f5a623' : '#ccc'" />
@@ -59,22 +64,13 @@ export default {
 	margin-bottom: 24rpx;
 }
 
-.card-preview {
-	position: relative;
-	height: 200rpx;
-	background: linear-gradient(135deg, #f5f7fa, #eef2f7);
+.badge-row {
 	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.preview-placeholder {
-	opacity: 0.8;
+	gap: 12rpx;
+	margin-bottom: 12rpx;
 }
 
 .badge {
-	position: absolute;
-	top: 16rpx;
 	padding: 4rpx 14rpx;
 	border-radius: 20rpx;
 	font-size: 20rpx;
@@ -82,12 +78,10 @@ export default {
 }
 
 .badge.recent {
-	left: 16rpx;
 	background: #4A90E2;
 }
 
 .badge.favorite {
-	right: 16rpx;
 	background: #f5a623;
 }
 
