@@ -40,7 +40,7 @@
 				<view class="nikeName" :style="{ fontSize: rpx(34),fontWeight:'500' }">
 					{{guestInfo.name || "企业微信工坊"}}
 				</view>
-				<view class="desc" :style="{ fontSize: rpx(24),color: '#4bc768' }">{{guestInfo.description}}</view>
+				<view class="desc" :style="{ fontSize: rpx(24),color: '#4bc768' }">@微信</view>
 			</view>
 			<view class="icons">
 				<image @click="addVideo" class="nav-icon_phone" mode="widthFix" src="/static/icon-phone.png"></image>

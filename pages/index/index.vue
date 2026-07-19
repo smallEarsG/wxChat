@@ -71,8 +71,10 @@
 				<text class="contact-subtitle">问题与建议反馈、页面定制开发请联系</text>
 				<text class="contact-subtitle">（24小时内进行反馈和处理）</text>
 				<view class="contact-info">
-					<text class="contact-item" @click="copyPhoneNumber">wx: 18216263971（点击复制）</text>
+					<text class="contact-item" @click="copyPhoneNumber('18216263971')">微信1: 18216263971（点击复制）</text>
+					<text class="contact-item" @click="copyPhoneNumber('xiaoshoumoban01')">微信2: xiaoshoumoban01（点击复制）</text>
 				</view>
+				
 			</view>
 		</view>
 		
@@ -540,8 +542,8 @@
 				});
 			},
 			// 复制电话号码
-			copyPhoneNumber() {
-				const phoneNumber = '18216263971';
+			copyPhoneNumber(phoneNumber) {
+				// const phoneNumber = '18216263971';
 				uni.setClipboardData({
 					data: phoneNumber,
 					success: () => {

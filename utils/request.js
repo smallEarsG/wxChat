@@ -8,7 +8,10 @@
 // export const REMOTE_API = 'http://106.15.137.235:9092/api';
 // 军哥
 // export  const REMOTE_API = 'http://106.15.137.235:9093/api';
-export  const REMOTE_API = 'http://106.15.137.235:8080/api';
+// 周宇
+export  const REMOTE_API = 'http://106.15.137.235:9094/api';
+//
+// export  const REMOTE_API = 'http://106.15.137.235:8080/api';
 const H5_PROXY = '/pawlapi';
 // const H5_LOCAL_API = 'http://localhost:8080/api'; 
  const H5_LOCAL_API = 'http://106.15.137.235:8080/api'
