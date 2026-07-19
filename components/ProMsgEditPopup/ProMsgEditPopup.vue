@@ -37,7 +37,7 @@
           <!-- 姓名输入 -->
           <view class="form-item">
             <text class="form-label">姓名</text>
-            <view class="input-wrapper">
+            <view class="input-wrapper" aria-label="姓名输入框">
               <uni-icons type="person" size="18" color="#999" class="input-icon" />
               <input 
                 v-model="formData.name" 
@@ -195,7 +195,9 @@
         
         <view class="form-footer">
           <button class="btn-cancel" @click="closePopup">取消</button>
-          <button class="btn-submit" @click="submit">{{ isEditing ? '保存' : '添加' }}</button>
+          <view class="btn-submit-wrap" aria-label="添加">
+            <button class="btn-submit" @click="submit">{{ isEditing ? '保存' : '添加' }}</button>
+          </view>
         </view>
       </view>
     </uni-popup>
@@ -898,5 +900,10 @@ export default {
 
 .btn-submit:active {
   background-color: #0052a8;
+}
+
+.btn-submit-wrap {
+  flex: 1;
+  display: flex;
 }
 </style>

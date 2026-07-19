@@ -730,6 +730,22 @@
 		/* align-items: center; */
 	}
 
+	.add-chat-btn {
+		padding: 8rpx 12rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 56rpx;
+		min-height: 56rpx;
+	}
+
+	.add-plus-text {
+		font-size: 48rpx;
+		color: #000;
+		line-height: 1;
+		font-weight: 300;
+	}
+
 	.title {
 		font-size: 37rpx;
 		/* font-weight: 700; */

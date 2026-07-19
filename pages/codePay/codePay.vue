@@ -44,7 +44,7 @@
 				<text>不会使用？查看教程 ></text>
 			</view>
 
-			<view class="entry-card primary" @click="chooseImage">
+			<view class="entry-card primary" aria-label="导入图片识别" @click="chooseImage">
 				<view class="entry-icon">
 					<uni-icons type="camera" size="36" color="#fff" />
 				</view>

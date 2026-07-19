@@ -3,158 +3,217 @@
     <uni-popup ref="popup" type="center" :is-mask-click="!submitting">
       <view class="popup-content">
         <view class="form-header">
-          <text class="title">AI生成对话</text>
-          <view class="close-btn" @click="closePopup">
-            <uni-icons type="close" size="24" color="#666" />
+          <view class="header-text">
+            <view class="title-row">
+              <text class="title-icon">✨</text>
+              <text class="title">AI 生成对话</text>
+            </view>
+            <text class="subtitle">基于已有对话风格，智能生成新客户会话</text>
+          </view>
+          <view class="close-btn" @click="closePopup" @tap="closePopup">
+            <uni-icons type="close" size="22" color="#666" />
           </view>
         </view>
 
         <scroll-view class="form-body" scroll-y>
-          <!-- 头像 -->
-          <view class="form-item">
-            <text class="form-label">头像</text>
-            <view class="avatar-section">
-              <view class="avatar-preview" @click="chooseAvatar">
+          <!-- 客户信息 -->
+          <view class="form-section">
+            <text class="section-title">客户信息</text>
+            <view class="customer-card">
+              <view class="avatar-preview" @click="chooseAvatar" @tap="chooseAvatar">
                 <image v-if="formData.avatarUrl" :src="formData.avatarUrl" class="avatar-img" mode="aspectFill" />
                 <view v-else class="avatar-placeholder">
                   <uni-icons type="camera" size="24" color="#999" />
-                  <text class="placeholder-text">点击选择头像</text>
                 </view>
               </view>
-              <view class="random-btn" @click="randomGenerate">
-                <uni-icons type="reload" size="20" color="#007aff" />
+              <view class="customer-info">
+                <view class="input-wrapper name-input-wrap">
+                  <input
+                    v-model="formData.name"
+                    class="form-input form-input-no-icon name-input"
+                    placeholder="请输入姓名"
+                    placeholder-class="placeholder"
+                    maxlength="20"
+                  />
+                </view>
+             
+              </view>
+			  
+              <view class="random-btn" @click="randomGenerate" @tap="randomGenerate">
+                <uni-icons type="reload" size="18" color="#007aff" />
                 <text class="random-btn-text">随机</text>
               </view>
             </view>
           </view>
 
-          <!-- 姓名 -->
-          <view class="form-item">
-            <text class="form-label">姓名</text>
-            <view class="input-wrapper">
-              <uni-icons type="person" size="18" color="#999" class="input-icon" />
-              <input
-                v-model="formData.name"
-                class="form-input"
-                placeholder="请输入姓名"
-                placeholder-class="placeholder"
-                maxlength="20"
-              />
+          <!-- 模仿对话 -->
+          <view class="form-section" :class="{ 'has-error': sourceFieldError }">
+            <text class="section-title">模仿对话<text class="required">*</text></text>
+            <view v-if="selectedSource" class="selected-source-card">
+              <image class="source-avatar-round" :src="selectedSource.avatarUrl" mode="aspectFill" />
+              <view class="source-info">
+                <text class="source-name">{{ selectedSource.name }}</text>
+                <text v-if="selectedSource.description" class="source-desc">{{ selectedSource.description }}</text>
+              </view>
+              <view class="clear-source-btn" @click="clearSelectedSource" @tap="clearSelectedSource">
+                <uni-icons type="closeempty" size="20" color="#999" />
+              </view>
             </view>
+            <template v-else>
+              <view class="input-wrapper">
+                <uni-icons type="search" size="18" color="#999" class="input-icon" />
+                <input
+                  v-model="sourceSearchKeyword"
+                  class="form-input"
+                  placeholder="搜索当前列表中的对话"
+                  placeholder-class="placeholder"
+                  @input="onSourceSearchInput"
+                />
+              </view>
+              <view class="source-list">
+                <view v-if="sourceSearching" class="source-loading">
+                  <text>搜索中…</text>
+                </view>
+                <template v-else>
+                  <view
+                    v-for="item in filteredSourceList"
+                    :key="item.conversationId"
+                    class="source-item"
+                    :class="{ active: formData.sourceConversationId === item.conversationId }"
+                    @click="selectSource(item)"
+                    @tap="selectSource(item)"
+                  >
+                    <image class="source-avatar-round" :src="item.avatarUrl" mode="aspectFill" />
+                    <view class="source-info">
+                      <text class="source-name">{{ item.name }}</text>
+                      <text v-if="item.description" class="source-desc">{{ item.description }}</text>
+                    </view>
+                    <uni-icons
+                      v-if="formData.sourceConversationId === item.conversationId"
+                      type="checkmarkempty"
+                      size="20"
+                      color="#007aff"
+                    />
+                  </view>
+                  <view v-if="filteredSourceList.length === 0" class="source-empty">
+                    {{ sourceSearchKeyword ? '未找到匹配对话' : '暂无对话可选' }}
+                  </view>
+                </template>
+              </view>
+            </template>
+            <text v-if="sourceFieldError" class="field-error">{{ sourceFieldError }}</text>
           </view>
 
-          <!-- 模仿对话 -->
-          <view class="form-item">
-            <text class="form-label">模仿对话</text>
-            <view class="input-wrapper">
-              <uni-icons type="search" size="18" color="#999" class="input-icon" />
-              <input
-                v-model="sourceSearchKeyword"
-                class="form-input"
-                placeholder="搜索当前列表中的对话"
-                placeholder-class="placeholder"
-                @input="onSourceSearch"
-              />
-            </view>
-            <view v-if="selectedSource" class="selected-source">
-              已选：{{ selectedSource.name }}
-              <text class="clear-source" @click="clearSelectedSource">清除</text>
-            </view>
-            <scroll-view v-if="!selectedSource" class="source-list" scroll-y>
-              <view
-                v-for="item in filteredSourceList"
-                :key="item.conversationId"
-                class="source-item"
-                :class="{ active: formData.sourceConversationId === item.conversationId }"
-                @click="selectSource(item)"
-              >
-                <image class="source-avatar" :src="item.avatarUrl" mode="aspectFill" />
-                <view class="source-info">
-                  <text class="source-name">{{ item.name }}</text>
-                  <text v-if="item.description" class="source-desc">{{ item.description }}</text>
+          <!-- 场景与风格 -->
+          <view class="form-section">
+            <text class="section-title">场景与风格</text>
+            <view class="form-item">
+              <text class="form-label">场景类型</text>
+              <view class="scene-chips">
+                <view
+                  v-for="item in sceneOptions"
+                  :key="item.code || 'auto'"
+                  class="scene-chip"
+                  :class="{ active: formData.sceneType === item.code }"
+                  @click="selectSceneType(item)"
+                  @tap="selectSceneType(item)"
+                >
+                  {{ item.label }}
                 </view>
               </view>
-              <view v-if="filteredSourceList.length === 0" class="source-empty">
-                {{ sourceSearchKeyword ? '未找到匹配对话' : '暂无对话可选' }}
+            </view>
+
+            <view v-if="formData.sceneType === 'CUSTOM'" class="form-item custom-scene-item">
+              <text class="form-label">自定义场景<text class="required">*</text></text>
+              <view class="input-wrapper">
+                <input
+                  v-model="formData.customScene"
+                  class="form-input form-input-no-icon"
+                  placeholder="请输入自定义场景描述"
+                  placeholder-class="placeholder"
+                  maxlength="100"
+                />
               </view>
-            </scroll-view>
-          </view>
+            </view>
 
-          <!-- 场景类型 -->
-          <view class="form-item">
-            <text class="form-label">场景类型</text>
-            <picker :range="sceneTypeLabels" :value="sceneTypeIndex" @change="onSceneTypeChange">
-              <view class="picker-value">
-                <text>{{ sceneTypeLabels[sceneTypeIndex] }}</text>
-                <uni-icons type="bottom" size="14" color="#999" />
+            <view class="form-item">
+              <text class="form-label">场景补充<text class="optional">（可选）</text></text>
+              <view class="input-wrapper">
+                <textarea
+                  v-model="formData.scene"
+                  class="form-textarea form-textarea-no-icon"
+                  placeholder="如：老客户、关注交期、已有竞品报价…"
+                  placeholder-class="placeholder"
+                  :maxlength="200"
+                />
               </view>
-            </picker>
-            <text v-if="recommendedSceneLabel" class="hint-text">推荐场景：{{ recommendedSceneLabel }}</text>
-          </view>
+            </view>
 
-          <!-- 自定义场景 -->
-          <view v-if="formData.sceneType === 'CUSTOM'" class="form-item">
-            <text class="form-label">自定义场景</text>
-            <view class="input-wrapper">
-              <input
-                v-model="formData.customScene"
-                class="form-input form-input-no-icon"
-                placeholder="请输入自定义场景描述"
-                placeholder-class="placeholder"
-                maxlength="100"
-              />
+            <view class="form-item">
+              <text class="form-label">对话风格</text>
+              <view class="style-presets">
+                <view
+                  v-for="preset in stylePresets"
+                  :key="preset"
+                  class="style-preset"
+                  :class="{ active: formData.style === preset }"
+                  @click="applyStylePreset(preset)"
+                  @tap="applyStylePreset(preset)"
+                >
+                  {{ preset }}
+                </view>
+              </view>
+              <view class="input-wrapper" style="margin-top: 12rpx;">
+                <input
+                  v-model="formData.style"
+                  class="form-input form-input-no-icon"
+                  placeholder="自然、友好"
+                  placeholder-class="placeholder"
+                  maxlength="50"
+                />
+              </view>
             </view>
           </view>
 
-          <!-- 场景补充 -->
-          <view class="form-item">
-            <text class="form-label">场景补充（可选）</text>
-            <view class="input-wrapper">
-              <textarea
-                v-model="formData.scene"
-                class="form-textarea form-textarea-no-icon"
-                placeholder="补充场景细节"
-                placeholder-class="placeholder"
-                :maxlength="200"
-              />
-            </view>
-          </view>
-
-          <!-- 对话风格 -->
-          <view class="form-item">
-            <text class="form-label">对话风格</text>
-            <view class="input-wrapper">
-              <input
-                v-model="formData.style"
-                class="form-input form-input-no-icon"
-                placeholder="自然、友好"
-                placeholder-class="placeholder"
-                maxlength="50"
-              />
-            </view>
-          </view>
-
-          <!-- 消息条数 -->
-          <view class="form-item">
-            <text class="form-label">生成消息条数</text>
-            <view class="input-wrapper">
-              <uni-icons type="chatboxes" size="18" color="#999" class="input-icon" />
-              <input
-                v-model.number="formData.messageCount"
-                class="form-input"
-                type="number"
-                placeholder="默认35，最大100"
-                placeholder-class="placeholder"
-              />
+          <!-- 生成设置 -->
+          <view class="form-section">
+            <text class="section-title">生成设置</text>
+            <view class="form-item">
+              <text class="form-label">生成消息条数</text>
+              <view class="stepper">
+                <view
+                  class="stepper-btn"
+                  :class="{ disabled: formData.messageCount <= 1 }"
+                  @click="adjustMessageCount(-1)"
+                  @tap="adjustMessageCount(-1)"
+                >
+                  <text>−</text>
+                </view>
+                <text class="stepper-value">{{ formData.messageCount }} 条</text>
+                <view
+                  class="stepper-btn"
+                  :class="{ disabled: formData.messageCount >= 100 }"
+                  @click="adjustMessageCount(1)"
+                  @tap="adjustMessageCount(1)"
+                >
+                  <text>+</text>
+                </view>
+              </view>
+              <text class="stepper-hint">默认 35 条，范围 1–100</text>
             </view>
           </view>
         </scroll-view>
 
         <view class="form-footer">
-          <text class="points-hint">每次生成消耗 20 积分</text>
+          <view class="points-badge">
+            <text class="points-icon">💎</text>
+            <text class="points-text">本次消耗 {{ AI_POINTS_COST }} 积分</text>
+          </view>
           <view class="footer-actions">
             <button class="btn-cancel" :disabled="submitting" @click="closePopup">取消</button>
-            <button class="btn-submit" :disabled="submitting" @click="submit">生成</button>
+            <button class="btn-submit" :disabled="submitting" :loading="submitting" @click="submit">
+              {{ submitting ? '生成中…' : '✨ AI 生成' }}
+            </button>
           </view>
         </view>
       </view>
@@ -163,40 +222,66 @@
     <!-- 进度层 -->
     <uni-popup ref="progressPopup" type="center" :is-mask-click="false">
       <view class="progress-panel">
-        <text class="progress-title">AI 正在生成对话</text>
-        <view class="progress-bar-wrap">
-          <view class="progress-bar" :style="{ width: progressPercent + '%' }" />
-        </view>
-        <text class="progress-percent">{{ progressPercent }}%</text>
-        <view class="step-list">
-          <view
-            v-for="(step, index) in progressSteps"
-            :key="step.key"
-            class="step-item"
-            :class="{
-              done: index < currentStepIndex,
-              active: index === currentStepIndex,
-              error: progressFailed && index === currentStepIndex
-            }"
-          >
-            <view class="step-dot" />
-            <text class="step-label">{{ step.label }}</text>
+        <text class="progress-title">{{ progressTitle }}</text>
+
+        <view v-if="progressSucceeded" class="progress-success">
+          <view class="success-icon-wrap">
+            <uni-icons type="checkmarkempty" size="48" color="#34c759" />
           </view>
+          <text class="success-text">对话生成成功</text>
         </view>
-        <view v-if="progressSubText" class="progress-sub-wrap" :class="{ 'is-error': progressFailed }">
-          <view class="progress-sub-inner">
-            <view v-if="!progressFailed" class="progress-sub-dots">
-              <view class="dot" />
-              <view class="dot" />
-              <view class="dot" />
+
+        <template v-else>
+          <view class="progress-bar-wrap">
+            <view
+              class="progress-bar"
+              :class="{ 'is-error': progressFailed }"
+              :style="{ width: progressPercent + '%' }"
+            />
+          </view>
+          <text class="progress-percent">{{ progressPercent }}%</text>
+
+          <view class="step-bar">
+            <view
+              v-for="(step, index) in progressSteps"
+              :key="step.key"
+              class="step-bar-item"
+              :class="{
+                done: index < currentStepIndex || (progressFailed && index < currentStepIndex),
+                active: index === currentStepIndex && !progressFailed,
+                error: progressFailed && index === currentStepIndex
+              }"
+            >
+              <view class="step-bar-dot" />
+              <text class="step-bar-label">{{ step.label }}</text>
             </view>
-            <text :key="progressSubText" class="progress-sub-text">{{ progressSubText }}</text>
           </view>
-        </view>
-        <view v-if="progressFailed" class="progress-actions">
-          <button class="btn-cancel" @click="closeProgress">关闭</button>
-          <button class="btn-submit" @click="retrySubmit">重试</button>
-        </view>
+
+          <view v-if="progressSubText" class="progress-sub-wrap" :class="{ 'is-error': progressFailed }">
+            <view class="progress-sub-inner">
+              <view v-if="!progressFailed" class="progress-sub-dots">
+                <view class="dot" />
+                <view class="dot" />
+                <view class="dot" />
+              </view>
+              <text :key="progressSubText" class="progress-sub-text">{{ progressSubText }}</text>
+            </view>
+          </view>
+
+          <view v-if="progressFailed" class="progress-actions">
+            <button
+              v-if="isInsufficientPointsError"
+              class="btn-submit btn-full"
+              @click="goRechargeForInsufficientPoints"
+            >
+              去充值
+            </button>
+            <template v-else>
+              <button class="btn-cancel" @click="closeProgress">关闭</button>
+              <button class="btn-submit" @click="retrySubmit">重试</button>
+            </template>
+          </view>
+        </template>
       </view>
     </uni-popup>
   </view>
@@ -207,6 +292,7 @@ import { uploadImage, searchConversationsByName } from '@/api/conversations.js'
 import { createConversationByAgent } from '@/api/agentConversations.js'
 import { getUserInfo } from '@/api/index.js'
 import { getUUid } from '@/utils/tool.js'
+import { debounce } from '@/utils/commonUtils.js'
 
 const AI_POINTS_COST = 20
 
@@ -219,11 +305,11 @@ const SCENE_OPTIONS = [
   { code: 'CUSTOM', label: '自定义' }
 ]
 
+const STYLE_PRESETS = ['自然友好', '专业正式', '热情活泼', '简洁直接']
+
 const PROGRESS_STEPS = [
-  { key: 'validate', label: '校验表单' },
-  { key: 'upload', label: '上传头像' },
-  { key: 'profile', label: '分析客户画像' },
-  { key: 'generate', label: 'AI生成并保存' },
+  { key: 'prepare', label: '准备中' },
+  { key: 'generate', label: 'AI 生成' },
   { key: 'done', label: '完成' }
 ]
 
@@ -237,6 +323,9 @@ export default {
   name: 'AgentConversationPopup',
   data() {
     return {
+      AI_POINTS_COST,
+      sceneOptions: SCENE_OPTIONS,
+      stylePresets: STYLE_PRESETS,
       conversationList: [],
       formData: {
         avatarUrl: '',
@@ -245,37 +334,46 @@ export default {
         sceneType: '',
         customScene: '',
         scene: '',
-        style: '自然、友好',
+        style: '自然友好',
         messageCount: 35
       },
-      sceneTypeIndex: 0,
       sourceSearchKeyword: '',
       filteredSourceList: [],
       selectedSource: null,
-      recommendedSceneLabel: '',
-      userId: uni.getStorageSync('userId'),
+      sourceSearching: false,
+      sourceFieldError: '',
+      searchRequestId: 0,
+      userId: '',
       submitting: false,
       progressSteps: PROGRESS_STEPS,
       currentStepIndex: 0,
       progressPercent: 0,
       progressSubText: '',
       progressFailed: false,
+      progressSucceeded: false,
       progressErrorMessage: '',
+      isInsufficientPointsError: false,
       subTextTimer: null,
       subTextIndex: 0,
       lastSubmitPayload: null
     }
   },
   computed: {
-    sceneTypeLabels() {
-      return SCENE_OPTIONS.map(item => item.label)
+    progressTitle() {
+      if (this.progressSucceeded) return '生成完成'
+      if (this.progressFailed) return '生成失败'
+      return 'AI 正在生成对话'
     }
+  },
+  created() {
+    this.debouncedSourceSearch = debounce(this.performSourceSearch, 300)
   },
   beforeDestroy() {
     this.clearSubTextTimer()
   },
   methods: {
     open(conversationList = []) {
+      this.userId = uni.getStorageSync('userId')
       this.conversationList = Array.isArray(conversationList) ? conversationList : []
       this.resetForm()
       this.formData.avatarUrl = this.getRandomAvatar()
@@ -292,16 +390,18 @@ export default {
         sceneType: '',
         customScene: '',
         scene: '',
-        style: '自然、友好',
+        style: '自然友好',
         messageCount: 35
       }
-      this.sceneTypeIndex = 0
       this.sourceSearchKeyword = ''
       this.selectedSource = null
-      this.recommendedSceneLabel = ''
+      this.sourceSearching = false
+      this.sourceFieldError = ''
       this.submitting = false
       this.progressFailed = false
+      this.progressSucceeded = false
       this.progressErrorMessage = ''
+      this.isInsufficientPointsError = false
       this.lastSubmitPayload = null
     },
 
@@ -311,16 +411,29 @@ export default {
       this.resetForm()
     },
 
-    onSceneTypeChange(e) {
-      const index = Number(e.detail.value)
-      this.sceneTypeIndex = index
-      this.formData.sceneType = SCENE_OPTIONS[index].code
+    selectSceneType(item) {
+      this.formData.sceneType = item.code
     },
 
-    onSourceSearch() {
+    applyStylePreset(preset) {
+      this.formData.style = preset
+    },
+
+    adjustMessageCount(delta) {
+      const next = Number(this.formData.messageCount) + delta
+      if (next < 1 || next > 100) return
+      this.formData.messageCount = next
+    },
+
+    onSourceSearchInput() {
+      this.debouncedSourceSearch()
+    },
+
+    performSourceSearch() {
       const keyword = (this.sourceSearchKeyword || '').trim().toLowerCase()
       if (!keyword) {
         this.filteredSourceList = [...this.conversationList]
+        this.sourceSearching = false
         return
       }
       const localMatches = this.conversationList.filter(item => {
@@ -330,34 +443,43 @@ export default {
       })
       if (localMatches.length > 0) {
         this.filteredSourceList = localMatches
+        this.sourceSearching = false
         return
       }
       this.searchRemoteSources(keyword)
     },
 
     async searchRemoteSources(keyword) {
+      const requestId = ++this.searchRequestId
+      this.sourceSearching = true
       try {
         const res = await searchConversationsByName(this.userId, keyword, 'chat')
+        if (requestId !== this.searchRequestId) return
         if (res.code === 200 && Array.isArray(res.data)) {
           this.filteredSourceList = res.data
         } else {
           this.filteredSourceList = []
         }
       } catch (error) {
+        if (requestId !== this.searchRequestId) return
         this.filteredSourceList = []
+      } finally {
+        if (requestId === this.searchRequestId) {
+          this.sourceSearching = false
+        }
       }
     },
 
     selectSource(item) {
       this.selectedSource = item
       this.formData.sourceConversationId = item.conversationId
-      this.recommendedSceneLabel = ''
+      this.sourceFieldError = ''
     },
 
     clearSelectedSource() {
       this.selectedSource = null
       this.formData.sourceConversationId = ''
-      this.recommendedSceneLabel = ''
+      this.filteredSourceList = [...this.conversationList]
     },
 
     chooseAvatar() {
@@ -367,6 +489,9 @@ export default {
         sourceType: ['album', 'camera'],
         success: (res) => {
           this.formData.avatarUrl = res.tempFilePaths[0]
+        },
+        fail: () => {
+          uni.showToast({ title: '选择头像失败', icon: 'none' })
         }
       })
     },
@@ -405,8 +530,10 @@ export default {
 
     validateForm() {
       if (!this.formData.sourceConversationId) {
+        this.sourceFieldError = '请选择要模仿的对话'
         return '请选择要模仿的对话'
       }
+      this.sourceFieldError = ''
       if (!this.formData.name || !this.formData.name.trim()) {
         return '请输入姓名'
       }
@@ -437,7 +564,7 @@ export default {
         targetUserId: this.formData.sourceConversationId,
         targetUserName: this.formData.name.trim(),
         targetAvatarUrl: targetAvatarUrl || '',
-        style: (this.formData.style || '自然、友好').trim(),
+        style: (this.formData.style || '自然友好').trim(),
         messageCount: Number(this.formData.messageCount) || 35
       }
       if (this.formData.sceneType) {
@@ -450,9 +577,13 @@ export default {
       return payload
     },
 
-    updateProgress(stepIndex, subText = '') {
+    updateProgress(stepIndex, subText = '', percent) {
       this.currentStepIndex = stepIndex
-      this.progressPercent = Math.round((stepIndex / (this.progressSteps.length - 1)) * 100)
+      if (typeof percent === 'number') {
+        this.progressPercent = percent
+      } else {
+        this.progressPercent = Math.round((stepIndex / (this.progressSteps.length - 1)) * 100)
+      }
       this.progressSubText = subText
     },
 
@@ -475,7 +606,9 @@ export default {
 
     openProgress() {
       this.progressFailed = false
+      this.progressSucceeded = false
       this.progressErrorMessage = ''
+      this.isInsufficientPointsError = false
       this.currentStepIndex = 0
       this.progressPercent = 0
       this.progressSubText = ''
@@ -488,9 +621,10 @@ export default {
       this.submitting = false
     },
 
-    failProgress(message) {
+    failProgress(message, isInsufficientPoints = false) {
       this.clearSubTextTimer()
       this.progressFailed = true
+      this.isInsufficientPointsError = isInsufficientPoints
       this.progressErrorMessage = message
       this.progressSubText = message
     },
@@ -515,11 +649,11 @@ export default {
       uni.setStorageSync('openPointsRecharge', true)
       this.closeProgress()
       this.$refs.popup?.close()
-      this.resetForm()
       uni.switchTab({ url: '/pages/mine/mine' })
     },
 
     async checkPointsBeforeSubmit() {
+      this.userId = uni.getStorageSync('userId')
       const res = await getUserInfo(this.userId)
       if (res.code !== 200 || !res.data) {
         throw new Error(res.message || '获取用户信息失败')
@@ -562,6 +696,7 @@ export default {
         return
       }
       this.progressFailed = false
+      this.isInsufficientPointsError = false
       this.progressErrorMessage = ''
       this.submitting = true
       this.openProgress()
@@ -570,7 +705,7 @@ export default {
 
     async runSubmitFlow(isRetry = false) {
       try {
-        this.updateProgress(0, '正在校验表单参数…')
+        this.updateProgress(0, '正在校验表单参数…', 10)
         await this.delay(200)
 
         let payload = this.lastSubmitPayload
@@ -586,7 +721,7 @@ export default {
           }
 
           let targetAvatarUrl = this.formData.avatarUrl
-          this.updateProgress(1, '正在上传头像…')
+          this.updateProgress(0, '正在上传头像…', 25)
           if (targetAvatarUrl && !this.hasHttp(targetAvatarUrl)) {
             const uploadId = getUUid()
             const uploadRes = await uploadImage(targetAvatarUrl, uploadId)
@@ -599,30 +734,26 @@ export default {
           payload = this.buildRequestPayload(targetAvatarUrl)
           this.lastSubmitPayload = payload
         } else {
-          this.updateProgress(1, '头像已就绪，跳过上传')
+          this.updateProgress(0, '头像已就绪，跳过上传', 30)
           await this.delay(200)
         }
 
-        // 画像分析在 create 接口内完成，此处仅展示进度
-        this.updateProgress(2, '正在分析客户画像…')
-        await this.delay(600)
-
-        this.updateProgress(3, '正在生成对话内容…')
+        this.updateProgress(1, '正在分析客户画像并生成对话…', 50)
         this.startGenerateSubTextRotation()
         const createRes = await createConversationByAgent(payload)
         this.clearSubTextTimer()
 
         if (createRes.code !== 200) {
           if (this.isInsufficientPointsMessage(createRes.message, createRes.code)) {
-            this.goRechargeForInsufficientPoints()
+            this.failProgress('积分不足，请充值后重试', true)
             return
           }
           throw new Error(createRes.message || 'AI对话创建失败')
         }
 
-        this.updateProgress(4, '生成完成')
-        this.progressPercent = 100
-        await this.delay(400)
+        this.updateProgress(2, '生成完成', 100)
+        this.progressSucceeded = true
+        await this.delay(800)
 
         this.closeProgress()
         this.$refs.popup?.close()
@@ -650,7 +781,7 @@ export default {
   border-radius: 24rpx;
   overflow: hidden;
   box-shadow: 0 10rpx 40rpx rgba(0, 0, 0, 0.1);
-  max-height: 82vh;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
 }
@@ -658,10 +789,26 @@ export default {
 .form-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 30rpx 40rpx;
+  align-items: flex-start;
+  padding: 28rpx 32rpx 24rpx;
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
   border-bottom: 1rpx solid #f0f0f0;
   flex-shrink: 0;
+}
+
+.header-text {
+  flex: 1;
+  padding-right: 16rpx;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.title-icon {
+  font-size: 32rpx;
 }
 
 .title {
@@ -670,46 +817,112 @@ export default {
   color: #333;
 }
 
+.subtitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #999;
+  line-height: 1.4;
+}
+
 .close-btn {
-  width: 40rpx;
-  height: 40rpx;
+  width: 88rpx;
+  height: 88rpx;
+  margin: -20rpx -20rpx 0 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.close-btn:active {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .form-body {
-  padding: 30rpx 40rpx;
-  max-height: 58vh;
+  padding: 24rpx 32rpx;
+  max-height: 56vh;
   box-sizing: border-box;
 }
 
+.form-section {
+  margin-bottom: 32rpx;
+}
+
+.form-section.has-error .source-list,
+.form-section.has-error .input-wrapper .form-input {
+  border-color: #f56c6c;
+}
+
+.section-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.required {
+  color: #f56c6c;
+  margin-left: 4rpx;
+}
+
+.optional {
+  font-size: 22rpx;
+  font-weight: 400;
+  color: #bbb;
+  margin-left: 4rpx;
+}
+
 .form-item {
-  margin-bottom: 28rpx;
+  margin-bottom: 24rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 0;
 }
 
 .form-label {
-  font-size: 28rpx;
+  font-size: 26rpx;
   margin-bottom: 12rpx;
   display: block;
   color: #666;
 }
 
-.avatar-section {
+.field-error {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #f56c6c;
+}
+
+/* 客户卡片 */
+.customer-card {
   display: flex;
   align-items: center;
   gap: 20rpx;
+  padding: 20rpx;
+  background: #f8f9fb;
+  border-radius: 16rpx;
+  border: 1rpx solid #eef0f3;
 }
 
 .avatar-preview {
-  width: 120rpx;
-  height: 120rpx;
-  border: 2rpx dashed #e6e6e6;
-  border-radius: 16rpx;
+  width: 96rpx;
+  height: 96rpx;
+  border: 2rpx dashed #d9dce3;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+.avatar-preview:active {
+  border-color: #007aff;
 }
 
 .avatar-img {
@@ -719,32 +932,55 @@ export default {
 
 .avatar-placeholder {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  color: #999;
+  justify-content: center;
 }
 
-.placeholder-text {
-  font-size: 22rpx;
-  margin-top: 8rpx;
+.customer-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.name-input-wrap {
+  margin-bottom: 0;
+}
+
+.name-input {
+  height: 72rpx;
+  background: #fff;
+}
+
+.avatar-hint {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: #bbb;
 }
 
 .random-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16rpx 24rpx;
-  background-color: #f5f7fa;
+  justify-content: center;
+  padding: 14rpx 20rpx;
+  background-color: #fff;
   border: 1rpx solid #e6e6e6;
   border-radius: 12rpx;
+  flex-shrink: 0;
+}
+
+.random-btn:active {
+  background-color: #e8ecf0;
+  transform: scale(0.96);
 }
 
 .random-btn-text {
-  font-size: 22rpx;
+  font-size: 20rpx;
   color: #007aff;
   margin-top: 4rpx;
 }
 
+/* 输入框 */
 .input-wrapper {
   position: relative;
 }
@@ -765,6 +1001,8 @@ export default {
   font-size: 28rpx;
   height: 80rpx;
   box-sizing: border-box;
+  background: #fff;
+  transition: border-color 0.2s;
 }
 
 .form-input-no-icon {
@@ -779,62 +1017,137 @@ export default {
   font-size: 28rpx;
   min-height: 120rpx;
   box-sizing: border-box;
+  background: #fff;
 }
 
 .form-textarea-no-icon {
   padding-left: 24rpx;
 }
 
-.picker-value {
-  border: 1rpx solid #e6e6e6;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  font-size: 28rpx;
+.custom-scene-item {
+  animation: fade-slide-in 0.25s ease;
+}
+
+@keyframes fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 场景 chips */
+.scene-chips {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
 }
 
-.hint-text {
-  display: block;
-  margin-top: 10rpx;
+.scene-chip {
+  padding: 12rpx 24rpx;
   font-size: 24rpx;
-  color: #007aff;
+  color: #666;
+  background: #f5f7fa;
+  border: 1rpx solid #e6e6e6;
+  border-radius: 32rpx;
 }
 
-.selected-source {
-  margin-top: 12rpx;
-  font-size: 26rpx;
+.scene-chip.active {
+  color: #007aff;
+  border-color: #007aff;
+  background: rgba(0, 122, 255, 0.08);
+}
+
+.scene-chip:active {
+  opacity: 0.8;
+}
+
+/* 风格预设 */
+.style-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.style-preset {
+  padding: 10rpx 20rpx;
+  font-size: 22rpx;
+  color: #666;
+  background: #f5f7fa;
+  border: 1rpx solid #e6e6e6;
+  border-radius: 24rpx;
+}
+
+.style-preset.active {
+  color: #007aff;
+  border-color: #007aff;
+  background: rgba(0, 122, 255, 0.08);
+}
+
+/* 步进器 */
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32rpx;
+  padding: 16rpx 0;
+}
+
+.stepper-btn {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  border: 1rpx solid #e6e6e6;
+  border-radius: 50%;
+  font-size: 36rpx;
   color: #333;
 }
 
-.clear-source {
-  margin-left: 16rpx;
-  color: #007aff;
+.stepper-btn:active:not(.disabled) {
+  background: #e8ecf0;
 }
 
-.source-list {
-  margin-top: 12rpx;
-  max-height: 240rpx;
-  border: 1rpx solid #f0f0f0;
+.stepper-btn.disabled {
+  opacity: 0.35;
+}
+
+.stepper-value {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  min-width: 120rpx;
+  text-align: center;
+}
+
+.stepper-hint {
+  display: block;
+  text-align: center;
+  font-size: 22rpx;
+  color: #bbb;
+  margin-top: 4rpx;
+}
+
+/* 模仿对话 */
+.selected-source-card {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: rgba(0, 122, 255, 0.06);
+  border: 1rpx solid rgba(0, 122, 255, 0.2);
+  border-left: 6rpx solid #007aff;
   border-radius: 12rpx;
 }
 
-.source-item {
-  display: flex;
-  align-items: center;
-  padding: 16rpx 20rpx;
-  border-bottom: 1rpx solid #f5f5f5;
-}
-
-.source-item.active {
-  background-color: rgba(0, 122, 255, 0.08);
-}
-
-.source-avatar {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 8rpx;
+.source-avatar-round {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
   margin-right: 16rpx;
   flex-shrink: 0;
 }
@@ -848,6 +1161,7 @@ export default {
   font-size: 28rpx;
   color: #333;
   display: block;
+  font-weight: 500;
 }
 
 .source-desc {
@@ -855,27 +1169,84 @@ export default {
   color: #999;
   display: block;
   margin-top: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+.clear-source-btn {
+  width: 88rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.source-list {
+  margin-top: 12rpx;
+  max-height: 320rpx;
+  border: 1rpx solid #f0f0f0;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.source-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.source-item:last-child {
+  border-bottom: none;
+}
+
+.source-item.active {
+  background-color: rgba(0, 122, 255, 0.08);
+}
+
+.source-item:active {
+  background-color: rgba(0, 122, 255, 0.12);
+}
+
+.source-loading,
 .source-empty {
-  padding: 24rpx;
+  padding: 32rpx;
   text-align: center;
   font-size: 26rpx;
   color: #999;
 }
 
+/* 底部 */
 .form-footer {
   display: flex;
   flex-direction: column;
-  padding: 24rpx 40rpx 32rpx;
+  padding: 20rpx 32rpx 32rpx;
   gap: 16rpx;
   border-top: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
 }
 
-.points-hint {
-  font-size: 22rpx;
-  color: #999;
-  text-align: center;
+.points-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 10rpx 24rpx;
+  background: linear-gradient(135deg, rgba(88, 86, 214, 0.08) 0%, rgba(0, 122, 255, 0.08) 100%);
+  border-radius: 32rpx;
+  align-self: center;
+}
+
+.points-icon {
+  font-size: 24rpx;
+}
+
+.points-text {
+  font-size: 24rpx;
+  color: #5856d6;
+  font-weight: 500;
 }
 
 .footer-actions {
@@ -895,6 +1266,9 @@ export default {
   border-radius: 16rpx;
   font-size: 28rpx;
   border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-cancel {
@@ -902,11 +1276,28 @@ export default {
   color: #666;
 }
 
+.btn-cancel:active {
+  background-color: #ebebeb;
+}
+
 .btn-submit {
-  background-color: #007aff;
+  background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
   color: #fff;
 }
 
+.btn-submit:active {
+  opacity: 0.9;
+}
+
+.btn-submit[disabled] {
+  opacity: 0.6;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* 进度层 */
 .progress-panel {
   width: 620rpx;
   background: #fff;
@@ -924,6 +1315,30 @@ export default {
   margin-bottom: 30rpx;
 }
 
+.progress-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 0 10rpx;
+}
+
+.success-icon-wrap {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: rgba(52, 199, 89, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20rpx;
+}
+
+.success-text {
+  font-size: 28rpx;
+  color: #34c759;
+  font-weight: 500;
+}
+
 .progress-bar-wrap {
   height: 12rpx;
   background: #f0f0f0;
@@ -933,9 +1348,13 @@ export default {
 
 .progress-bar {
   height: 100%;
-  background: #007aff;
+  background: linear-gradient(90deg, #007aff 0%, #5856d6 100%);
   border-radius: 6rpx;
   transition: width 0.3s ease;
+}
+
+.progress-bar.is-error {
+  background: #f56c6c;
 }
 
 .progress-percent {
@@ -943,52 +1362,75 @@ export default {
   text-align: center;
   font-size: 24rpx;
   color: #666;
-  margin: 12rpx 0 24rpx;
+  margin: 12rpx 0 28rpx;
 }
 
-.step-list {
-  margin-top: 8rpx;
-}
-
-.step-item {
+/* 横向步骤条 */
+.step-bar {
   display: flex;
-  align-items: center;
-  padding: 12rpx 0;
+  justify-content: space-between;
+  padding: 0 8rpx;
 }
 
-.step-dot {
-  width: 16rpx;
-  height: 16rpx;
+.step-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.step-bar-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 12rpx;
+  left: 60%;
+  width: 80%;
+  height: 2rpx;
+  background: #e0e0e0;
+  z-index: 0;
+}
+
+.step-bar-item.done:not(:last-child)::after {
+  background: #007aff;
+}
+
+.step-bar-dot {
+  width: 24rpx;
+  height: 24rpx;
   border-radius: 50%;
   background: #ddd;
-  margin-right: 16rpx;
-  flex-shrink: 0;
+  margin-bottom: 10rpx;
+  position: relative;
+  z-index: 1;
 }
 
-.step-item.done .step-dot {
+.step-bar-item.done .step-bar-dot,
+.step-bar-item.active .step-bar-dot {
   background: #007aff;
 }
 
-.step-item.active .step-dot {
-  background: #007aff;
+.step-bar-item.active .step-bar-dot {
   box-shadow: 0 0 0 6rpx rgba(0, 122, 255, 0.2);
 }
 
-.step-item.error .step-dot {
+.step-bar-item.error .step-bar-dot {
   background: #f56c6c;
+  box-shadow: 0 0 0 6rpx rgba(245, 108, 108, 0.2);
 }
 
-.step-label {
-  font-size: 26rpx;
-  color: #666;
+.step-bar-label {
+  font-size: 22rpx;
+  color: #999;
+  text-align: center;
 }
 
-.step-item.active .step-label,
-.step-item.done .step-label {
+.step-bar-item.done .step-bar-label,
+.step-bar-item.active .step-bar-label {
   color: #333;
 }
 
-.step-item.error .step-label {
+.step-bar-item.error .step-bar-label {
   color: #f56c6c;
 }
 
