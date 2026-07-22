@@ -119,6 +119,7 @@
 		<EditableFormPopup ref="indexPopup" :value="indexInfo" :fieldLabels="indexKey" @submit="onIndexSubmit" />
 		<ProMsgEditPopup ref="wxChatPopup" @submit="onSubmitWx"></ProMsgEditPopup>
 		<AgentConversationPopup ref="agentPopup" @success="onAgentCreateSuccess"></AgentConversationPopup>
+		<AgentBatchConversationPopup ref="agentBatchPopup" @success="onAgentBatchCreateSuccess"></AgentBatchConversationPopup>
 		<MessageEditPopup ref="msgEditPopup" @submit="onSubmitMessageEdit"></MessageEditPopup>
 	</view>
 </template>
@@ -136,12 +137,14 @@
 	} from '@/utils/tool.js'
 	import ProMsgEditPopup from '@/components/ProMsgEditPopup/ProMsgEditPopup.vue'
 	import AgentConversationPopup from '@/components/AgentConversationPopup/AgentConversationPopup.vue'
+	import AgentBatchConversationPopup from '@/components/AgentBatchConversationPopup/AgentBatchConversationPopup.vue'
 	import EditableFormPopup from '@/components/EditableFormPopup/EditableFormPopup.vue'
 	import MessageEditPopup from '@/components/MessageEditPopup/MessageEditPopup.vue'
 	export default {
 		components: {
 			ProMsgEditPopup,
 			AgentConversationPopup,
+			AgentBatchConversationPopup,
 			EditableFormPopup,
 			MessageEditPopup
 		},
@@ -384,7 +387,7 @@
 			},
 			addMsgbox() {
 				uni.showActionSheet({
-					itemList: ['AI生成对话', '自定义对话'],
+					itemList: ['AI生成对话', '批量AI生成对话', '自定义对话'],
 					success: (res) => {
 						if (res.tapIndex === 0) {
 							if (!this.msgList || this.msgList.length === 0) {
@@ -399,6 +402,24 @@
 							} else {
 								uni.showToast({
 									title: 'AI生成对话功能暂不可用',
+									icon: 'none'
+								})
+							}
+							return
+						}
+						if (res.tapIndex === 1) {
+							if (!this.msgList || this.msgList.length === 0) {
+								uni.showToast({
+									title: '请先添加对话后再使用AI生成',
+									icon: 'none'
+								})
+								return
+							}
+							if (this.$refs.agentBatchPopup) {
+								this.$refs.agentBatchPopup.open(this.msgList)
+							} else {
+								uni.showToast({
+									title: '批量AI生成对话功能暂不可用',
 									icon: 'none'
 								})
 							}
@@ -425,6 +446,20 @@
 				this.getMessageList()
 				uni.showToast({
 					title: 'AI对话创建成功',
+					icon: 'success'
+				})
+			},
+			onAgentBatchCreateSuccess({ successCount = 0, failCount = 0 } = {}) {
+				this.getMessageList()
+				if (failCount > 0) {
+					uni.showToast({
+						title: `成功 ${successCount} 条，失败 ${failCount} 条`,
+						icon: 'none'
+					})
+					return
+				}
+				uni.showToast({
+					title: `成功生成 ${successCount} 条对话`,
 					icon: 'success'
 				})
 			},

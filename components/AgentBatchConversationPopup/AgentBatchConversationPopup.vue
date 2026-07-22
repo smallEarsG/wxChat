@@ -6,9 +6,9 @@
           <view class="header-text">
             <view class="title-row">
               <text class="title-icon">✨</text>
-              <text class="title">AI 生成对话</text>
+              <text class="title">批量 AI 生成对话</text>
             </view>
-            <text class="subtitle">基于已有对话风格，智能生成新客户会话</text>
+            <text class="subtitle">基于已有对话风格，批量生成多个新客户会话</text>
           </view>
           <view class="close-btn" @click="closePopup" @tap="closePopup">
             <uni-icons type="close" size="22" color="#666" />
@@ -16,37 +16,6 @@
         </view>
 
         <scroll-view class="form-body" scroll-y>
-          <!-- 客户信息 -->
-          <view class="form-section">
-            <text class="section-title">客户信息</text>
-            <view class="customer-card">
-              <view class="avatar-preview" @click="chooseAvatar" @tap="chooseAvatar">
-                <image v-if="formData.avatarUrl" :src="formData.avatarUrl" class="avatar-img" mode="aspectFill" />
-                <view v-else class="avatar-placeholder">
-                  <uni-icons type="camera" size="24" color="#999" />
-                </view>
-              </view>
-              <view class="customer-info">
-                <view class="input-wrapper name-input-wrap">
-                  <input
-                    v-model="formData.name"
-                    class="form-input form-input-no-icon name-input"
-                    placeholder="请输入姓名"
-                    placeholder-class="placeholder"
-                    maxlength="20"
-                  />
-                </view>
-             
-              </view>
-			  
-              <view class="random-btn" @click="randomGenerate" @tap="randomGenerate">
-                <uni-icons type="reload" size="18" color="#007aff" />
-                <text class="random-btn-text">随机</text>
-              </view>
-            </view>
-          </view>
-
-          <!-- 模仿对话 -->
           <view class="form-section" :class="{ 'has-error': sourceFieldError }">
             <text class="section-title">模仿对话<text class="required">*</text></text>
             <view v-if="selectedSource" class="selected-source-card">
@@ -104,7 +73,6 @@
             <text v-if="sourceFieldError" class="field-error">{{ sourceFieldError }}</text>
           </view>
 
-          <!-- 场景与风格 -->
           <view class="form-section">
             <text class="section-title">场景与风格</text>
             <view class="form-item">
@@ -175,11 +143,10 @@
             </view>
           </view>
 
-          <!-- 生成设置 -->
           <view class="form-section">
             <text class="section-title">生成设置</text>
             <view class="form-item">
-              <text class="form-label">生成消息条数</text>
+              <text class="form-label">每条消息条数</text>
               <view class="stepper">
                 <view
                   class="stepper-btn"
@@ -201,25 +168,65 @@
               </view>
               <text class="stepper-hint">默认 35 条，范围 1–100</text>
             </view>
+
+            <view class="form-item">
+              <text class="form-label">生成对话数量</text>
+              <view class="stepper">
+                <view
+                  class="stepper-btn"
+                  :class="{ disabled: batchCount <= 1 }"
+                  @click="adjustBatchCount(-1)"
+                  @tap="adjustBatchCount(-1)"
+                >
+                  <text>−</text>
+                </view>
+                <text class="stepper-value">{{ batchCount }} 个</text>
+                <view
+                  class="stepper-btn"
+                  :class="{ disabled: batchCount >= 20 }"
+                  @click="adjustBatchCount(1)"
+                  @tap="adjustBatchCount(1)"
+                >
+                  <text>+</text>
+                </view>
+              </view>
+              <text class="stepper-hint">默认 5 个，范围 1–20，每条自动随机姓名和头像</text>
+            </view>
+
+            <view class="form-item">
+              <text class="form-label">并行路数</text>
+              <view class="scene-chips">
+                <view
+                  v-for="item in concurrencyOptions"
+                  :key="item.value"
+                  class="scene-chip"
+                  :class="{ active: concurrency === item.value }"
+                  @click="selectConcurrency(item.value)"
+                  @tap="selectConcurrency(item.value)"
+                >
+                  {{ item.label }}
+                </view>
+              </view>
+              <text class="stepper-hint">多路同时请求 AI，可显著缩短总耗时（默认 3 路）</text>
+            </view>
           </view>
         </scroll-view>
 
         <view class="form-footer">
           <view class="points-badge">
             <text class="points-icon">💎</text>
-            <text class="points-text">本次消耗 {{ AI_POINTS_COST }} 积分</text>
+            <text class="points-text">本次消耗 {{ totalPointsCost }} 积分</text>
           </view>
           <view class="footer-actions">
             <button class="btn-cancel" :disabled="submitting" @click="closePopup">取消</button>
             <button class="btn-submit" :disabled="submitting" :loading="submitting" @click="submit">
-              {{ submitting ? '生成中…' : '✨ AI 生成' }}
+              {{ submitting ? '生成中…' : '✨ 批量生成' }}
             </button>
           </view>
         </view>
       </view>
     </uni-popup>
 
-    <!-- 进度层 -->
     <uni-popup ref="progressPopup" type="center" :is-mask-click="false">
       <view class="progress-panel">
         <text class="progress-title">{{ progressTitle }}</text>
@@ -228,7 +235,7 @@
           <view class="success-icon-wrap">
             <uni-icons type="checkmarkempty" size="48" color="#34c759" />
           </view>
-          <text class="success-text">对话生成成功</text>
+          <text class="success-text">{{ progressResultText }}</text>
         </view>
 
         <template v-else>
@@ -240,22 +247,7 @@
             />
           </view>
           <text class="progress-percent">{{ progressPercent }}%</text>
-
-          <view class="step-bar">
-            <view
-              v-for="(step, index) in progressSteps"
-              :key="step.key"
-              class="step-bar-item"
-              :class="{
-                done: index < currentStepIndex || (progressFailed && index < currentStepIndex),
-                active: index === currentStepIndex && !progressFailed,
-                error: progressFailed && index === currentStepIndex
-              }"
-            >
-              <view class="step-bar-dot" />
-              <text class="step-bar-label">{{ step.label }}</text>
-            </view>
-          </view>
+          <text class="progress-count">{{ progressCountText }}</text>
 
           <view v-if="progressSubText" class="progress-sub-wrap" :class="{ 'is-error': progressFailed }">
             <view class="progress-sub-inner">
@@ -278,7 +270,7 @@
             </button>
             <template v-else>
               <button class="btn-cancel" @click="closeProgress">关闭</button>
-              <button class="btn-submit" @click="retrySubmit">重试</button>
+              <button v-if="failedToRetry > 0" class="btn-submit" @click="retryFailed">重试失败项</button>
             </template>
           </view>
         </template>
@@ -297,8 +289,6 @@ import {
   AI_POINTS_COST,
   SCENE_OPTIONS,
   STYLE_PRESETS,
-  PROGRESS_STEPS,
-  GENERATE_SUB_TEXTS,
   hasHttp,
   generateRandomName,
   getRandomAvatar,
@@ -306,27 +296,24 @@ import {
   isInsufficientPointsMessage,
   buildAgentCreatePayload,
   validateAgentForm,
-  createDefaultAgentFormData
+  createDefaultAgentFormData,
+  BATCH_CONCURRENCY_OPTIONS,
+  DEFAULT_BATCH_CONCURRENCY,
+  runWithConcurrency
 } from '@/utils/agentConversationUtils.js'
 
 export default {
-  name: 'AgentConversationPopup',
+  name: 'AgentBatchConversationPopup',
   data() {
     return {
       AI_POINTS_COST,
       sceneOptions: SCENE_OPTIONS,
       stylePresets: STYLE_PRESETS,
       conversationList: [],
-      formData: {
-        avatarUrl: '',
-        name: '',
-        sourceConversationId: '',
-        sceneType: '',
-        customScene: '',
-        scene: '',
-        style: '自然友好',
-        messageCount: 35
-      },
+      formData: createDefaultAgentFormData(),
+      batchCount: 5,
+      concurrency: DEFAULT_BATCH_CONCURRENCY,
+      concurrencyOptions: BATCH_CONCURRENCY_OPTIONS,
       sourceSearchKeyword: '',
       filteredSourceList: [],
       selectedSource: null,
@@ -335,45 +322,53 @@ export default {
       searchRequestId: 0,
       userId: '',
       submitting: false,
-      progressSteps: PROGRESS_STEPS,
-      currentStepIndex: 0,
       progressPercent: 0,
       progressSubText: '',
       progressFailed: false,
       progressSucceeded: false,
-      progressErrorMessage: '',
+      progressResultText: '',
       isInsufficientPointsError: false,
-      subTextTimer: null,
-      subTextIndex: 0,
-      lastSubmitPayload: null
+      currentIndex: 0,
+      completedCount: 0,
+      successCount: 0,
+      failCount: 0,
+      failedToRetry: 0,
+      shouldStop: false,
+      generatingTotal: 0
     }
   },
   computed: {
+    totalPointsCost() {
+      return this.batchCount * AI_POINTS_COST
+    },
     progressTitle() {
-      if (this.progressSucceeded) return '生成完成'
-      if (this.progressFailed) return '生成失败'
-      return 'AI 正在生成对话'
+      if (this.progressSucceeded) return '批量生成完成'
+      if (this.progressFailed) return '批量生成结束'
+      return 'AI 正在批量生成'
+    },
+    progressCountText() {
+      if (this.progressFailed || this.progressSucceeded) {
+        return `成功 ${this.successCount} 条，失败 ${this.failCount} 条`
+      }
+      return `已完成 ${this.completedCount}/${this.generatingTotal || this.batchCount}（${this.concurrency} 路并行）`
     }
   },
   created() {
     this.debouncedSourceSearch = debounce(this.performSourceSearch, 300)
-  },
-  beforeDestroy() {
-    this.clearSubTextTimer()
   },
   methods: {
     open(conversationList = []) {
       this.userId = uni.getStorageSync('userId')
       this.conversationList = Array.isArray(conversationList) ? conversationList : []
       this.resetForm()
-      this.formData.avatarUrl = getRandomAvatar()
-      this.formData.name = generateRandomName()
       this.filteredSourceList = [...this.conversationList]
       this.$refs.popup?.open('center')
     },
 
     resetForm() {
       this.formData = createDefaultAgentFormData()
+      this.batchCount = 5
+      this.concurrency = DEFAULT_BATCH_CONCURRENCY
       this.sourceSearchKeyword = ''
       this.selectedSource = null
       this.sourceSearching = false
@@ -381,9 +376,16 @@ export default {
       this.submitting = false
       this.progressFailed = false
       this.progressSucceeded = false
-      this.progressErrorMessage = ''
+      this.progressResultText = ''
       this.isInsufficientPointsError = false
-      this.lastSubmitPayload = null
+      this.currentIndex = 0
+      this.completedCount = 0
+      this.successCount = 0
+      this.failCount = 0
+      this.failedToRetry = 0
+      this.shouldStop = false
+      this.progressPercent = 0
+      this.progressSubText = ''
     },
 
     closePopup() {
@@ -404,6 +406,16 @@ export default {
       const next = Number(this.formData.messageCount) + delta
       if (next < 1 || next > 100) return
       this.formData.messageCount = next
+    },
+
+    adjustBatchCount(delta) {
+      const next = Number(this.batchCount) + delta
+      if (next < 1 || next > 20) return
+      this.batchCount = next
+    },
+
+    selectConcurrency(value) {
+      this.concurrency = value
     },
 
     onSourceSearchInput() {
@@ -463,103 +475,69 @@ export default {
       this.filteredSourceList = [...this.conversationList]
     },
 
-    chooseAvatar() {
-      uni.chooseImage({
-        count: 1,
-        sizeType: ['original', 'compressed'],
-        sourceType: ['album', 'camera'],
-        success: (res) => {
-          this.formData.avatarUrl = res.tempFilePaths[0]
-        },
-        fail: () => {
-          uni.showToast({ title: '选择头像失败', icon: 'none' })
-        }
-      })
-    },
-
-    randomGenerate() {
-      this.formData.avatarUrl = getRandomAvatar()
-      this.formData.name = generateRandomName()
-      uni.showToast({ title: '已随机生成', icon: 'success', duration: 1500 })
-    },
-
-    generateRandomName,
-    getRandomAvatar,
-    hasHttp,
-
     validateForm() {
-      const result = validateAgentForm(this.formData, { requireCustomerInfo: true })
+      const result = validateAgentForm(this.formData, { requireCustomerInfo: false })
       this.sourceFieldError = result.sourceFieldError
       if (result.error) {
         return result.error
       }
-      let count = Number(this.formData.messageCount)
-      if (Number.isNaN(count) || count < 1) {
-        count = 35
+      let messageCount = Number(this.formData.messageCount)
+      if (Number.isNaN(messageCount) || messageCount < 1) {
+        messageCount = 35
       }
-      this.formData.messageCount = count
+      this.formData.messageCount = messageCount
+      const count = Number(this.batchCount)
+      if (Number.isNaN(count) || count < 1 || count > 20) {
+        return '生成数量需在 1–20 之间'
+      }
+      this.batchCount = count
       return ''
-    },
-
-    buildRequestPayload(targetAvatarUrl) {
-      return buildAgentCreatePayload(this.formData, this.userId, targetAvatarUrl)
-    },
-
-    updateProgress(stepIndex, subText = '', percent) {
-      this.currentStepIndex = stepIndex
-      if (typeof percent === 'number') {
-        this.progressPercent = percent
-      } else {
-        this.progressPercent = Math.round((stepIndex / (this.progressSteps.length - 1)) * 100)
-      }
-      this.progressSubText = subText
-    },
-
-    startGenerateSubTextRotation() {
-      this.clearSubTextTimer()
-      this.subTextIndex = 0
-      this.progressSubText = GENERATE_SUB_TEXTS[0]
-      this.subTextTimer = setInterval(() => {
-        this.subTextIndex = (this.subTextIndex + 1) % GENERATE_SUB_TEXTS.length
-        this.progressSubText = GENERATE_SUB_TEXTS[this.subTextIndex]
-      }, 2500)
-    },
-
-    clearSubTextTimer() {
-      if (this.subTextTimer) {
-        clearInterval(this.subTextTimer)
-        this.subTextTimer = null
-      }
     },
 
     openProgress() {
       this.progressFailed = false
       this.progressSucceeded = false
-      this.progressErrorMessage = ''
+      this.progressResultText = ''
       this.isInsufficientPointsError = false
-      this.currentStepIndex = 0
+      this.currentIndex = 0
+      this.completedCount = 0
+      this.successCount = 0
+      this.failCount = 0
+      this.failedToRetry = 0
+      this.shouldStop = false
       this.progressPercent = 0
       this.progressSubText = ''
       this.$refs.progressPopup?.open('center')
     },
 
     closeProgress() {
-      this.clearSubTextTimer()
       this.$refs.progressPopup?.close()
       this.submitting = false
     },
 
     failProgress(message, isInsufficientPoints = false) {
-      this.clearSubTextTimer()
+      if (this.progressFailed && isInsufficientPoints) {
+        return
+      }
       this.progressFailed = true
       this.isInsufficientPointsError = isInsufficientPoints
-      this.progressErrorMessage = message
       this.progressSubText = message
+      const total = this.generatingTotal || this.batchCount
+      this.progressPercent = Math.round((this.completedCount / total) * 100)
     },
 
-    getUserPointsValue,
-    isInsufficientPointsMessage(message, code) {
-      return isInsufficientPointsMessage(message, code)
+    finishProgress() {
+      this.progressPercent = 100
+      if (this.failCount === 0) {
+        this.progressSucceeded = true
+        this.progressResultText = `成功生成 ${this.successCount} 条对话`
+      } else if (this.successCount === 0) {
+        this.progressFailed = true
+        this.progressSubText = `全部失败，共 ${this.failCount} 条`
+      } else {
+        this.progressSucceeded = true
+        this.progressResultText = `成功 ${this.successCount} 条，失败 ${this.failCount} 条`
+      }
     },
 
     goRechargeForInsufficientPoints() {
@@ -576,8 +554,8 @@ export default {
       if (res.code !== 200 || !res.data) {
         throw new Error(res.message || '获取用户信息失败')
       }
-      const points = this.getUserPointsValue(res.data.points)
-      if (points < AI_POINTS_COST) {
+      const points = getUserPointsValue(res.data.points)
+      if (points < this.totalPointsCost) {
         this.goRechargeForInsufficientPoints()
         return false
       }
@@ -605,84 +583,141 @@ export default {
       }
       this.submitting = true
       this.openProgress()
-      await this.runSubmitFlow()
+      await this.runBatchFlow(this.batchCount)
     },
 
-    retrySubmit() {
-      if (!this.lastSubmitPayload && !this.formData.sourceConversationId) {
+    async retryFailed() {
+      if (this.failedToRetry <= 0) {
         this.closeProgress()
         return
       }
+      const retryCount = this.failedToRetry
+      try {
+        const res = await getUserInfo(this.userId)
+        if (res.code !== 200 || !res.data) {
+          throw new Error(res.message || '获取用户信息失败')
+        }
+        const points = getUserPointsValue(res.data.points)
+        if (points < retryCount * AI_POINTS_COST) {
+          this.goRechargeForInsufficientPoints()
+          return
+        }
+      } catch (error) {
+        uni.showToast({
+          title: error?.message || '获取积分信息失败',
+          icon: 'none'
+        })
+        return
+      }
+      this.failedToRetry = 0
+      this.failCount = 0
+      this.shouldStop = false
       this.progressFailed = false
       this.isInsufficientPointsError = false
-      this.progressErrorMessage = ''
+      this.progressSubText = ''
       this.submitting = true
-      this.openProgress()
-      this.runSubmitFlow(true)
+      this.runBatchFlow(retryCount)
     },
 
-    async runSubmitFlow(isRetry = false) {
+    async generateOneConversation(index, totalCount) {
+      if (this.shouldStop) {
+        return 'stop'
+      }
+
       try {
-        this.updateProgress(0, '正在校验表单参数…', 10)
-        await this.delay(200)
+        const name = generateRandomName()
+        let avatarUrl = getRandomAvatar()
 
-        let payload = this.lastSubmitPayload
-        const canReusePayload = isRetry
-          && payload
-          && payload.targetAvatarUrl
-          && this.hasHttp(payload.targetAvatarUrl)
-
-        if (!canReusePayload) {
-          const validationError = this.validateForm()
-          if (validationError) {
-            throw new Error(validationError)
+        if (avatarUrl && !hasHttp(avatarUrl)) {
+          const uploadId = getUUid()
+          const uploadRes = await uploadImage(avatarUrl, uploadId)
+          if (uploadRes.code !== 200) {
+            throw new Error(uploadRes.message || '头像上传失败')
           }
-
-          let targetAvatarUrl = this.formData.avatarUrl
-          this.updateProgress(0, '正在上传头像…', 25)
-          if (targetAvatarUrl && !this.hasHttp(targetAvatarUrl)) {
-            const uploadId = getUUid()
-            const uploadRes = await uploadImage(targetAvatarUrl, uploadId)
-            if (uploadRes.code !== 200) {
-              throw new Error(uploadRes.message || '头像上传失败')
-            }
-            targetAvatarUrl = uploadRes.data
-          }
-
-          payload = this.buildRequestPayload(targetAvatarUrl)
-          this.lastSubmitPayload = payload
-        } else {
-          this.updateProgress(0, '头像已就绪，跳过上传', 30)
-          await this.delay(200)
+          avatarUrl = uploadRes.data
         }
 
-        this.updateProgress(1, '正在分析客户画像并生成对话…', 50)
-        this.startGenerateSubTextRotation()
+        const payload = buildAgentCreatePayload(
+          { ...this.formData, name },
+          this.userId,
+          avatarUrl
+        )
+
         const createRes = await createConversationByAgent(payload)
-        this.clearSubTextTimer()
 
         if (createRes.code !== 200) {
-          if (this.isInsufficientPointsMessage(createRes.message, createRes.code)) {
-            this.failProgress('积分不足，请充值后重试', true)
-            return
+          if (isInsufficientPointsMessage(createRes.message, createRes.code)) {
+            if (!this.shouldStop) {
+              this.shouldStop = true
+              this.failCount += 1
+              this.failedToRetry += 1
+              this.failProgress('积分不足，已停止后续生成', true)
+            }
+            return 'stop'
           }
           throw new Error(createRes.message || 'AI对话创建失败')
         }
 
-        this.updateProgress(2, '生成完成', 100)
-        this.progressSucceeded = true
-        await this.delay(800)
+        this.successCount += 1
+        return 'success'
+      } catch (error) {
+        const message = error?.message || error?.data?.message || 'AI对话创建失败'
+        this.failCount += 1
+        this.failedToRetry += 1
+        this.progressSubText = `第 ${index + 1} 条失败：${message}`
+        if (isInsufficientPointsMessage(message)) {
+          if (!this.shouldStop) {
+            this.shouldStop = true
+            this.failProgress('积分不足，已停止后续生成', true)
+          }
+          return 'stop'
+        }
+        return 'fail'
+      }
+    },
 
+    async runBatchFlow(totalCount) {
+      this.generatingTotal = totalCount
+      this.progressSubText = `已启动 ${this.concurrency} 路并行生成…`
+
+      await runWithConcurrency(
+        totalCount,
+        this.concurrency,
+        () => this.shouldStop,
+        (index) => this.generateOneConversation(index, totalCount),
+        (completed, total) => {
+          this.completedCount = completed
+          this.currentIndex = completed
+          this.progressPercent = Math.round((completed / total) * 100)
+          if (!this.shouldStop) {
+            this.progressSubText = `${this.concurrency} 路并行生成中，已完成 ${completed}/${total}`
+          }
+        }
+      )
+
+      if (!this.shouldStop || this.successCount > 0) {
+        this.finishProgress()
+      }
+
+      await this.delay(this.progressSucceeded ? 800 : 0)
+
+      if (this.progressSucceeded) {
         this.closeProgress()
         this.$refs.popup?.close()
+        this.$emit('success', {
+          successCount: this.successCount,
+          failCount: this.failCount
+        })
         this.resetForm()
-        this.$emit('success', createRes.data)
-      } catch (error) {
-        this.clearSubTextTimer()
-        const message = error?.message || error?.data?.message || 'AI对话创建失败'
-        this.failProgress(message)
-        this.$emit('error', message)
+        return
       }
+
+      if (this.progressFailed && !this.isInsufficientPointsError) {
+        this.submitting = false
+        return
+      }
+
+      this.submitting = false
     },
 
     delay(ms) {
@@ -815,90 +850,6 @@ export default {
   color: #f56c6c;
 }
 
-/* 客户卡片 */
-.customer-card {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  padding: 20rpx;
-  background: #f8f9fb;
-  border-radius: 16rpx;
-  border: 1rpx solid #eef0f3;
-}
-
-.avatar-preview {
-  width: 96rpx;
-  height: 96rpx;
-  border: 2rpx dashed #d9dce3;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: #fff;
-}
-
-.avatar-preview:active {
-  border-color: #007aff;
-}
-
-.avatar-img {
-  width: 100%;
-  height: 100%;
-}
-
-.avatar-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.customer-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.name-input-wrap {
-  margin-bottom: 0;
-}
-
-.name-input {
-  height: 72rpx;
-  background: #fff;
-}
-
-.avatar-hint {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 20rpx;
-  color: #bbb;
-}
-
-.random-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 14rpx 20rpx;
-  background-color: #fff;
-  border: 1rpx solid #e6e6e6;
-  border-radius: 12rpx;
-  flex-shrink: 0;
-}
-
-.random-btn:active {
-  background-color: #e8ecf0;
-  transform: scale(0.96);
-}
-
-.random-btn-text {
-  font-size: 20rpx;
-  color: #007aff;
-  margin-top: 4rpx;
-}
-
-/* 输入框 */
 .input-wrapper {
   position: relative;
 }
@@ -920,7 +871,6 @@ export default {
   height: 80rpx;
   box-sizing: border-box;
   background: #fff;
-  transition: border-color 0.2s;
 }
 
 .form-input-no-icon {
@@ -957,14 +907,15 @@ export default {
   }
 }
 
-/* 场景 chips */
-.scene-chips {
+.scene-chips,
+.style-presets {
   display: flex;
   flex-wrap: wrap;
   gap: 12rpx;
 }
 
-.scene-chip {
+.scene-chip,
+.style-preset {
   padding: 12rpx 24rpx;
   font-size: 24rpx;
   color: #666;
@@ -973,39 +924,19 @@ export default {
   border-radius: 32rpx;
 }
 
-.scene-chip.active {
-  color: #007aff;
-  border-color: #007aff;
-  background: rgba(0, 122, 255, 0.08);
-}
-
-.scene-chip:active {
-  opacity: 0.8;
-}
-
-/* 风格预设 */
-.style-presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
-}
-
 .style-preset {
   padding: 10rpx 20rpx;
   font-size: 22rpx;
-  color: #666;
-  background: #f5f7fa;
-  border: 1rpx solid #e6e6e6;
   border-radius: 24rpx;
 }
 
+.scene-chip.active,
 .style-preset.active {
   color: #007aff;
   border-color: #007aff;
   background: rgba(0, 122, 255, 0.08);
 }
 
-/* 步进器 */
 .stepper {
   display: flex;
   align-items: center;
@@ -1025,10 +956,6 @@ export default {
   border-radius: 50%;
   font-size: 36rpx;
   color: #333;
-}
-
-.stepper-btn:active:not(.disabled) {
-  background: #e8ecf0;
 }
 
 .stepper-btn.disabled {
@@ -1051,7 +978,6 @@ export default {
   margin-top: 4rpx;
 }
 
-/* 模仿对话 */
 .selected-source-card {
   display: flex;
   align-items: center;
@@ -1124,10 +1050,6 @@ export default {
   background-color: rgba(0, 122, 255, 0.08);
 }
 
-.source-item:active {
-  background-color: rgba(0, 122, 255, 0.12);
-}
-
 .source-loading,
 .source-empty {
   padding: 32rpx;
@@ -1136,7 +1058,6 @@ export default {
   color: #999;
 }
 
-/* 底部 */
 .form-footer {
   display: flex;
   flex-direction: column;
@@ -1194,17 +1115,9 @@ export default {
   color: #666;
 }
 
-.btn-cancel:active {
-  background-color: #ebebeb;
-}
-
 .btn-submit {
   background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
   color: #fff;
-}
-
-.btn-submit:active {
-  opacity: 0.9;
 }
 
 .btn-submit[disabled] {
@@ -1215,7 +1128,6 @@ export default {
   width: 100%;
 }
 
-/* 进度层 */
 .progress-panel {
   width: 620rpx;
   background: #fff;
@@ -1255,6 +1167,7 @@ export default {
   font-size: 28rpx;
   color: #34c759;
   font-weight: 500;
+  text-align: center;
 }
 
 .progress-bar-wrap {
@@ -1275,81 +1188,13 @@ export default {
   background: #f56c6c;
 }
 
-.progress-percent {
+.progress-percent,
+.progress-count {
   display: block;
   text-align: center;
   font-size: 24rpx;
   color: #666;
-  margin: 12rpx 0 28rpx;
-}
-
-/* 横向步骤条 */
-.step-bar {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 8rpx;
-}
-
-.step-bar-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  position: relative;
-}
-
-.step-bar-item:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  top: 12rpx;
-  left: 60%;
-  width: 80%;
-  height: 2rpx;
-  background: #e0e0e0;
-  z-index: 0;
-}
-
-.step-bar-item.done:not(:last-child)::after {
-  background: #007aff;
-}
-
-.step-bar-dot {
-  width: 24rpx;
-  height: 24rpx;
-  border-radius: 50%;
-  background: #ddd;
-  margin-bottom: 10rpx;
-  position: relative;
-  z-index: 1;
-}
-
-.step-bar-item.done .step-bar-dot,
-.step-bar-item.active .step-bar-dot {
-  background: #007aff;
-}
-
-.step-bar-item.active .step-bar-dot {
-  box-shadow: 0 0 0 6rpx rgba(0, 122, 255, 0.2);
-}
-
-.step-bar-item.error .step-bar-dot {
-  background: #f56c6c;
-  box-shadow: 0 0 0 6rpx rgba(245, 108, 108, 0.2);
-}
-
-.step-bar-label {
-  font-size: 22rpx;
-  color: #999;
-  text-align: center;
-}
-
-.step-bar-item.done .step-bar-label,
-.step-bar-item.active .step-bar-label {
-  color: #333;
-}
-
-.step-bar-item.error .step-bar-label {
-  color: #f56c6c;
+  margin: 12rpx 0 0;
 }
 
 .progress-sub-wrap {
@@ -1358,13 +1203,11 @@ export default {
   background: linear-gradient(135deg, rgba(0, 122, 255, 0.1) 0%, rgba(0, 122, 255, 0.04) 100%);
   border-radius: 14rpx;
   border: 1rpx solid rgba(0, 122, 255, 0.18);
-  animation: sub-pulse 2.4s ease-in-out infinite;
 }
 
 .progress-sub-wrap.is-error {
   background: rgba(245, 108, 108, 0.08);
   border-color: rgba(245, 108, 108, 0.22);
-  animation: none;
 }
 
 .progress-sub-inner {
@@ -1386,15 +1229,6 @@ export default {
   height: 10rpx;
   border-radius: 50%;
   background: #007aff;
-  animation: dot-bounce 1.2s ease-in-out infinite;
-}
-
-.progress-sub-dots .dot:nth-child(2) {
-  animation-delay: 0.15s;
-}
-
-.progress-sub-dots .dot:nth-child(3) {
-  animation-delay: 0.3s;
 }
 
 .progress-sub-text {
@@ -1402,43 +1236,11 @@ export default {
   font-weight: 500;
   color: #007aff;
   line-height: 1.5;
-  animation: sub-fade-in 0.45s ease;
 }
 
 .progress-sub-wrap.is-error .progress-sub-text {
   color: #f56c6c;
   font-weight: 400;
-}
-
-@keyframes dot-bounce {
-  0%, 80%, 100% {
-    transform: scale(0.6);
-    opacity: 0.4;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes sub-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(6rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes sub-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(0, 122, 255, 0);
-  }
-  50% {
-    box-shadow: 0 0 0 6rpx rgba(0, 122, 255, 0.08);
-  }
 }
 
 .progress-actions {

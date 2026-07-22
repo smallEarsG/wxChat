@@ -969,10 +969,12 @@
 					<switch :checked="showChatToolBar" @change="onChatToolBarToggle" />
 				</view>
 				<view class="watermark-settings-entry">
+					<button type="default" plain="true" @click="openAiContinuePopup">AI续写</button>
 					<button type="default" plain="true" @click="openWatermarkSettings">水印设置</button>
 				</view>
 			</view>
 		</uni-popup>
+		<AgentContinuePopup ref="agentContinuePopup" @success="onAiContinueSuccess" />
 	</view>
 </template>
 
@@ -1299,6 +1301,7 @@
 	import chatFlie from '../../components/chatFlie/chatFlie.vue';
 	import MessagePopupMenu from '../../components/MessagePopupMenu/MessagePopupMenu.vue';
 	import QuotedMessagePreview from '../../components/QuotedMessagePreview/QuotedMessagePreview.vue';
+	import AgentContinuePopup from '../../components/AgentContinuePopup/AgentContinuePopup.vue';
 	import {
 		getUserInfo,
 		login
@@ -1323,7 +1326,8 @@
 			FileEditPopup,
 			chatFlie,
 			MessagePopupMenu,
-			QuotedMessagePreview
+			QuotedMessagePreview,
+			AgentContinuePopup
 		},
 		onLoad(options) {
 
@@ -1924,6 +1928,36 @@
 				};
 				this.$refs.watermarkPopup.open();
 				this.$refs.menuPopup.close();
+			},
+			openAiContinuePopup() {
+				const validMessageCount = (this.massageList || []).filter(item => item && Object.keys(item).length > 0).length;
+				if (validMessageCount < 2) {
+					uni.showToast({
+						title: '至少需要2条消息才能续写',
+						icon: 'none'
+					});
+					return;
+				}
+				this.$refs.menuPopup.close();
+				if (this.$refs.agentContinuePopup) {
+					this.$refs.agentContinuePopup.open({
+						guestInfo: this.guestInfo,
+						massageList: this.massageList
+					});
+				}
+			},
+			onAiContinueSuccess(messages) {
+				if (!Array.isArray(messages) || messages.length === 0) {
+					return;
+				}
+				this.massageList.push(...messages);
+				this.invalidateVirtualScrollCaches();
+				this.updateMsg();
+				this.scrollToBottom();
+				uni.showToast({
+					title: '续写成功',
+					icon: 'success'
+				});
 			},
 			closeWatermarkSettings() {
 				this.$refs.watermarkPopup.close();

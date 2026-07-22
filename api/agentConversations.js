@@ -3,6 +3,9 @@ import { request, requestJSON } from '@/utils/request.js'
 export const createConversationByAgent = (data) =>
   requestJSON({ url: '/conversations/ai/create', method: 'POST', data })
 
+export const continueConversationByAgent = (data) =>
+  requestJSON({ url: '/conversations/ai/continue', method: 'POST', data })
+
 export const getAgentCustomerProfile = ({ ownerUserId, targetUserId, targetUserName }) => {
   const query = [
     `ownerUserId=${encodeURIComponent(ownerUserId || '')}`,
