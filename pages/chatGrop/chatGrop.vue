@@ -75,7 +75,7 @@
 								<view class="name">{{getRoleInfo(item.location).text}}</view>
 								<view class="photo-container leftp" :style="getImageContainerStyle(i)"
 									@longpress="showPopupMenu($event, i)">
-									<image :src="item.content.avatar" class="phote" mode="aspectFit" lazy-load
+									<image :src="resolveImageUrl(item.content.avatar)" class="phote" mode="aspectFit" lazy-load
 										:style="getImageStyle(i)" @load="onImageLoad($event, i)" />
 								</view>
 							</view>
@@ -84,7 +84,7 @@
 							<image class="avatar" :src="'http://106.15.137.235:8080/upload/'+userInfo.avatar" />
 							<view class="photo-container rightp" :style="getImageContainerStyle(i)"
 								@longpress="showPopupMenu($event, i)">
-								<image :src="item.content.avatar" class="phote" mode="aspectFit" lazy-load
+								<image :src="resolveImageUrl(item.content.avatar)" class="phote" mode="aspectFit" lazy-load
 									:style="getImageStyle(i)" @load="onImageLoad($event, i)" />
 							</view>
 						</view>
@@ -392,6 +392,7 @@
 		getUserInfo,
 		login
 	} from '@/api/index.js';
+	import { uploadImage } from '@/api/conversations.js';
 
 	export default {
 		mixins: [scaleMixin],
@@ -1296,28 +1297,68 @@
 				console.log(data);
 				this.massageList.push(transferInfo);
 			},
-		onPhotoSubmit(data) {
-			console.log(data);
-			const location = this.currentRoleIndex;
-			const photoInfo = {
-				type: "content", // tips, content
-				contentType: "photo", //order , chat ,link
-				location, // 当前角色索引
-				content: data
-			};
-			console.log(photoInfo);
-			
-			// 如果有当前操作的索引，将图片插入到该消息上方
-			if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
-				this.massageList.splice(this.currentActionIndex, 0, photoInfo);
-				// 插入后重置索引
-				this.currentActionIndex = -1;
-			} else {
-				// 否则默认添加到末尾
-				this.massageList.push(photoInfo);
+		resolveImageUrl(avatar) {
+			if (!avatar) return '';
+			const s = String(avatar);
+			if (
+				s.startsWith('http://') ||
+				s.startsWith('https://') ||
+				s.startsWith('/static/') ||
+				s.startsWith('data:') ||
+				s.startsWith('wxfile:') ||
+				s.startsWith('file:') ||
+				s.startsWith('cloud://')
+			) {
+				return s;
 			}
-			
-			this.updateMsg();
+			return `http://106.15.137.235:8080/upload/${s.replace(/^\/+/, '')}`;
+		},
+		async onPhotoSubmit(data) {
+			if (!data?.avatar) return;
+
+			const userId = uni.getStorageSync('userId');
+			if (!userId) {
+				uni.showToast({
+					title: '请先登录',
+					icon: 'none'
+				});
+				return;
+			}
+
+			uni.showLoading({ title: '上传中...', mask: true });
+			try {
+				const res = await uploadImage(data.avatar, userId);
+				if (!res?.data) {
+					throw new Error('上传响应为空');
+				}
+
+				const location = this.currentRoleIndex;
+				const photoInfo = {
+					type: 'content',
+					contentType: 'photo',
+					location,
+					content: {
+						avatar: this.resolveImageUrl(res.data)
+					}
+				};
+
+				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
+					this.massageList.splice(this.currentActionIndex, 0, photoInfo);
+					this.currentActionIndex = -1;
+				} else {
+					this.massageList.push(photoInfo);
+				}
+
+				this.updateMsg();
+			} catch (error) {
+				console.error('上传图片失败:', error);
+				uni.showToast({
+					title: '上传失败，请重试',
+					icon: 'none'
+				});
+			} finally {
+				uni.hideLoading();
+			}
 		},
 		onTransferSubmit(data) {
 			const location = this.currentRoleIndex;

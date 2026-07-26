@@ -66,7 +66,7 @@
 						/>
 						<view class="msgContent">
 							<view class="name">{{getRoleInfo(item.location).text}}</view>
-							<image :src="item.content.avatar"  mode="widthFix" class="phote leftp"
+							<image :src="resolveImageUrl(item.content.avatar)"  mode="widthFix" class="phote leftp"
 								@longpress="showPopupMenu($event, i)" />
 						</view>
 					</view>
@@ -78,7 +78,7 @@
 							@error="handleAvatarError"
 							mode="aspectFill"
 						/>
-						<image :src="item.content.avatar" mode="widthFix" class="phote rightp"
+						<image :src="resolveImageUrl(item.content.avatar)" mode="widthFix" class="phote rightp"
 							@longpress="showPopupMenu($event, i)"></image>
 					</view>
 					</view>
@@ -401,8 +401,10 @@
 		insertGroupMessage,
 		updateGroupMessage,
 		deleteGroupMessage,
+		uploadGroupFile,
 		MESSAGE_TYPE
 	} from '@/api/groups.js';
+	import { uploadImage } from '@/api/conversations.js';
 	export default {
 		mixins: [scaleMixin],
 		components: {
@@ -1132,31 +1134,74 @@
 				this.massageList.push(transferInfo);
 				this.updateMsg()
 			},
-			onPhotoSubmit(data) {
-				const currentRole = this.guestList[this.currentRoleIndex];
-				const location = this.currentRoleIndex;
-				const photoInfo = {
-					type: "content", // tips, content
-					contentType: "photo", //order , chat ,link
-					location, // 当前角色索引
-					content: data,
-					senderType: currentRole?.isMe ? 1 : 2,
-					senderId: currentRole?.isMe ? uni.getStorageSync('userId') : null,
-					senderRoleId: currentRole?.isMe ? null : (currentRole?.role_id || currentRole?.id)
-				};
-				console.log(photoInfo);
-				
-				// 如果有当前操作的索引，将图片插入到该消息上方
-				if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
-					this.massageList.splice(this.currentActionIndex, 0, photoInfo);
-					// 插入后重置索引
-					this.currentActionIndex = -1;
-				} else {
-					// 否则默认添加到末尾
-					this.massageList.push(photoInfo);
+			resolveImageUrl(avatar) {
+				if (!avatar) return '';
+				const s = String(avatar);
+				if (
+					s.startsWith('http://') ||
+					s.startsWith('https://') ||
+					s.startsWith('/static/') ||
+					s.startsWith('data:') ||
+					s.startsWith('wxfile:') ||
+					s.startsWith('file:') ||
+					s.startsWith('cloud://')
+				) {
+					return s;
 				}
-				
-				this.updateMsg()
+				return `http://106.15.137.235:8080/upload/${s.replace(/^\/+/, '')}`;
+			},
+			async onPhotoSubmit(data) {
+				if (!data?.avatar) return;
+
+				const userId = uni.getStorageSync('userId');
+				if (!this.groupId && !userId) {
+					uni.showToast({
+						title: '请先登录',
+						icon: 'none'
+					});
+					return;
+				}
+
+				uni.showLoading({ title: '上传中...', mask: true });
+				try {
+					const res = this.groupId
+						? await uploadGroupFile(data.avatar, this.groupId)
+						: await uploadImage(data.avatar, userId);
+					if (!res?.data) {
+						throw new Error('上传响应为空');
+					}
+
+					const currentRole = this.guestList[this.currentRoleIndex];
+					const location = this.currentRoleIndex;
+					const photoInfo = {
+						type: 'content',
+						contentType: 'photo',
+						location,
+						content: {
+							avatar: this.resolveImageUrl(res.data)
+						},
+						senderType: currentRole?.isMe ? 1 : 2,
+						senderId: currentRole?.isMe ? userId : null,
+						senderRoleId: currentRole?.isMe ? null : (currentRole?.role_id || currentRole?.id)
+					};
+
+					if (this.currentActionIndex !== undefined && this.currentActionIndex !== -1) {
+						this.massageList.splice(this.currentActionIndex, 0, photoInfo);
+						this.currentActionIndex = -1;
+					} else {
+						this.massageList.push(photoInfo);
+					}
+
+					this.updateMsg();
+				} catch (error) {
+					console.error('上传图片失败:', error);
+					uni.showToast({
+						title: '上传失败，请重试',
+						icon: 'none'
+					});
+				} finally {
+					uni.hideLoading();
+				}
 			},
 			onTransferSubmit(data) {
 				const currentRole = this.guestList[this.currentRoleIndex];

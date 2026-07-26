@@ -1861,13 +1861,36 @@
 				const remaining = this.massageList.length - this.visibleEndIndex;
 				return this.bottomPlaceholderHeightPx || (remaining * this.estimatedItemHeight);
 			},
-			watermarkPattern() {
+			watermarkTileMetrics() {
 				const text = (this.watermarkText || '').trim() || ' ';
 				const spacing = Math.max(60, Number(this.watermarkSpacing) || 180);
 				const fontSize = Number(this.watermarkFontSize) || 16;
-				const height = Math.max(40, Math.round(spacing * 0.7));
+				let textWidth = 0;
+				for (const char of text) {
+					textWidth += /[\u4e00-\u9fff\u3400-\u4dbf\uff00-\uffef]/.test(char)
+						? fontSize
+						: fontSize * 0.55;
+				}
+				const textHeight = fontSize * 1.2;
+				const rad = (20 * Math.PI) / 180;
+				const rotatedW = textWidth * Math.cos(rad) + textHeight * Math.sin(rad);
+				const rotatedH = textWidth * Math.sin(rad) + textHeight * Math.cos(rad);
+				const padding = fontSize;
+				return {
+					text,
+					fontSize,
+					width: Math.max(spacing, Math.ceil(rotatedW + padding * 2)),
+					height: Math.max(Math.round(spacing * 0.7), Math.ceil(rotatedH + padding * 2))
+				};
+			},
+			watermarkPattern() {
+				const { text, fontSize, width, height } = this.watermarkTileMetrics;
+				const escapedText = text
+					.replace(/&/g, '&amp;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;');
 				const svg =
-					`<svg width="${spacing}" height="${height}" xmlns="http://www.w3.org/2000/svg"><text x="50%" y="50%" font-size="${fontSize}" fill="rgba(0,0,0,0.12)" text-anchor="middle" dominant-baseline="middle" transform="rotate(-20 ${spacing / 2} ${height / 2})" font-family="-apple-system, BlinkMacSystemFont, PingFang SC, Helvetica Neue, Microsoft YaHei, Roboto, Noto Sans CJK SC, sans-serif">${text}</text></svg>`;
+					`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><text x="50%" y="50%" font-size="${fontSize}" fill="rgba(0,0,0,0.12)" text-anchor="middle" dominant-baseline="middle" transform="rotate(-20 ${width / 2} ${height / 2})" font-family="-apple-system, BlinkMacSystemFont, PingFang SC, Helvetica Neue, Microsoft YaHei, Roboto, Noto Sans CJK SC, sans-serif">${escapedText}</text></svg>`;
 				return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 			},
 			currentMenuActions() {
@@ -1886,10 +1909,9 @@
 				const hasCustomBackground = this.contentbg && this.contentbg !== 'null';
 
 				if (this.watermarkVisible) {
+					const { width, height } = this.watermarkTileMetrics;
 					backgrounds.push(`url("${this.watermarkPattern}")`);
-					sizes.push(
-						`${Math.max(60, Number(this.watermarkSpacing) || 180)}px ${Math.max(40, Math.round((Number(this.watermarkSpacing) || 180) * 0.7))}px`
-						);
+					sizes.push(`${width}px ${height}px`);
 					repeats.push('repeat');
 					positions.push('0 0');
 				}

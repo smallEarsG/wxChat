@@ -22,7 +22,7 @@
           :right-options="swipeOptions"
           @click="handleSwipeClick($event, index)">
           <view class="group-item" @click="enterGroup(group)">
-            <image class="group-avatar" :src="group.avatar || '/static/avatar-other.png'"></image>
+            <image class="group-avatar" :src="group.avatarUrl || group.avatar || '/static/avatar-other.png'"></image>
             <view class="group-info">
               <view class="group-name">{{ group.name }}</view>
               <view class="group-desc">{{ group.description || '暂无描述' }}</view>
@@ -56,7 +56,7 @@
           <view class="form-item">
             <text class="label">群聊头像</text>
             <view class="avatar-upload" @click="chooseAvatar">
-              <image v-if="currentGroup.avatar" :src="currentGroup.avatar" class="avatar-preview"></image>
+              <image v-if="currentGroup.avatar || currentGroup.avatarUrl" :src="currentGroup.avatarUrl || currentGroup.avatar" class="avatar-preview"></image>
               <text v-else class="upload-text">点击上传</text>
             </view>
           </view>
@@ -97,12 +97,12 @@
 </template>
 
 <script>
+  import { uploadImage } from '@/api/conversations.js'
   import {
   getGroupsByUser,
   createGroup,
   updateGroup,
   deleteGroup,
-  searchGroups,
   GROUP_TYPE
 } from '@/api/groups.js';
 
@@ -114,6 +114,7 @@ export default {
         id: '',
         name: '',
         avatar: '',
+        avatarUrl: '',
         description: ''
       },
       isEdit: false,
@@ -139,23 +140,21 @@ export default {
   },
   
   methods: {
-    // 加载群聊列表（接口6 - 使用搜索接口并根据类型获取）
+    // 加载当前用户的企业对外群聊列表
     async loadGroupList() {
       if (!this.userId) {
-        console.error('用户ID不存在');
-        return;
+        this.groupList = []
+        return
       }
-      
+
       try {
-        // 使用 searchGroups 接口获取企业对外群聊列表（type=3）
-        // 这里的 type 必须和 pages/wxChatGroup/wxChatGroup.vue 中的类型不一致
-        // 普通/企业群聊使用 wxChatGroup，所以这里企业对外群聊使用 ENTERPRISE_EXTERNAL
-        const res = await searchGroups('', GROUP_TYPE.ENTERPRISE_EXTERNAL);
+        const res = await getGroupsByUser(this.userId, GROUP_TYPE.ENTERPRISE_EXTERNAL)
         if (res.code === 200 && res.data) {
           this.groupList = res.data.map(group => ({
             id: group.id,
             name: group.name || '未命名群聊',
-            avatar: group.avatar || '/static/avatar-other.png',
+            avatar: group.avatar || '',
+            avatarUrl: this.resolveAvatarUrl(group.avatar) || '/static/avatar-other.png',
             description: group.description || '暂无描述',
             createTime: group.createTime || Date.now(),
             lastMessageTime: group.lastMessageTime || group.createTime || Date.now()
@@ -170,6 +169,23 @@ export default {
       }
     },
     
+    resolveAvatarUrl(avatar) {
+      if (!avatar) return '';
+      const s = String(avatar);
+      if (
+        s.startsWith('http://') ||
+        s.startsWith('https://') ||
+        s.startsWith('/static/') ||
+        s.startsWith('data:') ||
+        s.startsWith('wxfile:') ||
+        s.startsWith('file:') ||
+        s.startsWith('cloud://')
+      ) {
+        return s;
+      }
+      return `http://106.15.137.235:8080/upload/${s.replace(/^\/+/, '')}`;
+    },
+
     // 打开新建群聊对话框
     openAddGroupDialog() {
       this.isEdit = false;
@@ -177,6 +193,7 @@ export default {
         id: '',
         name: '',
         avatar: '',
+        avatarUrl: '',
         description: ''
       };
       this.$refs.groupPopup.open();
@@ -195,15 +212,34 @@ export default {
       this.$refs.groupPopup.close();
     },
     
-    // 选择头像
-    chooseAvatar() {
+    // 选择头像并上传到云端
+    async chooseAvatar() {
       uni.chooseImage({
         count: 1,
-        success: (res) => {
+        success: async (res) => {
           const tempFilePath = res.tempFilePaths[0];
-          // TODO: 上传头像到服务器
-          // 这里暂时使用临时路径，实际应该上传到服务器并获取URL
-          this.currentGroup.avatar = tempFilePath;
+          try {
+            const uploadRes = await uploadImage(tempFilePath);
+            if (uploadRes && uploadRes.data) {
+              this.currentGroup.avatar = uploadRes.data;
+              this.currentGroup.avatarUrl = this.resolveAvatarUrl(uploadRes.data);
+            } else {
+              this.currentGroup.avatar = tempFilePath;
+              this.currentGroup.avatarUrl = tempFilePath;
+              uni.showToast({
+                title: '上传头像失败',
+                icon: 'none'
+              });
+            }
+          } catch (err) {
+            console.error('上传头像失败:', err);
+            this.currentGroup.avatar = tempFilePath;
+            this.currentGroup.avatarUrl = tempFilePath;
+            uni.showToast({
+              title: '上传头像失败',
+              icon: 'none'
+            });
+          }
         }
       });
     },
@@ -216,6 +252,14 @@ export default {
           icon: 'none'
         });
         return;
+      }
+
+      if (!this.userId) {
+        uni.showToast({
+          title: '请先登录',
+          icon: 'none'
+        })
+        return
       }
       
       try {

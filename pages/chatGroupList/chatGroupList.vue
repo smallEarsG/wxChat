@@ -108,7 +108,7 @@ import {
   updateGroup,
   deleteGroup,
   getGroupMembers,
-  searchGroups,
+  getGroupsByUser,
   GROUP_TYPE
 } from '@/api/groups.js'
 export default {
@@ -148,13 +148,14 @@ export default {
   },
   
   methods: {
-    // 加载群聊列表（使用接口6 - searchGroups，根据类型获取）
+    // 加载当前用户的企业群聊列表
     async loadGroupList() {
- try {
-        // 使用 searchGroups 接口获取企业群聊列表（type=2）
-        // 这里的 type 必须和 pages/wxChatGroup/wxChatGroup.vue 中的类型不一致
-        // wxChatGroup 使用 type=1（普通群），所以这里使用 type=2（企业群）
-        const res = await searchGroups('', GROUP_TYPE.ENTERPRISE);
+      try {
+        if (!this.userId) {
+          this.groupList = []
+          return
+        }
+        const res = await getGroupsByUser(this.userId, GROUP_TYPE.ENTERPRISE)
         if (res.code === 200 && res.data) {
           this.groupList = res.data.map(group => ({
             id: group.id,
@@ -171,12 +172,13 @@ export default {
           this.prefetchGroupAvatarLists(seq);
         }
       } catch (e) {
-        console.error('加载企业群聊列表失败:', e);
+        console.error('加载企业群聊列表失败:', e)
         uni.showToast({
           title: '加载群聊列表失败',
           icon: 'none'
-        });
-      }    },
+        })
+      }
+    },
 
     resolveAvatarUrl(avatar) {
       if (!avatar) return '';

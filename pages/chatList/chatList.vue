@@ -188,9 +188,9 @@
 			}
 		},
 		onShow() {
+			// 先恢复本地角标，再拉会话列表（列表刷新成功后再同步 storage）
+			this.loadFooterData()
 			this.getMessageList()
-			// 保存数据到 storage 以便工作台页面共享
-			this.saveFooterDataToStorage()
 		},
 		computed: {
 			totalChatIndex() {
@@ -364,6 +364,14 @@
 				this.$nextTick(() => {
 					this.saveFooterDataToStorage()
 				})
+			},
+			// 从 storage 恢复底部角标
+			loadFooterData() {
+				const footerData = uni.getStorageSync('footerData')
+				if (!footerData) return
+				this.emailIndexMsg = footerData.emailIndexMsg || 0
+				this.wordIndexMsg = footerData.wordIndexMsg || 0
+				this.addIndexMsg = footerData.addIndexMsg || 0
 			},
 			// 保存底部按钮数据到 storage
 			saveFooterDataToStorage() {
