@@ -740,7 +740,11 @@
 
 			<!-- 底部输入栏 -->
 			<view class="fun_box">
-				<ChatToolBar v-if="showChatToolBar" @click="togglePopupBox" />
+				<ChatToolBar
+					v-if="chatToolBarConfig.visible"
+					:items="chatToolBarConfig.items"
+					@click="togglePopupBox"
+				/>
 				<view v-if="quoteDraft" class="quote-draft">
 					<QuotedMessagePreview
 						:quote="quoteDraft"
@@ -964,9 +968,8 @@
 					</view>
 					<slider :value="componentScale" :min="0.7" :max="1.5" :step="0.02" @changing="onComponentScaleChange" @change="onComponentScaleChange" />
 				</view>
-				<view class="toolbar-toggle">
-					<text>快捷栏显示</text>
-					<switch :checked="showChatToolBar" @change="onChatToolBarToggle" />
+				<view class="toolbar-settings-entry">
+					<button type="default" plain="true" @click="openChatToolBarSettings">快捷栏设置</button>
 				</view>
 				<view class="watermark-settings-entry">
 					<button type="default" plain="true" @click="openAiContinuePopup">AI续写</button>
@@ -975,6 +978,7 @@
 			</view>
 		</uni-popup>
 		<AgentContinuePopup ref="agentContinuePopup" @success="onAiContinueSuccess" />
+		<ChatToolBarSettingsPopup ref="chatToolBarSettingsPopup" @save="onChatToolBarSettingsSave" />
 	</view>
 </template>
 
@@ -1302,6 +1306,12 @@
 	import MessagePopupMenu from '../../components/MessagePopupMenu/MessagePopupMenu.vue';
 	import QuotedMessagePreview from '../../components/QuotedMessagePreview/QuotedMessagePreview.vue';
 	import AgentContinuePopup from '../../components/AgentContinuePopup/AgentContinuePopup.vue';
+	import ChatToolBarSettingsPopup from '../../components/ChatToolBarSettingsPopup/ChatToolBarSettingsPopup.vue';
+	import {
+		getDefaultConfig,
+		loadChatToolBarConfig,
+		saveChatToolBarConfig
+	} from '@/utils/chatToolBarConfig.js';
 	import {
 		getUserInfo,
 		login
@@ -1327,9 +1337,11 @@
 			chatFlie,
 			MessagePopupMenu,
 			QuotedMessagePreview,
-			AgentContinuePopup
+			AgentContinuePopup,
+			ChatToolBarSettingsPopup
 		},
 		onLoad(options) {
+			this.chatToolBarConfig = loadChatToolBarConfig();
 
 			if (options.guestInfo) {
 				try {
@@ -1401,7 +1413,7 @@
 		data() {
 			return {
 				isIos: false,
-				showChatToolBar: true,
+				chatToolBarConfig: getDefaultConfig(),
 				currentFontSize: 16, // 榛樿瀛椾綋澶у皬
 				scrollTop: 0,
 				chatBodyLoading: false,
@@ -2243,8 +2255,22 @@
 				this.componentScale = scale
 				uni.setStorageSync('chat_component_scale', scale)
 			},
-			onChatToolBarToggle(e) {
-				this.showChatToolBar = e.detail.value
+			openChatToolBarSettings() {
+				if (this.$refs.chatToolBarSettingsPopup) {
+					const conversationId = this.guestInfo?.userId || this.guestInfo?.conversationId || '';
+					this.$refs.chatToolBarSettingsPopup.open(this.chatToolBarConfig, conversationId);
+				}
+				this.$refs.menuPopup.close();
+			},
+			onChatToolBarSettingsSave(config) {
+				try {
+					this.chatToolBarConfig = saveChatToolBarConfig(config);
+				} catch (error) {
+					uni.showToast({
+						title: '保存快捷栏设置失败',
+						icon: 'none'
+					});
+				}
 			},
 			onScroll(e) {
 				if (!this.useVirtualScroll) return;
@@ -4230,10 +4256,12 @@
 	.msgView_hidden {
 		visibility: hidden;
 	}
-	.toolbar-toggle {
-		display: flex;
-		margin-top: 20rpx;
-		justify-content: space-between;
+	.toolbar-settings-entry {
+		margin-top: 20upx;
+	}
+
+	.toolbar-settings-entry button {
+		width: 100%;
 	}
 
 	.yuyinBox {

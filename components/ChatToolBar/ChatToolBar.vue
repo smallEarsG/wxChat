@@ -1,65 +1,31 @@
 <template>
-  <scroll-view class="chat-toolbar" scroll-x  :show-scrollbar="false"  :style="{ fontSize: rpx(28) }">
-  
-	<view class="tool-item" @click="onClick({ label: '企业名片' })">
-	  <view class="icon-circle" :style="{width: rpx(34),height:rpx(34)}" >
-	    <image src="/static/chat/qy.png" class="tool-icon_pay" />
-	  </view>
-	  <text class="tool-label">企业名片</text>
-	</view>
-    <view class="tool-item" @click="onClick({ label: '发起收款' })">
-      <view class="icon-circle" :style="{width: rpx(34),height:rpx(34)}" >
-        <image src="/static/chat/tool_1.png" class="tool-icon_pay" />
+  <scroll-view class="chat-toolbar" scroll-x :show-scrollbar="false" :style="{ fontSize: rpx(28) }">
+    <view
+      v-for="item in items"
+      :key="item.id"
+      class="tool-item"
+      @click="onClick(item)"
+    >
+      <view class="icon-circle" :style="{ width: rpx(34), height: rpx(34) }">
+        <image :src="item.icon" class="tool-icon" mode="aspectFill" />
       </view>
-      <text class="tool-label">发起收款</text>
+      <text class="tool-label">{{ item.label }}</text>
     </view>
-
-    <view class="tool-item" @click="onClick({ label: '客户转账' })">
-      <view class="icon-circle"  :style="{width: rpx(34),height:rpx(34)}">
-        <image src="/static/chat/tool_2.png" class="tool-icon" />
-      </view>
-      <text class="tool-label">客户转账</text>
-    </view>
-
-    <view class="tool-item" @click="onClick({ label: '快捷回复' })">
-      <view class="icon-circle"  :style="{width: rpx(34),height:rpx(34)}">
-        <image src="/static/chat/tool_3.png" class="tool-icon_reply" />
-      </view>
-      <text class="tool-label">快捷回复</text>
-    </view>
-	<view class="tool-item" @click="onClick({ label: '客户跟进' })">
-	  <view class="icon-circle"  :style="{width: rpx(34),height:rpx(34)}" >
-	    <image src="/static/chat/tool_5.png" class="tool-icon_follow" />
-	  </view>
-	  <text class="tool-label">推荐客服</text>
-	</view>
-	<view class="tool-item" @click="onClick({ label: '客户跟进' })">
-	  <view class="icon-circle"  :style="{width: rpx(34),height:rpx(34)}">
-	    <image src="/static/chat/tool_5.png" class="tool-icon_follow" />
-	  </view>
-	  <text class="tool-label">商品图册</text>
-	</view>
-	<view class="tool-item" @click="onClick({ label: '客户跟进' })">
-	  <view class="icon-circle"  :style="{width: rpx(34),height:rpx(34)}">
-	    <image src="/static/chat/tool_6.png" class="tool-icon_follow" />
-	  </view>
-	  <text class="tool-label">直播</text>
-	</view>
-	<view class="tool-item" @click="onClick({ label: '快捷回复' })">
-	  <view class="icon-circle"  :style="{width: rpx(34),height:rpx(34)}">
-	    <image src="/static/chat/tool_7.png" class="tool-icon_reply" />
-	  </view>
-	  <text class="tool-label">客户详情</text>
-	</view>
   </scroll-view>
 </template>
 
 <script>
 import scaleMixin from '@/mixins/scaleMixin.js'
-import { setScale } from '@/utils/scale.js'
+
 export default {
   mixins: [scaleMixin],
   name: 'ChatToolBar',
+  props: {
+    items: {
+      type: Array,
+      default: () => []
+    }
+  },
   methods: {
     onClick(item) {
       this.$emit('click', item);
@@ -70,11 +36,10 @@ export default {
 
 <style scoped>
 .chat-toolbar {
-  /* width: 100%; */
   display: flex;
   flex-direction: row;
   white-space: nowrap;
-  padding: 20upx 10upx;	
+  padding: 20upx 10upx;
   background-color: #f5f5f5;
   padding-bottom: 0;
   text-align: center;
@@ -84,7 +49,6 @@ export default {
   display: none;
 }
 .tool-item {
-  /* height: 70upx; */
   display: inline-flex;
   align-items: center;
   background-color: #ffffff;
@@ -97,23 +61,20 @@ export default {
 
 .icon-circle {
   width: 34upx;
-  height: 34upx; 
-  /* border-radius: 50%; */
+  height: 34upx;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 5upx;
-  padding:  4upx 0;
-  /* background-color: aqua; */
+  padding: 4upx 0;
   overflow: hidden;
 }
-.icon-circle image{
-	width: 100%;
-	height: 100%;
+.icon-circle image {
+  width: 100%;
+  height: 100%;
 }
 
 .tool-label {
-  /* font-size: 28upx; */
   color: #333;
 }
 </style>
