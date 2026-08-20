@@ -1,6 +1,6 @@
 <template>
 
-	<view class="chat-page" :style="{ '--global-font-size': currentFontSize + 'px', '--font-scale': Number(scale) || 1 }">
+	<view class="chat-page" :style="{ '--global-font-size': currentFontSize + 'px', '--font-scale': Number(scale) || 1, '--chat-font-weight': chatFontWeight }">
 		<!-- 全局水印层 -->
 		<WatermarkLayer />
 		<!-- 顶部栏 -->
@@ -12,7 +12,7 @@
 				<view class="nikeName" :style="{ fontSize: rpx(34),fontWeight:'500' }">
 					{{guestInfo.name || "企业微信工坊"}}
 				</view>
-				<view class="desc" :style="{ fontSize: rpx(24),color: '#4bc768' }" >@微信</view>
+				<view class="desc" :style="{ fontSize: rpx(24),color: '#4bc768' }" >{{guestInfo.description}}</view>
 			</view>
 			<view class="icons">
 				<image @click="addVideo" class="nav-icon_phone" mode="widthFix" src="/static/icon-phone.png"></image>
@@ -40,7 +40,7 @@
 				<view class="nikeName" :style="{ fontSize: rpx(34),fontWeight:'500' }">
 					{{guestInfo.name || "企业微信工坊"}}
 				</view>
-				<view class="desc" :style="{ fontSize: rpx(24),color: '#4bc768' }">@微信</view>
+				<view class="desc" :style="{ fontSize: rpx(24),color: '#4bc768' }">{{guestInfo.description}}</view>
 			</view>
 			<view class="icons">
 				<image @click="addVideo" class="nav-icon_phone" mode="widthFix" src="/static/icon-phone.png"></image>
@@ -964,6 +964,12 @@
 				</view>
 				<view class="fontChange">
 					<view class="">
+						字体粗细
+					</view>
+					<slider :value="chatFontWeight" :min="200" :max="600" :step="100" @changing="onChatFontWeightChange" @change="onChatFontWeightChange" />
+				</view>
+				<view class="fontChange">
+					<view class="">
 						组件缩放
 					</view>
 					<slider :value="componentScale" :min="0.7" :max="1.5" :step="0.02" @changing="onComponentScaleChange" @change="onComponentScaleChange" />
@@ -1786,6 +1792,11 @@
 				watermarkText: '测试水印',
 				watermarkSpacing: 180,
 				watermarkFontSize: 16,
+				chatFontWeight: (() => {
+					const raw = Number(uni.getStorageSync('chat_font_weight'));
+					if (!Number.isNaN(raw) && raw >= 200 && raw <= 600) return raw;
+					return 400;
+				})(),
 				watermarkForm: {
 					visible: false,
 					text: '测试水印',
@@ -2010,6 +2021,12 @@
 				if (typeof raw === 'number') {
 					this.watermarkForm.fontSize = raw;
 				}
+			},
+			onChatFontWeightChange(event) {
+				const raw = Number(event?.detail?.value);
+				if (Number.isNaN(raw)) return;
+				this.chatFontWeight = Math.min(600, Math.max(200, raw));
+				uni.setStorageSync('chat_font_weight', this.chatFontWeight);
 			},
 			applyWatermarkSettings() {
 				this.watermarkVisible = this.watermarkForm.visible;
@@ -4885,6 +4902,7 @@
 		max-width: 480upx;
 		padding: 20upx 20upx;
 		font-size: 34upx;
+		font-weight: var(--chat-font-weight, 400);
 		border-radius: 16upx;
 		background-color: #ffffff;
 		line-height: 1.3;
@@ -4906,6 +4924,7 @@
 		overflow-wrap: anywhere;
 		white-space: pre-wrap;
 		color: #333;
+		font-weight: var(--chat-font-weight, 400);
 		/* */
 	}
 
