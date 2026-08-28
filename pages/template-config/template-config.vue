@@ -27,10 +27,12 @@
 				<TemplateBasicSettings
 					:templateName="templateName"
 					:showBarcode="templateConfig.showBarcode"
+					:showMiniProgram="templateConfig.showMiniProgram"
 					:enabledFieldCount="enabledOrderFields.length"
 					:enabledServiceCount="totalEnabledServiceCount"
 					@update:templateName="onTemplateNameChange"
 					@barcode-change="onBarcodeChange"
+					@mini-program-change="onMiniProgramChange"
 					@go-preview="activeTab = 'preview'"
 				/>
 				<TemplateFieldList
@@ -61,7 +63,7 @@
 			<view v-if="activeTab === 'preview'" class="tab-content">
 				<TemplatePreview
 					:previewInfo="currentPreviewInfo"
-					:templateConfig="templateConfig"
+					:templateConfig="previewTemplateConfig"
 					:previewScale="previewScale"
 					:previewDataType="previewDataType"
 					@update:previewScale="previewScale = $event"
@@ -125,8 +127,10 @@ import {
 	DEFAULT_SERVICE_ITEMS,
 	DEFAULT_TEMPLATE_CONFIG,
 	MODULE_PRESETS,
+	MINI_PROGRAM_TEMPLATE_CONFIG,
 	PREVIEW_DATA_TRANSFER,
-	PREVIEW_DATA_MERCHANT
+	PREVIEW_DATA_MERCHANT,
+	PREVIEW_DATA_MINI_PROGRAM
 } from './constants.js'
 
 export default {
@@ -201,9 +205,16 @@ export default {
 			}, 0)
 		},
 		currentPreviewInfo() {
-			return this.previewDataType === 'merchant'
-				? PREVIEW_DATA_MERCHANT
-				: PREVIEW_DATA_TRANSFER
+			if (this.previewDataType === 'merchant') return PREVIEW_DATA_MERCHANT
+			if (this.previewDataType === 'miniProgram') return PREVIEW_DATA_MINI_PROGRAM
+			return PREVIEW_DATA_TRANSFER
+		},
+		previewTemplateConfig() {
+			if (this.previewDataType !== 'miniProgram') return this.templateConfig
+			return {
+				...this.templateConfig,
+				showMiniProgram: true
+			}
 		}
 	},
 	onLoad(options) {
@@ -213,6 +224,11 @@ export default {
 		if (options.id) {
 			this.templateId = options.id
 			this.loadTemplate(options.id)
+		} else if (options.preset === 'miniProgram') {
+			this.templateConfig = JSON.parse(JSON.stringify(MINI_PROGRAM_TEMPLATE_CONFIG))
+			this.templateName = '小程序付款'
+			this.previewDataType = 'miniProgram'
+			this.markDirty()
 		}
 	},
 	methods: {
@@ -228,6 +244,19 @@ export default {
 		onBarcodeChange(e) {
 			this.templateConfig.showBarcode = e.detail.value
 			this.markDirty()
+		},
+		onMiniProgramChange(e) {
+			this.templateConfig.showMiniProgram = e.detail.value
+			if (e.detail.value) {
+				this.ensureFieldEnabled('miniName')
+			}
+			this.markDirty()
+		},
+		ensureFieldEnabled(fieldKey) {
+			const field = this.templateConfig.orderInfoFields.find(item => item.key === fieldKey)
+			if (field && !field.enabled) {
+				field.enabled = true
+			}
 		},
 		goBack() {
 			if (this.saveStatus !== 'dirty') {
@@ -344,9 +373,9 @@ export default {
 		},
 		addServiceModule() {
 			uni.showActionSheet({
-				itemList: ['空白模块', '账单服务', '商户服务', '联系方式'],
+				itemList: ['空白模块', '账单服务', '商户服务', '联系方式', '小程序服务'],
 				success: (res) => {
-					const presetKeys = ['blank', 'bill', 'merchant', 'contact']
+					const presetKeys = ['blank', 'bill', 'merchant', 'contact', 'miniProgram']
 					const preset = MODULE_PRESETS[presetKeys[res.tapIndex]]
 					this.templateConfig.serviceModules.push(JSON.parse(JSON.stringify(preset)))
 					const newIndex = this.templateConfig.serviceModules.length - 1
@@ -491,15 +520,20 @@ export default {
 			})
 			return merged
 		},
+		mergeTemplateConfig(savedConfig) {
+			const config = JSON.parse(JSON.stringify(savedConfig || {}))
+			config.orderInfoFields = this.mergeOrderInfoFields(config.orderInfoFields)
+			if (config.showBarcode === undefined) config.showBarcode = false
+			if (config.showMiniProgram === undefined) config.showMiniProgram = false
+			return config
+		},
 		loadTemplate(id) {
 			try {
 				const templates = uni.getStorageSync('customTemplates') || []
 				const template = templates.find(item => item.id === id)
 				if (template) {
 					this.templateName = template.name
-					const config = JSON.parse(JSON.stringify(template.config))
-					config.orderInfoFields = this.mergeOrderInfoFields(config.orderInfoFields)
-					this.templateConfig = config
+					this.templateConfig = this.mergeTemplateConfig(template.config)
 					this.saveStatus = 'idle'
 				}
 			} catch (e) {

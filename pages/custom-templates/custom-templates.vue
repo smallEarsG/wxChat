@@ -80,7 +80,16 @@ export default {
 			uni.navigateBack()
 		},
 		createTemplate() {
-			uni.navigateTo({ url: '/pages/template-config/template-config' })
+			uni.showActionSheet({
+				itemList: ['空白模板', '小程序付款模板'],
+				success: (res) => {
+					if (res.tapIndex === 1) {
+						uni.navigateTo({ url: '/pages/template-config/template-config?preset=miniProgram' })
+						return
+					}
+					uni.navigateTo({ url: '/pages/template-config/template-config' })
+				}
+			})
 		},
 		editTemplate(templateId) {
 			uni.navigateTo({ url: `/pages/template-config/template-config?id=${templateId}` })

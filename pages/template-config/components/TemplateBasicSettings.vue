@@ -23,6 +23,19 @@
 			</view>
 		</view>
 
+		<view class="section">
+			<view class="section-title">小程序设置</view>
+			<view class="option-card">
+				<view class="option-content">
+					<view class="option-icon" :class="{ active: showMiniProgram }">
+						<uni-icons type="checkmark" size="24" />
+					</view>
+					<text class="option-text">显示商家小程序入口</text>
+				</view>
+				<switch :checked="showMiniProgram" color="#4A90E2" @change="$emit('mini-program-change', $event)" />
+			</view>
+		</view>
+
 		<view class="summary-card" @click="$emit('go-preview')">
 			<text class="summary-text">已启用 {{ enabledFieldCount }} 个字段、{{ enabledServiceCount }} 个服务项</text>
 			<view class="summary-link">
@@ -39,6 +52,7 @@ export default {
 	props: {
 		templateName: { type: String, default: '' },
 		showBarcode: { type: Boolean, default: false },
+		showMiniProgram: { type: Boolean, default: false },
 		enabledFieldCount: { type: Number, default: 0 },
 		enabledServiceCount: { type: Number, default: 0 }
 	}

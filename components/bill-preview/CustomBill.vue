@@ -31,7 +31,7 @@
 					<!-- 其他字段（不含商户单号的条形码模式） -->
 					<view v-for="(field, index) in config.orderInfoFields" :key="'field-' + index" 
 						  class="item" 
-						  v-if="field.enabled && !(field.key === 'shopNumber' && showBarcodeValue)" 
+						  v-if="field.enabled && isFieldVisible(field) && !(field.key === 'shopNumber' && showBarcodeValue) && !(field.key === 'miniName' && showMiniProgramValue)" 
 						  :style="{ fontSize: (28 * fontScale) + 'rpx' }">
 						<view class="left">{{ field.label }}</view>
 						<view class="right">
@@ -77,6 +77,21 @@
 							</template>
 						</view>
 					</template>
+				</view>
+			</view>
+
+			<!-- 商家小程序区块 -->
+			<view
+				v-if="showMiniProgramValue"
+				class="mini"
+				style="align-items: center;"
+				:style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx', fontSize: (28 * fontScale) + 'rpx' }"
+			>
+				<view class="left" style="color: black;">{{ miniProgramLabel }}</view>
+				<view class="right_mini">
+					<image class="miniapp" mode="widthFix" src="/static/qiw/miniIcon.png"></image>
+					<text class="miniName">{{ info.miniName || '请输入小程序名称' }}</text>
+					<uni-icons type="right" color="#9b9b9b" size="17"></uni-icons>
 				</view>
 			</view>
 			
@@ -130,7 +145,8 @@
 					showService: true,
 					serviceTitle: '账单服务',
 					serviceItems: [],
-					showBarcode: false
+					showBarcode: false,
+					showMiniProgram: false
 				})
 			},
 			previewMode: {
@@ -151,9 +167,23 @@
 			},
 			showBarcodeValue() {
 				return this.config.showBarcode === true;
+			},
+			showMiniProgramValue() {
+				return this.config.showMiniProgram === true;
+			},
+			miniProgramLabel() {
+				const field = (this.config.orderInfoFields || []).find(item => item.key === 'miniName');
+				return field ? field.label : '商家小程序';
 			}
 		},
 		methods: {
+			isFieldVisible(field) {
+				if (field.key === 'merchantName' || field.key === 'shopNumber') {
+					const value = this.info[field.key]
+					return value !== undefined && value !== null && String(value).trim() !== ''
+				}
+				return true
+			},
 			handleAvatarClick() {
 				if (!this.previewMode) {
 					this.$emit('changeRole');

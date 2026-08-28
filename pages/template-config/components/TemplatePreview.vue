@@ -21,7 +21,7 @@
 
 			<view class="control-row">
 				<text class="control-label">模拟数据</text>
-				<view class="control-options">
+				<view class="control-options preview-data-options">
 					<view
 						class="option-chip"
 						:class="{ active: previewDataType === 'transfer' }"
@@ -32,6 +32,11 @@
 						:class="{ active: previewDataType === 'merchant' }"
 						@click="$emit('update:previewDataType', 'merchant')"
 					>商户付款</view>
+					<view
+						class="option-chip"
+						:class="{ active: previewDataType === 'miniProgram' }"
+						@click="$emit('update:previewDataType', 'miniProgram')"
+					>小程序付款</view>
 				</view>
 			</view>
 		</view>
@@ -99,6 +104,11 @@ export default {
 .control-options {
 	display: flex;
 	gap: 16rpx;
+}
+
+.preview-data-options {
+	flex-wrap: wrap;
+	justify-content: flex-end;
 }
 
 .option-chip {

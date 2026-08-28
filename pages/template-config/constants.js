@@ -46,7 +46,26 @@ export const MODULE_PRESETS = {
 	contact: {
 		title: '联系方式',
 		items: DEFAULT_SERVICE_ITEMS.filter(i => ['s8', 's10'].includes(i._id)).map(i => ({ ...i, enabled: true }))
+	},
+	miniProgram: {
+		title: '账单服务',
+		items: DEFAULT_SERVICE_ITEMS.filter(i => ['s1', 's2', 's4'].includes(i._id)).map(i => ({ ...i, enabled: true }))
 	}
+}
+
+const MINI_PROGRAM_ENABLED_FIELD_KEYS = [
+	'currentState', 'time', 'shop', 'merchantName', 'institution',
+	'payment', 'orderNumber', 'shopNumber', 'miniName'
+]
+
+export const MINI_PROGRAM_TEMPLATE_CONFIG = {
+	orderInfoFields: DEFAULT_FIELDS.map(field => ({
+		...field,
+		enabled: MINI_PROGRAM_ENABLED_FIELD_KEYS.includes(field.key)
+	})),
+	serviceModules: [JSON.parse(JSON.stringify(MODULE_PRESETS.miniProgram))],
+	showBarcode: false,
+	showMiniProgram: true
 }
 
 export const DEFAULT_TEMPLATE_CONFIG = {
@@ -55,7 +74,8 @@ export const DEFAULT_TEMPLATE_CONFIG = {
 		title: '账单服务',
 		items: JSON.parse(JSON.stringify(DEFAULT_SERVICE_ITEMS.filter(i => i.enabled)))
 	}],
-	showBarcode: false
+	showBarcode: false,
+	showMiniProgram: false
 }
 
 export const PREVIEW_DATA_TRANSFER = {
@@ -95,4 +115,25 @@ export const PREVIEW_DATA_MERCHANT = {
 	shop: '精品水果礼盒',
 	merchantName: '小七商行有限公司',
 	order: true
+}
+
+export const PREVIEW_DATA_MINI_PROGRAM = {
+	url: '',
+	name: '给为理想而奋斗',
+	money: '-0.01',
+	time: '2025年6月13日 16:19:30',
+	orderNumber: '1000050001202506130129831495334',
+	otherTime: '2025年6月13日 16:20:17',
+	payment: '零钱通',
+	currentState: '对方已收款',
+	desc: '由互联网清算有限公司提供付款清算服务',
+	desc2: '由互联网清算有限公司提供付款清算服务',
+	shop: '商品',
+	merchantName: '商户名称',
+	institution: '收款机构',
+	shopNumber: ' 商户单号',
+	miniName: '小七商行收款',
+	padd: 60,
+	order: false,
+	fontSize: 100
 }

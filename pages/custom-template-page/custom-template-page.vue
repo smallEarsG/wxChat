@@ -63,7 +63,7 @@
 		"desc2": "支付方式备注",
 		"payDesc": '支付说明',
 		"BoNumber": '经营单号',
-		"miniName": '商家小程序',
+		"miniName": '收款小程序',
 		"message": '留言/备注',
 		"remark": '备注信息',
 		"payeeRemark": '收款方备注',
@@ -105,7 +105,8 @@
 							{ _id: 's7', label: '商家电话', enabled: false, icon: '/static/wxchat/phone.png', iconClass: 'phoneIcon' }
 						]
 					}],
-					showBarcode: false
+					showBarcode: false,
+					showMiniProgram: false
 				},
 				infoKey: DEFAULT_INFO_KEY,
 				info: {
@@ -125,7 +126,7 @@
 					"shopNumber": '20250621110113130166201789980574',
 					"payDesc": '支付说明内容',
 					"BoNumber": '',
-					"miniName": '',
+					"miniName": '小七商行收款',
 					"message": '',
 					"remark": '',
 					"payeeRemark": '收款方备注内容',
@@ -173,7 +174,10 @@
 					const templates = uni.getStorageSync('customTemplates') || [];
 					const template = templates.find(t => t.id === templateId);
 					if (template) {
-						this.templateConfig = JSON.parse(JSON.stringify(template.config));
+						const config = JSON.parse(JSON.stringify(template.config));
+						if (config.showBarcode === undefined) config.showBarcode = false;
+						if (config.showMiniProgram === undefined) config.showMiniProgram = false;
+						this.templateConfig = config;
 						// 更新页面标题
 						uni.setNavigationBarTitle({ title: template.name });
 					}
