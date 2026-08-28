@@ -37,6 +37,7 @@
 		</uni-popup>
 		<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
 		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
+		<BillTemplateGuide template-key="thirdPartyMerchant" />
 	</view>
 </template>
 
@@ -46,12 +47,14 @@ import {
 	} from "../../utils/tool.js"
 import CommonHeader from "../../components/CommonHeader/CommonHeader.vue"
 import ThirdpartyMerchantBill from '@/components/bill-preview/ThirdpartyMerchantBill.vue'
+import BillTemplateGuide from '@/components/BillTemplateGuide/BillTemplateGuide.vue'
 import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
 
 	export default {
 		components: {
 			CommonHeader,
-			ThirdpartyMerchantBill
+			ThirdpartyMerchantBill,
+			BillTemplateGuide
 		},
 		data() {
 			return {

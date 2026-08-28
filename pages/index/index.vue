@@ -6,14 +6,14 @@
 		<view class="announcement-banner">
 			<view class="announcement-content">
 				<text class="announcement-icon">📢</text>
-				<text class="announcement-text">免责声明：本应用仅供娱乐学习使用，切勿用于违法用途</text>
+				<text class="announcement-text">免责声明：本应用仅供演示、培训与学习使用，不得冒充真实聊天/支付/转账记录，切勿用于诈骗、虚假宣传或违法用途</text>
 			</view>
 		</view>
 		
 		<!-- 顶部标题区域 -->
 		<view class="header-section">
 			<text class="title-text">功能管理中心</text>
-			<text class="subtitle-text">专业的聊天记录生成工具</text>
+			<text class="subtitle-text">界面模板与话术演练工具（演示用途）</text>
 		</view>
 		<!-- 功能卡片区域 -->
 		<view class="features-section">
@@ -29,21 +29,21 @@
 					:class="{ 'category-active': selectedCategory === 'enterprise' }"
 					@click="switchCategory('enterprise')"
 				>
-					<text class="category-text">企业</text>
+					<text class="category-text">商务</text>
 				</view>
 				<view 
 					class="category-item" 
 					:class="{ 'category-active': selectedCategory === 'wechat' }"
 					@click="switchCategory('wechat')"
 				>
-					<text class="category-text">微信</text>
+					<text class="category-text">社交</text>
 				</view>
 				<view 
 					class="category-item" 
 					:class="{ 'category-active': selectedCategory === 'alipay' }"
 					@click="switchCategory('alipay')"
 				>
-					<text class="category-text">支付宝</text>
+					<text class="category-text">支付</text>
 				</view>
 			</view>
 			
@@ -67,12 +67,12 @@
 		<!-- 联系方式区域 -->
 		<view class="contact-section">
 			<view class="contact-card">
-				<text class="contact-title">💬在线客服（微信电话同号） </text>
+				<text class="contact-title">💬 在线客服 </text>
 				<text class="contact-subtitle">问题与建议反馈、页面定制开发请联系</text>
 				<text class="contact-subtitle">（24小时内进行反馈和处理）</text>
 				<view class="contact-info">
-					<text class="contact-item" @click="copyPhoneNumber('18216263971')">微信1: 18216263971（点击复制）</text>
-					<text class="contact-item" @click="copyPhoneNumber('xiaoshoumoban01')">微信2: xiaoshoumoban01（点击复制）</text>
+					<text class="contact-item" @click="copyPhoneNumber('2469623748')">QQ: 3305242034</text>
+					<text class="contact-item" @click="copyPhoneNumber('xiaoshoumoban01')">微信: xiaoshoumoban01（点击复制）</text>
 				</view>
 				
 			</view>
@@ -80,7 +80,7 @@
 		
 		<!-- 底部免责声明 -->
 		<view class="footer-section">
-			<text class="footer-text">🛡️ 使用提醒：请合理使用本工具，遵守相关法律法规</text>
+			<text class="footer-text">🛡️ 使用提醒：请合理使用本工具，不得用于误导他人或侵犯他人权益，遵守相关法律法规</text>
 		</view>
 
 
@@ -107,13 +107,13 @@
 		data() {
 			return {
 				guestInfo: {},
-				selectedCategory: 'enterprise', // 默认选择企业类
+				selectedCategory: 'enterprise', // 默认选择商务类
 				modules: [
-					// 企业类
+					// 商务类
 					{
 						category: 'enterprise',
-						title: '企业聊天',
-						subtitle: '快速生成企业自定义聊天记录',
+						title: '商务单聊模板',
+						subtitle: '自定义单聊内容与界面，用于销售话术演练与演示',
 						icon: '💬',
 						iconBg: 'bg-blue-100',
 						iconColor: 'text-blue-600',
@@ -121,8 +121,8 @@
 					},
 					{
 						category: 'enterprise',
-						title: '企业群聊',
-						subtitle: '自定义群聊信息，恶搞专用',
+						title: '商务群聊模板',
+						subtitle: '自定义群聊场景，适用于培训与方案展示',
 						icon: '👨‍👩‍👧‍👦',
 						iconBg: 'bg-purple-100',
 						iconColor: 'text-purple-600',
@@ -130,8 +130,8 @@
 					},
 					{
 						category: 'enterprise',
-						title: '企业微信群聊（对外）',
-						subtitle: '自定义群聊信息，恶搞专用',
+						title: '对外群聊模板',
+						subtitle: '模拟对外沟通场景，仅供内部演示学习',
 						icon: '👨‍👩‍👧‍👦',
 						iconBg: 'bg-purple-100',
 						iconColor: 'text-purple-600',
@@ -139,8 +139,8 @@
 					},
 					{
 						category: 'enterprise',
-						title: '企业转账记录',
-						subtitle: '企业收款转账记录，快速建立信任背书',
+						title: '转账记录模板',
+						subtitle: '编辑转账展示样式，用于话术演练（非真实交易）',
 						icon: '💸',
 						iconBg: 'bg-orange-100',
 						iconColor: 'text-orange-600',
@@ -148,8 +148,8 @@
 					},
 					{
 						category: 'enterprise',
-						title: '企业获客助手',
-						subtitle: '手动编辑获客数量，使用情况',
+						title: '获客数据模板',
+						subtitle: '自定义获客展示数据，用于汇报与演示',
 						icon: '🎯',
 						iconBg: 'bg-teal-100',
 						iconColor: 'text-teal-600',
@@ -157,18 +157,18 @@
 					},
 					{
 						category: 'enterprise',
-						title: '收款账单',
-						subtitle: '管理企业收款账单记录',
+						title: '收款账单模板',
+						subtitle: '管理演示用账单样式与记录',
 						icon: '📑',
 						iconBg: 'bg-pink-100',
 						iconColor: 'text-pink-600',
 						handler: 'gotoCollectionBill'
 					},
-					// 威信类
+					// 社交类
 					{
 						category: 'wechat',
-						title: '威信聊天',
-						subtitle: '快速生成w-x自定义聊天记录',
+						title: '社交单聊模板',
+						subtitle: '自定义 IM 风格单聊界面与内容',
 						icon: '👥',
 						iconBg: 'bg-green-100',
 						iconColor: 'text-green-600',
@@ -176,8 +176,8 @@
 					},
 					{
 						category: 'wechat',
-						title: '威信群聊',
-						subtitle: '自定义群聊信息，恶搞专用',
+						title: '社交群聊模板',
+						subtitle: '自定义群聊场景，用于演示与培训',
 						icon: '👨‍👩‍👧‍👦',
 						iconBg: 'bg-purple-100',
 						iconColor: 'text-purple-600',
@@ -185,8 +185,8 @@
 					},
 					{
 						category: 'wechat',
-						title: '威信付款记录',
-						subtitle: '快速扫描生成付款记录，自动录入订单号，以假乱真，自定义金额和时间',
+						title: '支付页面模板',
+						subtitle: '自定义支付流水展示样式与字段，仅供演示',
 						icon: '📄',
 						iconBg: 'bg-indigo-100',
 						iconColor: 'text-indigo-600',
@@ -194,8 +194,8 @@
 					},
 					{
 						category: 'wechat',
-						title: '威信支付记录',
-						subtitle: '快速生成w-x支付交易历史',
+						title: '支付完成页模板',
+						subtitle: '自定义支付结果页展示内容，仅供演示',
 						icon: '💰',
 						iconBg: 'bg-red-100',
 						iconColor: 'text-red-600',
@@ -203,27 +203,27 @@
 					},
 					{
 						category: 'wechat',
-						title: '微信付款',
-						subtitle: '快速生成微信付款记录',
-						iconImage: '/static/wxchat/kinda_wechat_pay.png',
+						title: '付款界面模板',
+						subtitle: '自定义付款流程界面，仅供演示学习',
+						icon: '💳',
 						iconBg: 'bg-green-100',
 						iconColor: 'text-green-600',
 						handler: 'goToWxPayment'
 					},
 					{
 						category: 'wechat',
-						title: '收账单',
-						subtitle: '快速生成微信收账单页面',
+						title: '收款账单页模板',
+						subtitle: '自定义收款账单展示页面，仅供演示',
 						icon: '📑',
 						iconBg: 'bg-pink-100',
 						iconColor: 'text-pink-600',
 						handler: 'gotoWxCollectionBill'
 					},
-					// 支付宝类
+					// 支付类
 					{
 						category: 'alipay',
-						title: '付款详情',
-						subtitle: '免责声明，仅供娱乐，切莫违法',
+						title: '付款详情模板',
+						subtitle: '自定义付款详情页，仅供演示学习',
 						icon: '💰',
 						iconBg: 'bg-red-100',
 						iconColor: 'text-red-600',
@@ -231,8 +231,8 @@
 					},
 					{
 						category: 'alipay',
-						title: '付款截图',
-						subtitle: '生成支付宝付款截图',
+						title: '付款界面模板',
+						subtitle: '自定义付款界面布局与信息展示，仅供演示',
 						icon: '📸',
 						iconBg: 'bg-red-100',
 						iconColor: 'text-red-600',
@@ -327,7 +327,7 @@
 						updateUseFeature(this.guestInfo.id)
 					}
 				}
-				// 跳转到威信群聊列表页面
+				// 跳转到社交群聊列表页面
 				uni.navigateTo({
 					url: '/pages/wxChatGroupList/wxChatGroupList'
 				});
@@ -363,7 +363,7 @@
 						updateUseFeature(this.guestInfo.id)
 					}
 				}
-				// 跳转到企业微信群聊列表页面
+				// 跳转到对外群聊列表页面
 				uni.navigateTo({
 					url: '/pages/enterpriseWxChatGroupList/enterpriseWxChatGroupList'
 				});

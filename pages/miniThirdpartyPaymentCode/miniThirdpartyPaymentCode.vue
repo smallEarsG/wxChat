@@ -37,6 +37,7 @@
 		</uni-popup>
 		<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
 		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
+		<BillTemplateGuide template-key="miniProgramBarcode" />
 	</view>
 </template>
 
@@ -46,10 +47,12 @@
 		generateBarcodeBase64
 	} from "../../utils/tool.js"
 	import MiniThirdpartyPaymentCodeBill from '@/components/bill-preview/MiniThirdpartyPaymentCodeBill.vue'
+	import BillTemplateGuide from '@/components/BillTemplateGuide/BillTemplateGuide.vue'
 	
 	export default {
 		components: {
-			MiniThirdpartyPaymentCodeBill
+			MiniThirdpartyPaymentCodeBill,
+			BillTemplateGuide
 		},
 		data() {
 			return {

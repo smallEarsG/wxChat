@@ -417,19 +417,18 @@
 			if (options.guestInfo) {
 				try {
 					this.guestInfo = JSON.parse(decodeURIComponent(options.guestInfo));
-// 如果传递了群聊ID，使用它
-					if (this.guestInfo.id && typeof this.guestInfo.id === 'number') {
-						this.groupId = this.guestInfo.id;
-						
-						// 获取群聊详情（接口2） 
+					this.massageList = this.parseMsgContent(this.guestInfo.msgContent);
+					const groupId = this.resolveGroupId(this.guestInfo.id);
+					if (groupId) {
+						this.groupId = groupId;
+						// 获取群聊详情（接口2）
 						await this.loadGroupInfo();
-					}				} catch (e) {
+					}
+				} catch (e) {
 					console.error('guestInfo 参数解析失败', e);
+					this.massageList = [];
 				}
 			}
-			
-			// 恢复缓存数据（等待完成）
-			// await this.loadChatData();
 			
 			// 获取账号信息
 			const userId = uni.getStorageSync('userId');
@@ -446,18 +445,18 @@
 					guestListLength: this.guestList?.length || 0
 				});
 				
-				// 如果数据为空，重新加载数据
-				if (!this.massageList || this.massageList.length === 0 || !this.guestList || this.guestList.length === 0) {
-					console.log('页面显示时检测到数据为空，重新加载数据');
-					// await this.loadChatData();
-					
-					// 如果guestList为空，重新获取用户信息
-					if (!this.guestList || this.guestList.length === 0) {
-						const userId = uni.getStorageSync('userId');
-						if (userId) {
-							console.log('重新获取用户信息');
-							await this.getUserInfo(userId);
-						}
+				// 如果聊天记录为空且有群聊ID，从服务端重新加载
+				if ((!this.massageList || this.massageList.length === 0) && this.groupId) {
+					console.log('页面显示时聊天记录为空，重新加载群聊数据');
+					await this.loadGroupInfo();
+				}
+
+				// 如果成员列表为空，重新获取用户信息
+				if (!this.guestList || this.guestList.length === 0) {
+					const userId = uni.getStorageSync('userId');
+					if (userId) {
+						console.log('重新获取用户信息');
+						await this.getUserInfo(userId);
 					}
 				}
 				
@@ -479,11 +478,11 @@
 		},
 		
 		onHide() {
-			// 页面隐藏时不再保存数据到本地
+			this.updateMsg();
 		},
 		
 		onUnload() {
-			// 页面卸载时不再保存数据到本地
+			this.updateMsg();
 		},
 		data() {
 			return {
@@ -495,6 +494,7 @@
 				
 				chatInputBottom: 0,
 				guestInfo: {},
+				groupId: null,
 				currentRoleIndex: 0, // 重命名：isMe -> currentRoleIndex，当前选中的角色索引
 				openPopup: false,
 				inputValue: "",
@@ -591,7 +591,26 @@
 			// }, 1000)
 		},
 		methods: {
-		// 获取群聊详情（接口2）
+			resolveGroupId(id) {
+				if (id === null || id === undefined || id === '') return null;
+				const num = Number(id);
+				return Number.isFinite(num) && num > 0 ? num : null;
+			},
+
+			parseMsgContent(msgContent) {
+				if (msgContent === null || msgContent === undefined || msgContent === '') {
+					return [];
+				}
+				try {
+					const parsed = typeof msgContent === 'string' ? JSON.parse(msgContent) : msgContent;
+					return Array.isArray(parsed) ? parsed : [];
+				} catch (error) {
+					console.error('解析聊天记录失败:', error);
+					return [];
+				}
+			},
+
+			// 获取群聊详情（接口2）
 			async loadGroupInfo() {
 				if (!this.groupId) return;
 				try {
@@ -605,7 +624,8 @@
 						};
 						// 加载成员列表（接口7）
 						await this.loadGroupMembers();
-						this.massageList =  res.data.msgContent === null ? [] :JSON.parse(res.data.msgContent)
+						this.guestInfo.msgContent = res.data.msgContent || '[]';
+						this.massageList = this.parseMsgContent(this.guestInfo.msgContent);
 					}
 					console.log("======res====",res);
 					
@@ -1310,31 +1330,26 @@
 				this.updateMsg()
 			},
 			
-			// 更新消息并保存
 			updateMsg() {
-				this.saveChatData();
-				
-			},
-			// 更新消息
-			async updateMsg() {
-				// 如果有群聊ID，更新群聊的msgContent字段
-				if (this.groupId) {
-					try {
-						// 将消息列表序列化为JSON字符串
-						const msgContent = JSON.stringify(this.massageList);
-						
-						// 调用群聊更新接口更新msgContent
-						const res = await updateGroup(this.groupId, {
-							msgContent: msgContent
-						});
-						
-						if (res.code === 200) {
-							console.log('群消息内容更新成功');
-						}
-					} catch (error) {
-						console.error('更新群消息内容失败:', error);
-					}
+				const msgContent = JSON.stringify(this.massageList);
+				this.guestInfo.msgContent = msgContent;
+
+				const groupId = this.groupId || this.resolveGroupId(this.guestInfo?.id);
+				if (!groupId) {
+					console.warn('无法保存聊天记录：缺少有效的 groupId');
+					return;
 				}
+				this.groupId = groupId;
+
+				updateGroup(groupId, { msgContent })
+					.then(res => {
+						if (!res || res.code !== 200) {
+							console.error('更新消息失败:', res);
+						}
+					})
+					.catch(err => {
+						console.error('更新群消息内容失败:', err);
+					});
 			},
 			
 			// 打开编辑消息弹窗

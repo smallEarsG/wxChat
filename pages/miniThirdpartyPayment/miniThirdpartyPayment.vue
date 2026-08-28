@@ -34,6 +34,7 @@
 		</uni-popup>
 		<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
 		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
+		<BillTemplateGuide template-key="miniProgram" />
 	</view>
 </template>
 
@@ -45,11 +46,13 @@ import {
 import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
 import CommonHeader from "../../components/CommonHeader/CommonHeader.vue"
 import MiniThirdpartyPaymentBill from '@/components/bill-preview/MiniThirdpartyPaymentBill.vue'
+import BillTemplateGuide from '@/components/BillTemplateGuide/BillTemplateGuide.vue'
 
 	export default {
 		components: {
 			CommonHeader,
-			MiniThirdpartyPaymentBill
+			MiniThirdpartyPaymentBill,
+			BillTemplateGuide
 		},
 		data() {
 			return {

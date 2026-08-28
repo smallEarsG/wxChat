@@ -2,7 +2,7 @@
 	<view class="bill-preview bill-container">
 		<!-- 导航栏 -->
 		<view class="nav" :style="{ paddingTop: (previewMode ? 20 : statusBarHeight) + 'px' }">
-			<uni-icons v-if="!previewMode" class="close" type="closeempty" color="#000" size="22" @click="$emit('goBack')"></uni-icons>
+			<uni-icons v-if="!previewMode" class="close guide-step-back" type="closeempty" color="#000" size="22" @click="$emit('goBack')"></uni-icons>
 			<uni-icons v-else class="close" type="closeempty" color="#000" size="22"></uni-icons>
 			<view v-if="isIos" class="nav-title">
 				账单
@@ -11,10 +11,10 @@
 		</view>
 
 		<view class="content">
-			<view class="order" @click="handleMoneyClick" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
+			<view class="order guide-step-content" @click="handleMoneyClick" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<!-- order_top 保持不变 -->
 				<view class="order_top">
-					<view class="avatar" @click.stop="handleAvatarClick">
+					<view class="avatar guide-step-avatar" @click.stop="handleAvatarClick">
 						<image :src="info.url||'/static/paySe.png'"></image>
 					</view>
 					<view class="name" :style="{ fontSize: (32 * fontScale) + 'rpx' }">

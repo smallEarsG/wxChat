@@ -10,10 +10,12 @@
 				消息
 			</view>
 			<view class="right">
-				<view @click="goQuery" style="padding: 2rpx;overflow: hidden;box-sizing: border-box;">
+				<view class="guide-step-search" @click="goQuery" style="padding: 2rpx;overflow: hidden;box-sizing: border-box;">
 					<image class="nav-icon_more" src="/static/searchWihte.png"></image>
 				</view>
-				<uni-icons type="plus" color="#000" size="28" @click="addMsgbox()"></uni-icons>
+				<view class="guide-step-add">
+					<uni-icons type="plus" color="#000" size="28" @click="addMsgbox()"></uni-icons>
+				</view>
 			</view>
 		</view>
 		<view class="content">
@@ -38,9 +40,16 @@
 			<view style="margin: 0 20rpx; margin-bottom: 1px;">
 				<view class="xline" />
 			</view>
-			<view class="roleList">
+			<view class="roleList guide-step-list">
 				<uni-swipe-action>
-					<uni-swipe-action-item msgsclass="wipe"  v-for="item in msgList" :right-options="options" :auto-close="false"
+					<uni-swipe-action-item
+						msgsclass="wipe"
+						v-for="(item, index) in msgList"
+						:key="item.conversationId"
+						:class="index === 0 ? 'guide-step-swipe' : ''"
+						:show="index === 0 && guideSwipeOpen ? 'right' : 'none'"
+						:right-options="options"
+						:auto-close="false"
 						@click="bindClick(item,$event)">
 
 						<view class="content-box" @click="goChat(item)">
@@ -71,7 +80,7 @@
 					</uni-swipe-action-item>
 				</uni-swipe-action>
 			</view>
-			<view class="footer_btn">
+			<view class="footer_btn guide-step-footer">
 				<view class="foot_item">
 					<view class="totalIndex" v-if="totalChatIndex>0" :class="totalChatIndex>99 ? 'more_red':''">
 						{{totalChatIndex>99?'99+':totalChatIndex}}
@@ -121,6 +130,13 @@
 		<AgentConversationPopup ref="agentPopup" @success="onAgentCreateSuccess"></AgentConversationPopup>
 		<AgentBatchConversationPopup ref="agentBatchPopup" @success="onAgentBatchCreateSuccess"></AgentBatchConversationPopup>
 		<MessageEditPopup ref="msgEditPopup" @submit="onSubmitMessageEdit"></MessageEditPopup>
+		<GuideTour
+			:visible="showGuide"
+			:steps="activeGuideSteps"
+			@step-change="onGuideStepChange"
+			@finish="finishGuide"
+			@skip="finishGuide"
+		/>
 	</view>
 </template>
 
@@ -140,13 +156,15 @@
 	import AgentBatchConversationPopup from '@/components/AgentBatchConversationPopup/AgentBatchConversationPopup.vue'
 	import EditableFormPopup from '@/components/EditableFormPopup/EditableFormPopup.vue'
 	import MessageEditPopup from '@/components/MessageEditPopup/MessageEditPopup.vue'
+	import GuideTour from '@/components/GuideTour/GuideTour.vue'
 	export default {
 		components: {
 			ProMsgEditPopup,
 			AgentConversationPopup,
 			AgentBatchConversationPopup,
 			EditableFormPopup,
-			MessageEditPopup
+			MessageEditPopup,
+			GuideTour
 		},
 		data() {
 			return {
@@ -185,14 +203,51 @@
 
 					}
 				],
+				showGuide: false,
+				guideSwipeOpen: false,
+				guideSteps: [
+					{
+						selector: '.guide-step-add',
+						title: '添加对话',
+						content: '点击右上角「+」可自定义对话，或使用 AI 批量生成对话内容。'
+					},
+					{
+						selector: '.guide-step-search',
+						title: '搜索消息',
+						content: '点击搜索图标，可快速查找已有对话记录。'
+					},
+					{
+						selector: '.guide-step-list',
+						title: '对话列表',
+						content: '点击任意对话即可进入聊天页面。'
+					},
+					{
+						selector: '.guide-step-swipe',
+						title: '左滑操作',
+						content: '在对话项上向左滑动，可修改或删除该对话。',
+						delay: 350
+					},
+					{
+						selector: '.guide-step-footer',
+						title: '底部导航',
+						content: '邮件、文档、通讯录支持自定义角标数量，工作台可进入更多功能。'
+					}
+				],
 			}
 		},
-		onShow() {
+		async onShow() {
 			// 先恢复本地角标，再拉会话列表（列表刷新成功后再同步 storage）
 			this.loadFooterData()
-			this.getMessageList()
+			await this.getMessageList()
+			this.checkFirstTimeGuide()
 		},
 		computed: {
+			activeGuideSteps() {
+				if (this.msgList.length > 0) {
+					return this.guideSteps
+				}
+				return this.guideSteps.filter(step => step.selector !== '.guide-step-swipe')
+			},
 			totalChatIndex() {
 				return this.msgList.reduce((sum, item) => {
 					const chatIndex = Number(item.chatIndex || 0);
@@ -201,6 +256,33 @@
 			}
 		},
 		methods: {
+			checkFirstTimeGuide() {
+				const hasSeenGuide = uni.getStorageSync('chatList_hasSeenGuide')
+				if (hasSeenGuide) return
+				this.$nextTick(() => {
+					setTimeout(() => {
+						this.showGuide = true
+					}, 400)
+				})
+			},
+			onGuideStepChange(index) {
+				const step = this.activeGuideSteps[index]
+				this.guideSwipeOpen = !!(step && step.selector === '.guide-step-swipe')
+			},
+			finishGuide() {
+				this.guideSwipeOpen = false
+				uni.setStorageSync('chatList_hasSeenGuide', true)
+				this.showGuide = false
+			},
+			openGuide() {
+				this.guideSwipeOpen = false
+				this.showGuide = false
+				this.$nextTick(() => {
+					setTimeout(() => {
+						this.showGuide = true
+					}, 100)
+				})
+			},
 			parseCreatedAt(str) {
 			  const now = new Date();
 			  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -395,8 +477,12 @@
 			},
 			addMsgbox() {
 				uni.showActionSheet({
-					itemList: ['AI生成对话', '批量AI生成对话', '自定义对话'],
+					itemList: ['AI生成对话', '批量AI生成对话', '自定义对话', '功能引导'],
 					success: (res) => {
+						if (res.tapIndex === 3) {
+							this.openGuide()
+							return
+						}
 						if (res.tapIndex === 0) {
 							if (!this.msgList || this.msgList.length === 0) {
 								uni.showToast({
@@ -771,6 +857,11 @@
 		color: #fff;
 		display: flex;
 		/* align-items: center; */
+	}
+
+	.guide-step-add {
+		display: flex;
+		align-items: center;
 	}
 
 	.add-chat-btn {

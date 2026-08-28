@@ -38,6 +38,7 @@
 		</uni-popup>
 		<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
 		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
+		<BillTemplateGuide template-key="qrPay" />
 	</view>
 </template>
 
@@ -47,10 +48,12 @@
 	} from "../../utils/tool.js"
 	import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
 	import CodePayChild2Bill from '@/components/bill-preview/CodePayChild2Bill.vue'
+	import BillTemplateGuide from '@/components/BillTemplateGuide/BillTemplateGuide.vue'
 	
 	export default {
 		components: {
-			CodePayChild2Bill
+			CodePayChild2Bill,
+			BillTemplateGuide
 		},
 		data() {
 			return {

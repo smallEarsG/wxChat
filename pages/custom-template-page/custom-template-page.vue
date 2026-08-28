@@ -33,6 +33,7 @@
 		</uni-popup>
 		<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
 		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz" />
+		<BillTemplateGuide template-key="custom" />
 	</view>
 </template>
 
@@ -42,6 +43,7 @@
 		generateBarcodeBase64
 	} from "../../utils/tool.js"
 	import CustomBill from '@/components/bill-preview/CustomBill.vue'
+	import BillTemplateGuide from '@/components/BillTemplateGuide/BillTemplateGuide.vue'
 	import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
 
 	// 默认的字段标签（参考其他模板组件补充）
@@ -74,7 +76,8 @@
 
 	export default {
 		components: {
-			CustomBill
+			CustomBill,
+			BillTemplateGuide
 		},
 		data() {
 			return {

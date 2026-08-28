@@ -33,6 +33,7 @@
 		</uni-popup>
 		<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
 		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
+		<BillTemplateGuide template-key="barcode34" />
 	</view>
 </template>
 
@@ -42,11 +43,13 @@
 		generateBarcodeBase64
 	} from "../../utils/tool.js"
 	import BarcodeThirdpartyPayment34Bill from '@/components/bill-preview/BarcodeThirdpartyPayment34Bill.vue'
+	import BillTemplateGuide from '@/components/BillTemplateGuide/BillTemplateGuide.vue'
 	import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
 	
 	export default {
 		components: {
-			BarcodeThirdpartyPayment34Bill
+			BarcodeThirdpartyPayment34Bill,
+			BillTemplateGuide
 		},
 		data() {
 			return {

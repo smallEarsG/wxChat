@@ -1,6 +1,6 @@
 <template>
 	<view class="container" :class="{ 'preview-mode': previewMode }">
-		<view class="nav" v-if="!previewMode" @click="goBack" :style="{ paddingTop: statusBarHeight + 'px' }">
+		<view class="nav guide-step-back" v-if="!previewMode" @click="goBack" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<uni-icons class="close" type="closeempty" color="#000" size="22"></uni-icons>
 			<view v-if="isIos" class="nav-title">
 				账单
@@ -8,9 +8,9 @@
 			<view class="allOrder" v-if="info.order" @click.stop="exitInfo" :style="{ fontSize: (36 * fontScale) + 'rpx' }">全部账单</view>
 		</view>
 		<view class="content">
-			<view class="order" @click="exitInfo" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
+			<view class="order guide-step-content" @click="exitInfo" :style="{ paddingLeft: info.padd + 'rpx', paddingRight: info.padd + 'rpx' }">
 				<view class="order_top">
-					<view class="avatar" @click.stop="changeRole">
+					<view class="avatar guide-step-avatar" @click.stop="changeRole">
 						<image :src="info.url||'/static/paySe.png'"></image>
 					</view>
 					<view class="name" :style="{ fontSize: (32 * fontScale) + 'rpx' }">

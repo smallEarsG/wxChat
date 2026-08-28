@@ -35,6 +35,7 @@
 		</uni-popup>
 		<EditableFormPopup ref="orderPopup" :value="info" :fieldLabels="infoKey" @submit="onOrderSubmit" />
 		<ProfileEditPopup ref="cradPopup" @submit="onCradSubmitz"></ProfileEditPopup>
+		<BillTemplateGuide template-key="transfer" />
 	</view>
 </template>
 
@@ -44,10 +45,12 @@
 	} from "../../utils/tool.js"
 	import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
 	import TransferBill from '@/components/bill-preview/TransferBill.vue'
+	import BillTemplateGuide from '@/components/BillTemplateGuide/BillTemplateGuide.vue'
 	
 	export default {
 		components: {
-			TransferBill
+			TransferBill,
+			BillTemplateGuide
 		},
 		data() {
 			return {

@@ -5,23 +5,23 @@
 		<WatermarkLayer />
 		<!-- 顶部栏 -->
 		<view v-if="!isIos" class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
-			<view class="back" @click="goBack">
+			<view class="back guide-step-back" @click="goBack">
 				<image class="backimg" src="../../static/qiw/black_leftIcon.png" mode="widthFix"></image>
 			</view>
-			<view class="title-ios">
+			<view class="title-ios guide-step-title">
 				<view class="nikeName" :style="{ fontSize: rpx(34),fontWeight:'500' }">
 					{{guestInfo.name || "企业微信工坊"}}
 				</view>
 				<view class="desc" :style="{ fontSize: rpx(24),color: '#4bc768' }" >{{guestInfo.description}}</view>
 			</view>
 			<view class="icons">
-				<image @click="addVideo" class="nav-icon_phone" mode="widthFix" src="/static/icon-phone.png"></image>
-				<image @click="openMenu" class="nav-icon_more" src="/static/qiw/more.png"></image>
+				<image @click="addVideo" class="nav-icon_phone guide-step-phone" mode="widthFix" src="/static/icon-phone.png"></image>
+				<image @click="openMenu" class="nav-icon_more guide-step-more" src="/static/qiw/more.png"></image>
 			</view>
 		</view>
 		<!-- isIos -->
 		<view v-else class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
-			<view class="back" @click="goBack">
+			<view class="back guide-step-back" @click="goBack">
 				<uni-icons type="left" color="#000" size="24"></uni-icons>
 				<view class="msgConut">
 					<view
@@ -36,22 +36,23 @@
 				
 				<!-- <image class="backimg-ios" mode="widthFix" src="/static/left.png"></image> -->
 			</view>
-			<view class="title-ios">
+			<view class="title-ios guide-step-title">
 				<view class="nikeName" :style="{ fontSize: rpx(34),fontWeight:'500' }">
 					{{guestInfo.name || "企业微信工坊"}}
 				</view>
 				<view class="desc" :style="{ fontSize: rpx(24),color: '#4bc768' }">{{guestInfo.description}}</view>
 			</view>
 			<view class="icons">
-				<image @click="addVideo" class="nav-icon_phone" mode="widthFix" src="/static/icon-phone.png"></image>
-				<uni-icons @click="openMenu" style="margin-left: 20rpx;" type="more-filled" size="24"></uni-icons>
+				<image @click="addVideo" class="nav-icon_phone guide-step-phone" mode="widthFix" src="/static/icon-phone.png"></image>
+				<uni-icons @click="openMenu" class="guide-step-more" style="margin-left: 20rpx;" type="more-filled" size="24"></uni-icons>
 				<!-- <uni-icons type="more-filled" @click="openMenu" class="nav-icon_more-ios" color="#fff" size="24"></uni-icons> -->
 			</view>
 		</view>
 
 		<view class="chat-content">
-			<scroll-view class="chat-body" :class="{'scroll-auto': activeMsgIndex!== -1}" :scroll-top="scrollTop"
-				:style="chatBodyStyle" :scroll-y="!isDragging" :show-scrollbar="false" @scroll="onScroll">
+			<view class="chat-body-wrap">
+				<scroll-view class="chat-body" :class="{'scroll-auto': activeMsgIndex!== -1}" :scroll-top="scrollTop"
+					:style="chatBodyStyle" :scroll-y="!isDragging" :show-scrollbar="false" @scroll="onScroll">
 				<!-- 首屏自动滚动时的加载遮罩（仅首次且确实需要滚动才显示） -->
 				<view v-if="chatBodyLoading" class="chat-body-load">
 					<view class="chat-body-load__inner">加载中...</view>
@@ -102,7 +103,7 @@
 					<!-- 转账 -->
 					<view v-else-if="draggingItem.contentType == 'transfer'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<TransferCard :class="!draggingItem.content.st?'tfCardLeft':'tfCardLeftBg'" :state="draggingItem.content.st"
@@ -121,7 +122,7 @@
 					<!-- 收款 -->
 					<view v-else-if="draggingItem.contentType == 'wxtf'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<ChTf class="tfCardLeftBg" :fontScale="Number(componentScale) || 1" :name="draggingItem.content.name" :amount="draggingItem.content.amount"></ChTf>
@@ -135,7 +136,7 @@
 					<!-- 图片photo -->
 					<view v-else-if="draggingItem.contentType == 'photo'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="photo-container leftp" :style="getImageContainerStyle(dragStartIndex)">
@@ -153,7 +154,7 @@
 					<!-- 红包 -->
 					<view v-else-if="draggingItem.contentType == 'redBag'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<RedBag :class="draggingItem.content?'redbagLeft':'redbagLeftBg'" :fontScale="Number(componentScale) || 1" :location="draggingItem.location"
@@ -169,7 +170,7 @@
 					<!-- 文件 -->
 					<view v-else-if="draggingItem.contentType == 'file'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<chatFlie class="cardLeft" :fontScale="Number(componentScale) || 1" :content="draggingItem.content">
@@ -214,7 +215,7 @@
 					<!-- 名片 -->
 					<view v-else-if="draggingItem.contentType == 'crad'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="widthFix" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<WxCard class="cardLeft" :fontScale="Number(componentScale) || 1" :nickname="draggingItem.content.nickname" :avatar="draggingItem.content.avatar">
@@ -230,7 +231,7 @@
 					<!-- 鑱婂ぉ -->
 					<view v-else-if="draggingItem.contentType == 'chat'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
@@ -296,7 +297,7 @@
 					<!-- 视频电话 -->
 					<view v-else-if="draggingItem.contentType == 'video'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
@@ -327,7 +328,7 @@
 					<!-- 语音通话 -->
 					<view v-else-if="draggingItem.contentType == 'phone'" class="cell">
 						<view class="msg left" v-if="draggingItem.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
@@ -424,7 +425,7 @@
 					<view v-else-if="msgData.item.contentType == 'transfer'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" @click="goReceipt(msgData.item)"
 							v-if="msgData.item.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<TransferCard :class="!msgData.item.content.st?'tfCardLeft':'tfCardLeftBg'" :state="msgData.item.content.st"
@@ -445,7 +446,7 @@
 					<view v-else-if="msgData.item.contentType == 'wxtf'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" @click="goCollection(msgData.item)"
 							v-if="msgData.item.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<ChTf class="tfCardLeftBg" :fontScale="Number(componentScale) || 1" :name="msgData.item.content.name" :amount="msgData.item.content.amount"></ChTf>
@@ -462,7 +463,7 @@
 
 					<view v-else-if="msgData.item.contentType == 'photo'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 						<view class="msg left" v-if="msgData.item.location == 0" @longpress="showPopupMenu($event, msgData.index)">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="photo-container leftp" :style="getImageContainerStyle(msgData.index)">
@@ -483,7 +484,7 @@
 					<!-- 红包 -->
 					<view v-else-if="msgData.item.contentType == 'redBag'" @click="getRB(msgData.index)" class="cell">
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<RedBag :class="msgData.item.content?'redbagLeft':'redbagLeftBg'" :fontScale="Number(componentScale) || 1" :location="msgData.item.location"
@@ -503,7 +504,7 @@
 					<view v-else-if="msgData.item.contentType == 'file'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="widthFix" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<chatFlie class="cardLeft" :fontScale="Number(componentScale) || 1" :content="msgData.item.content">
@@ -548,7 +549,7 @@
 					<view v-else-if="msgData.item.contentType == 'crad'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="widthFix" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<WxCard class="cardLeft" :fontScale="Number(componentScale) || 1" :nickname="msgData.item.content.nickname" :avatar="msgData.item.content.avatar">
@@ -565,7 +566,7 @@
 					<view v-else-if="msgData.item.contentType == 'chat'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 						<!-- 聊天内容 -->
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
@@ -639,7 +640,7 @@
 					<view v-else-if="msgData.item.contentType == 'video'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
@@ -679,7 +680,7 @@
 					<view v-else-if="msgData.item.contentType == 'phone'" @longpress="showPopupMenu($event, msgData.index)" class="cell">
 					
 						<view class="msg left" @longpress="showPopupMenu($event, msgData.index)" v-if="msgData.item.location == 0">
-							<view class="avatar" @click.stop="openCustomerDetail">
+							<view class="avatar" :class="{ 'guide-step-avatar': typeof msgData !== 'undefined' && msgData.index === firstCustomerMsgIndex }" @click.stop="openCustomerDetail">
 								<image mode="aspectFill" lazy-load :src="guestInfo.avatarUrl || '/static/avatar-other.png'" />
 							</view>
 							<view class="bubble" :style="{ fontSize: rpx(34) }">
@@ -737,14 +738,17 @@
 				<!-- 下方占位符 -->
 				<view v-if="bottomPlaceholderHeight > 0" :style="{ height: bottomPlaceholderHeight + 'px' }"></view>
 			</scroll-view>
+			<view class="guide-step-messages"></view>
+			</view>
 
 			<!-- 底部输入栏 -->
 			<view class="fun_box">
-				<ChatToolBar
-					v-if="chatToolBarConfig.visible"
-					:items="chatToolBarConfig.items"
-					@click="togglePopupBox"
-				/>
+				<view v-if="chatToolBarConfig.visible" class="guide-step-toolbar">
+					<ChatToolBar
+						:items="chatToolBarConfig.items"
+						@click="togglePopupBox"
+					/>
+				</view>
 				<view v-if="quoteDraft" class="quote-draft">
 					<QuotedMessagePreview
 						:quote="quoteDraft"
@@ -757,31 +761,31 @@
 						<uni-icons type="close" size="18" color="#999"></uni-icons>
 					</view>
 				</view>
-				<view class="chat-input" :style="{marginBottom: keyboardHeight+'px'}">
-					<image class="icon" :style="{ width: rpx(60), height: rpx(60) }" src="/static/icon-voice.png"
+				<view class="chat-input guide-step-input" :style="{marginBottom: keyboardHeight+'px'}">
+					<image class="icon guide-step-voice" :style="{ width: rpx(60), height: rpx(60) }" src="/static/icon-voice.png"
 						@click="addYuyin"></image>
 					<view class="input-box" :style="{  height: rpx(70) }"><textarea class="input"
 							:adjustPosition="false" :maxlength="-1" v-model="inputValue" @confirm="onEnterKey" />
 					</view>
-					<image class="icon_face" :style="{ width: rpx(60), height: rpx(60) }" src="/static/icon-face.png"
+					<image class="icon_face guide-step-emoji" :style="{ width: rpx(60), height: rpx(60) }" src="/static/icon-face.png"
 						@click="changeEmoji">
 					</image>
-					<image class="icon_plus" :style="{ width: rpx(68), height: rpx(68) }" v-if="inputValue.length == 0"
+					<image class="icon_plus guide-step-plus" :style="{ width: rpx(68), height: rpx(68) }" v-if="inputValue.length == 0"
 						src="/static/icon-plus.png" @click="togglePopupBox"></image>
 					<button class="send" @click="onEnterKey" v-if="inputValue.length>0"> 发送</button>
 				</view>
-				<view class="emoji-picker" v-show="emoji">
+				<view class="emoji-picker guide-step-emoji-panel" v-show="emoji">
 					<view v-for="index in total" :key="index" class="emoji-item" @click="addEmojiToInput(index)">
 						<image :src="getEmojiUrl(index)" class="emoji-img" />
 					</view>
 				</view>
 				<!-- 抽屉 -->
-				<view class="popup_box" v-show="openPopup">
+				<view class="popup_box guide-step-popup" v-show="openPopup">
 					<swiper class="drawer-swiper" indicator-dots circular>
 						<swiper-item>
 							<view class="feature-section">
 								<view class="feature-section-title">快捷设置</view>
-								<view class="feature-grid control-grid">
+								<view class="feature-grid control-grid guide-step-popup-controls">
 									<view class="control-card">
 										<view class="control-content">
 											<text class="control-title">角色切换</text>
@@ -807,7 +811,7 @@
 							</view>
 						</swiper-item>
 						<swiper-item v-for="(page, i) in featurePages" :key="i">
-							<view class="feature-section">
+							<view class="feature-section" :class="{ 'guide-step-popup-features': i === 0 }">
 								<view class="feature-section-title">功能面板</view>
 								<view class="feature-grid action-grid">
 									<view v-for="item in page" :key="item.name" class="feature-item"
@@ -981,10 +985,20 @@
 					<button type="default" plain="true" @click="openAiContinuePopup">AI续写</button>
 					<button type="default" plain="true" @click="openWatermarkSettings">水印设置</button>
 				</view>
+				<view class="guide-settings-entry">
+					<button type="default" plain="true" @click="openGuideFromMenu">功能引导</button>
+				</view>
 			</view>
 		</uni-popup>
 		<AgentContinuePopup ref="agentContinuePopup" @success="onAiContinueSuccess" />
 		<ChatToolBarSettingsPopup ref="chatToolBarSettingsPopup" @save="onChatToolBarSettingsSave" />
+		<GuideTour
+			:visible="showGuide"
+			:steps="activeGuideSteps"
+			@step-change="onGuideStepChange"
+			@finish="finishGuide"
+			@skip="finishGuide"
+		/>
 	</view>
 </template>
 
@@ -1313,6 +1327,7 @@
 	import QuotedMessagePreview from '../../components/QuotedMessagePreview/QuotedMessagePreview.vue';
 	import AgentContinuePopup from '../../components/AgentContinuePopup/AgentContinuePopup.vue';
 	import ChatToolBarSettingsPopup from '../../components/ChatToolBarSettingsPopup/ChatToolBarSettingsPopup.vue';
+	import GuideTour from '@/components/GuideTour/GuideTour.vue';
 	import {
 		getDefaultConfig,
 		loadChatToolBarConfig,
@@ -1344,7 +1359,8 @@
 			MessagePopupMenu,
 			QuotedMessagePreview,
 			AgentContinuePopup,
-			ChatToolBarSettingsPopup
+			ChatToolBarSettingsPopup,
+			GuideTour
 		},
 		onLoad(options) {
 			this.chatToolBarConfig = loadChatToolBarConfig();
@@ -1817,10 +1833,133 @@
 				// initialScrollTop: 0 // 移至非响应式数据
 				// 消息解析缓存
 				messageParseCache: new Map(), // 缓存 parseMessage 结果
-				itemHeightCache: new Map() // key: index, value: height
+				itemHeightCache: new Map(), // key: index, value: height
+				showGuide: false,
+				guidePopupOpen: false,
+				guideSteps: [
+					{
+						selector: '.guide-step-title',
+						title: '对话标题',
+						content: '顶部显示当前对话对象名称和企业备注，便于确认正在编辑哪一段聊天。'
+					},
+					{
+						selector: '.guide-step-back',
+						title: '返回消息列表',
+						content: '点击左上角返回消息列表。iOS 风格下，返回按钮旁会显示未读消息角标。'
+					},
+					{
+						selector: '.guide-step-phone',
+						title: '通话消息',
+						content: '点击电话图标，可快速插入语音通话或视频通话类消息。'
+					},
+					{
+						selector: '.guide-step-more',
+						title: '更多设置',
+						content: '修改聊天背景；调节字体大小、粗细和卡片组件缩放；配置快捷栏；使用 AI 续写自动生成后续对话；设置全局水印。'
+					},
+					{
+						selector: '.guide-step-messages',
+						title: '消息区域',
+						content: '所有聊天内容在这里展示，包括文字、图片、转账、收款、文件、红包、通话等多种消息类型。',
+						maxHeight: 240,
+						tooltipHeight: 220,
+						safeBottom: 120,
+						delay: 150
+					},
+					{
+						selector: '.guide-step-messages',
+						title: '长按消息操作',
+						content: '长按任意消息弹出菜单：编辑/删除、切换发送角色、消息插入、引用回复；还可插入时间、收款、转账、图片、文件、红包、通话状态等。',
+						maxHeight: 240,
+						tooltipHeight: 240,
+						safeBottom: 120,
+						delay: 150
+					},
+					{
+						selector: '.guide-step-avatar',
+						title: '客户详情',
+						content: '点击客户侧头像，可查看并编辑客户资料信息。'
+					},
+					{
+						selector: '.guide-step-toolbar',
+						title: '快捷栏',
+						content: '横向快捷栏提供企业名片、发起收款、客户转账、快捷回复、商品图册、直播、客户详情等入口，可在「更多设置 → 快捷栏设置」中自定义显示项。'
+					},
+					{
+						selector: '.guide-step-input',
+						title: '输入栏',
+						content: '底部输入区用于发送文字消息。输入内容后右侧会出现「发送」按钮，回车也可直接发送。'
+					},
+					{
+						selector: '.guide-step-voice',
+						title: '语音消息',
+						content: '点击左侧麦克风图标，可插入一条语音消息并自定义语音时长。'
+					},
+					{
+						selector: '.guide-step-emoji',
+						title: '表情面板',
+						content: '点击表情图标打开表情选择面板，点选表情即可插入到输入框中。'
+					},
+					{
+						selector: '.guide-step-emoji-panel',
+						title: '选择表情',
+						content: '在表情面板中滑动浏览，点击任意表情添加到输入内容，再点击发送即可。',
+						maxHeight: 200,
+						tooltipHeight: 200,
+						safeBottom: 160
+					},
+					{
+						selector: '.guide-step-plus',
+						title: '功能面板',
+						content: '输入框为空时点击「+」，打开底部功能抽屉，可插入更多类型的消息。',
+						safeBottom: 160,
+						delay: 200
+					},
+					{
+						selector: '.guide-step-popup-controls',
+						title: '快捷设置',
+						content: '第一页可切换当前发送角色（我/客户）、开启/关闭长按弹框，以及开启长按拖拽来调整消息顺序。',
+						maxHeight: 220,
+						tooltipHeight: 220,
+						safeBottom: 160,
+						delay: 250
+					},
+					{
+						selector: '.guide-step-popup-features',
+						title: '插入消息',
+						content: '左右滑动切换页面，可插入：对外收款、提示、时间、转账、图片、名片、红包、文件、语音通话、通话状态等。',
+						maxHeight: 220,
+						tooltipHeight: 240,
+						safeBottom: 160,
+						delay: 250
+					}
+				]
 			};
 		},
 		computed: {
+			firstCustomerMsgIndex() {
+				const list = this.massageList || []
+				for (let i = 0; i < list.length; i++) {
+					const item = list[i]
+					if (item && item.location === 0 && item.type !== 'tips') {
+						return i
+					}
+				}
+				return -1
+			},
+			activeGuideSteps() {
+				let steps = this.guideSteps
+				if (!(this.massageList || []).length) {
+					steps = steps.filter(step => step.selector !== '.guide-step-messages')
+				}
+				if (this.firstCustomerMsgIndex < 0) {
+					steps = steps.filter(step => step.selector !== '.guide-step-avatar')
+				}
+				if (!this.chatToolBarConfig.visible) {
+					steps = steps.filter(step => step.selector !== '.guide-step-toolbar')
+				}
+				return steps
+			},
 			featurePages() {
 				const pageSize = 6;
 				const pages = [];
@@ -1962,8 +2101,62 @@
 			this.initVirtualScroll();
 			this.scrollToBottom({ initial: true });
 			this.total = 331; // 根据static/emoji文件夹中的表情数量
+			this.checkFirstTimeGuide();
 		},
 		methods: {
+			checkFirstTimeGuide() {
+				const hasSeenGuide = uni.getStorageSync('chat_hasSeenGuide')
+				if (hasSeenGuide) return
+				this.$nextTick(() => {
+					setTimeout(() => {
+						this.showGuide = true
+					}, 500)
+				})
+			},
+			onGuideStepChange(index) {
+				const step = this.activeGuideSteps[index]
+				const selector = step && step.selector
+				const popupSelectors = [
+					'.guide-step-plus',
+					'.guide-step-popup-controls',
+					'.guide-step-popup-features'
+				]
+
+				this.guidePopupOpen = false
+				this.emoji = false
+				this.openPopup = false
+
+				if (popupSelectors.includes(selector)) {
+					this.guidePopupOpen = true
+					this.openPopup = true
+				}
+				if (selector === '.guide-step-emoji' || selector === '.guide-step-emoji-panel') {
+					this.emoji = true
+				}
+			},
+			resetGuideUiState() {
+				this.guidePopupOpen = false
+				this.openPopup = false
+				this.emoji = false
+			},
+			finishGuide() {
+				uni.setStorageSync('chat_hasSeenGuide', true)
+				this.resetGuideUiState()
+				this.showGuide = false
+			},
+			openGuide() {
+				this.resetGuideUiState()
+				this.showGuide = false
+				this.$nextTick(() => {
+					setTimeout(() => {
+						this.showGuide = true
+					}, 100)
+				})
+			},
+			openGuideFromMenu() {
+				this.$refs.menuPopup.close()
+				this.openGuide()
+			},
 			openWatermarkSettings() {
 				this.watermarkForm = {
 					visible: this.watermarkVisible,
@@ -4316,6 +4509,14 @@
 	.watermark-settings-entry button {
 		width: 100%;
 	}
+
+	.guide-settings-entry {
+		margin-top: 20upx;
+	}
+
+	.guide-settings-entry button {
+		width: 100%;
+	}
 	
 	.calltype-sheet {
 		background-color: #fff;
@@ -4704,6 +4905,23 @@
 
 		height: 100%;
 		overflow: hidden;
+	}
+
+	.chat-body-wrap {
+		flex: 1;
+		position: relative;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.guide-step-messages {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		pointer-events: none;
 	}
 
 	.backimg {
