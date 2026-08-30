@@ -20,7 +20,7 @@
         <view class="avatar-glow"></view>
         <view class="avatar-box" @click="changeAvatar">
           <image 
-            :src="'http://106.15.137.235:9090/upload'+userInfo.avatar" 
+            :src="avatarUrl" 
             class="avatar" 
             mode="aspectFill"
           />
@@ -90,21 +90,36 @@
         </view>
       </view>
 
-      <view class="info-card">
+      <view class="info-card contact-service-card">
         <view class="card-header">
           <span class="header-dot"></span>
-          个人信息
+          在线客服
         </view>
-        <!-- <view class="info-item">
-          <uni-icons type="code" size="24" color="#666" class="item-icon" />
-          <text class="item-label">邀请码</text>
-          <text class="item-value">{{ userInfo.inviteCode || '--' }}</text>
-          <uni-icons type="copy" size="20" color="#ccc" class="item-operate" @click="copyInviteCode" />
-        </view> -->
-        <view class="info-item">
-          <uni-icons type="phone" size="24" color="#666" class="item-icon" />
-          <text class="item-label">管理员</text>
-          <text class="item-value">18216263971</text>
+        <text class="contact-desc">问题与建议反馈、页面定制开发请联系</text>
+        <text class="contact-desc">（24小时内进行反馈和处理）</text>
+        <view class="contact-item-row" @click="copyPhoneNumber('3305242034')">
+          <uni-icons type="chatboxes" size="22" color="#7c3aed" class="contact-row-icon" />
+          <text class="contact-row-text">QQ: 3305242034</text>
+          <text class="contact-row-hint">点击复制</text>
+        </view>
+        <view class="contact-item-row" @click="copyPhoneNumber(contactWechat)">
+          <uni-icons type="weixin" size="22" color="#07c160" class="contact-row-icon" />
+          <text class="contact-row-text">微信: {{ contactWechat }}</text>
+          <text class="contact-row-hint">点击复制</text>
+        </view>
+        <view class="version-section">
+          <view class="version-row">
+            <text class="version-label">当前版本</text>
+            <text class="version-value">{{ currentAppVersion }}</text>
+          </view>
+          <view class="version-row">
+            <text class="version-label">最新版本</text>
+            <text class="version-value">{{ latestVersion }}</text>
+          </view>
+          <button v-if="hasNewVersion" class="btn-download" @click="openDownloadUrl">
+            <uni-icons type="download" size="20" color="#fff" />
+            <text>下载新版本</text>
+          </button>
         </view>
       </view>
       
@@ -139,6 +154,7 @@
 <script>
 import {
   getUserInfo,
+  updateUserProfile,
   updateUserInfo,
   logout,
   withdraw,
@@ -146,13 +162,15 @@ import {
   getPayPoints,
   confirmPayOrder,
   mockPayMember,
-  mockPayPoints
+  mockPayPoints,
+  getAppVersion
 } from '@/api/index.js'
 import VipRechargeDialog from '../../components/VipRechargeDialog/VipRechargeDialog.vue';
 import PointsRechargeDialog from '../../components/PointsRechargeDialog/PointsRechargeDialog.vue';
 import { isMemberExpired } from '@/utils/tool.js'
 import { deviceInfo } from '@/utils/commonUtils.js'
-import { BASE_URL, REQUEST_TIMEOUT } from '@/utils/request.js'
+import { uploadImage } from '@/api/conversations.js'
+import { versionManager } from '@/utils/versionManager.js'
 
 
 export default {
@@ -165,12 +183,18 @@ export default {
 	  statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
       payShow: false,
       pointsPayShow: false,
-      userInfo: {}
+      userInfo: {},
+      contactWechat: 'xiaoshoumoban01',
+      currentAppVersion: '--',
+      latestVersion: '--',
+      packageUrl: ''
     };
   },
   onShow() {
     const userId = uni.getStorageSync('userId')
     this.getUserInfo(userId)
+    this.loadAppVersionInfo()
+    this.loadCurrentAppVersion()
     if (uni.getStorageSync('openPointsRecharge')) {
       uni.removeStorageSync('openPointsRecharge')
       this.$nextTick(() => {
@@ -179,9 +203,21 @@ export default {
     }
   },
   computed: {
+    avatarUrl() {
+      const avatar = this.userInfo.avatar || ''
+      if (!avatar) return ''
+      if (avatar.includes('http')) return avatar
+      return 'http://106.15.137.235:9090/upload' + avatar
+    },
     displayPoints() {
       const points = this.userInfo.points
       return points === null || points === undefined || points === '' ? 0 : points
+    },
+    hasNewVersion() {
+      if (this.currentAppVersion === '--' || this.latestVersion === '--') {
+        return false
+      }
+      return versionManager.compareVersion(this.latestVersion, this.currentAppVersion) > 0
     }
   },
   methods: {
@@ -206,7 +242,6 @@ export default {
       });
     },
     
-    // 复制邀请码功能
     copyInviteCode() {
       if (!this.userInfo.inviteCode) {
         uni.showToast({ title: '邀请码为空', icon: 'none' });
@@ -218,6 +253,68 @@ export default {
           uni.showToast({ title: '邀请码已复制', icon: 'none' });
         }
       });
+    },
+
+    async loadAppVersionInfo() {
+      try {
+        const res = await getAppVersion()
+        if (res && res.phone) {
+          this.contactWechat = res.phone
+        }
+        if (res && res.latestVersion) {
+          this.latestVersion = res.latestVersion
+        }
+        if (res && res.apkUrl) {
+          this.packageUrl = res.apkUrl
+        }
+      } catch (error) {
+        console.error('获取应用配置失败:', error)
+      }
+    },
+
+    openDownloadUrl() {
+      if (!this.packageUrl) {
+        uni.showToast({ title: '暂无下载链接', icon: 'none' })
+        return
+      }
+      if (typeof plus !== 'undefined') {
+        plus.runtime.openURL(this.packageUrl)
+        return
+      }
+      // #ifdef H5
+      window.open(this.packageUrl, '_blank')
+      // #endif
+    },
+
+    async loadCurrentAppVersion() {
+      try {
+        const version = await versionManager.getCurrentVersion()
+        if (version) {
+          this.currentAppVersion = version
+          return
+        }
+        if (typeof plus !== 'undefined' && plus.runtime.version) {
+          this.currentAppVersion = plus.runtime.version
+        }
+      } catch (error) {
+        console.error('获取当前版本失败:', error)
+      }
+    },
+
+    copyPhoneNumber(phoneNumber) {
+      if (!phoneNumber) {
+        uni.showToast({ title: '暂无联系方式', icon: 'none' })
+        return
+      }
+      uni.setClipboardData({
+        data: phoneNumber,
+        success: () => {
+          uni.showToast({ title: '已复制到剪贴板', icon: 'success' })
+        },
+        fail: () => {
+          uni.showToast({ title: '复制失败', icon: 'none' })
+        }
+      })
     },
     
     async pay(data) {
@@ -347,64 +444,56 @@ export default {
     },
 
     changeAvatar() {
+      const userId = this.userInfo?.id || uni.getStorageSync('userId')
+      if (!userId) {
+        uni.showToast({ title: '用户信息异常，请重新登录', icon: 'none' })
+        return
+      }
       uni.chooseImage({
         count: 1,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera'],
         success: (res) => {
-          const tempFilePath = res.tempFilePaths[0];
-          this.updateUserWithAvatar({}, tempFilePath)
+          this.handleAvatarUpload(res.tempFilePaths[0], userId)
         }
-      });
+      })
     },
 
-    updateUserWithAvatar(formData, filePath) {
-		console.log(filePath);
-      if (filePath) {
-        uni.uploadFile({
-          url: `${BASE_URL}/user/update/${this.userInfo.id}`,
-          filePath,
-          name: 'avatar',
-          timeout: REQUEST_TIMEOUT,
-          formData,
-          success: (res) => this.handleResponse(res),
-          fail: (err) => {
-            console.error('上传失败：', err);
-            uni.showToast({ title: '网络异常', icon: 'none' });
-          }
-        });
-      } else {
-        uni.request({
-          url: `${BASE_URL}/user/update/${this.userInfo.id}`,
-          method: 'POST',
-          timeout: REQUEST_TIMEOUT,
-          header: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          data: formData,
-          success: (res) => this.handleResponse(res),
-          fail: (err) => {
-            console.error('请求失败：', err);
-            uni.showToast({ title: '网络异常', icon: 'none' });
-          }
-        });
-      }
-    },
-
-    handleResponse(res) {
-		console.log(res,"====");
-      let result;
+    async handleAvatarUpload(tempFilePath, userId) {
       try {
-        result = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
-      } catch (e) {
-        uni.showToast({ title: '解析失败', icon: 'none' });
-        return;
+        uni.showLoading({ title: '上传中...', mask: true })
+        const uploadRes = await uploadImage(tempFilePath, userId)
+        if (!uploadRes || uploadRes.code !== 200 || !uploadRes.data) {
+          throw new Error(uploadRes?.message || '头像上传失败')
+        }
+        await this.updateUserWithAvatar({ avatarUrl: uploadRes.data }, userId)
+      } catch (err) {
+        const message = err?.message || err?.errMsg || '头像上传失败'
+        uni.showToast({ title: message, icon: 'none' })
+        console.error('头像更新失败：', err)
+      } finally {
+        uni.hideLoading()
       }
-      
-      if (result.code === 200 || result.code === 0) {
-        uni.showToast({ title: '更新成功', icon: 'success' });
-      } else {
-        uni.showToast({ title: result.message || '更新失败', icon: 'none' });
+    },
+
+    async updateUserWithAvatar(formData, userId = this.userInfo?.id || uni.getStorageSync('userId')) {
+      if (!userId) {
+        uni.showToast({ title: '用户信息异常，请重新登录', icon: 'none' })
+        return
       }
-      this.getUserInfo(this.userInfo.id)
+      try {
+        const result = await updateUserProfile(userId, formData)
+        if (result.code === 200 || result.code === 0) {
+          uni.showToast({ title: '更新成功', icon: 'success' })
+          await this.getUserInfo(userId)
+        } else {
+          uni.showToast({ title: result.message || '更新失败', icon: 'none' })
+        }
+      } catch (err) {
+        const message = err?.data?.message || err?.message || '更新失败'
+        uni.showToast({ title: message, icon: 'none' })
+        console.error('更新用户信息失败：', err)
+      }
     },
     
     editNickname() {
@@ -746,6 +835,89 @@ export default {
 }
 .item-operate:hover {
   color: #7c3aed;
+}
+
+.contact-service-card .card-header {
+  margin-bottom: 12rpx;
+}
+
+.contact-desc {
+  display: block;
+  font-size: 24rpx;
+  color: #888;
+  line-height: 1.6;
+  margin-bottom: 6rpx;
+}
+
+.contact-item-row {
+  display: flex;
+  align-items: center;
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.contact-item-row:last-of-type {
+  border-bottom: none;
+}
+
+.contact-row-icon {
+  margin-right: 16rpx;
+}
+
+.contact-row-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.contact-row-hint {
+  font-size: 22rpx;
+  color: #7c3aed;
+}
+
+.version-section {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.version-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8rpx 0;
+}
+
+.version-label {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.version-value {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 600;
+}
+
+.btn-download {
+  width: 100%;
+  margin-top: 20rpx;
+  padding: 20rpx;
+  border-radius: 15rpx;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: #fff;
+  border: none;
+  box-shadow: 0 3rpx 8rpx rgba(109, 40, 217, 0.2);
+}
+
+.btn-download:active {
+  opacity: 0.9;
+  transform: scale(0.98);
 }
 
 /* 积分卡片 */

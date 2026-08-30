@@ -3,18 +3,35 @@
 		<!-- 全局水印层 -->
 		<WatermarkLayer />
 		<!-- 顶部公告栏 -->
-		<view class="announcement-banner">
+		<!-- <view class="announcement-banner">
 			<view class="announcement-content">
 				<text class="announcement-icon">📢</text>
 				<text class="announcement-text">免责声明：本应用仅供演示、培训与学习使用，不得冒充真实聊天/支付/转账记录，切勿用于诈骗、虚假宣传或违法用途</text>
 			</view>
-		</view>
+		</view> -->
 		
 		<!-- 顶部标题区域 -->
 		<view class="header-section">
 			<text class="title-text">功能管理中心</text>
 			<text class="subtitle-text">界面模板与话术演练工具（演示用途）</text>
 		</view>
+
+		<!-- 公告模块 -->
+		<view v-if="announcement" class="notice-section">
+			<view class="notice-scroll-bar">
+				<view class="notice-fixed">
+					<text class="notice-icon">📢</text>
+					<text class="notice-title">系统公告</text>
+				</view>
+				<view class="notice-marquee">
+					<view class="notice-marquee-inner" :style="{ animationDuration: noticeScrollDuration }">
+						<text class="notice-marquee-text">{{ announcement }}</text>
+						<text class="notice-marquee-text">{{ announcement }}</text>
+					</view>
+				</view>
+			</view>
+		</view>
+
 		<!-- 功能卡片区域 -->
 		<view class="features-section">
 			<view class="section-title">
@@ -64,20 +81,6 @@
 			</view>
 		</view>
 		
-		<!-- 联系方式区域 -->
-		<view class="contact-section">
-			<view class="contact-card">
-				<text class="contact-title">💬 在线客服 </text>
-				<text class="contact-subtitle">问题与建议反馈、页面定制开发请联系</text>
-				<text class="contact-subtitle">（24小时内进行反馈和处理）</text>
-				<view class="contact-info">
-					<text class="contact-item" @click="copyPhoneNumber('2469623748')">QQ: 3305242034</text>
-					<text class="contact-item" @click="copyPhoneNumber('xiaoshoumoban01')">微信: xiaoshoumoban01（点击复制）</text>
-				</view>
-				
-			</view>
-		</view>
-		
 		<!-- 底部免责声明 -->
 		<view class="footer-section">
 			<text class="footer-text">🛡️ 使用提醒：请合理使用本工具，不得用于误导他人或侵犯他人权益，遵守相关法律法规</text>
@@ -94,7 +97,8 @@
 
 	import {
 		getUserInfo,
-		updateUseFeature
+		updateUseFeature,
+		getAppVersion
 	} from '@/api/index.js'
 	import {
 		isMemberExpired
@@ -107,6 +111,7 @@
 		data() {
 			return {
 				guestInfo: {},
+				announcement: '',
 				selectedCategory: 'enterprise', // 默认选择商务类
 				modules: [
 					// 商务类
@@ -244,6 +249,10 @@
 		computed: {
 			filteredModules() {
 				return this.modules.filter(item => item.category === this.selectedCategory)
+			},
+			noticeScrollDuration() {
+				const len = this.announcement ? this.announcement.length : 1
+				return Math.max(len * 0.35, 8) + 's'
 			}
 		},
 		onShow() {
@@ -257,8 +266,20 @@
 			 userId && this.getUserInfo(userId)
 			// 检查应用版本更新
 			checkAppVersion();
+			this.loadAppVersionInfo();
 		},
 		methods: {
+			async loadAppVersionInfo() {
+				try {
+					const res = await getAppVersion();
+					const updateLog = res && (res.updateLog || res.update_log);
+					if (updateLog && String(updateLog).trim()) {
+						this.announcement = String(updateLog).trim().replace(/\n/g, ' ');
+					}
+				} catch (error) {
+					console.error('获取应用配置失败:', error);
+				}
+			},
 			switchCategory(category) {
 				this.selectedCategory = category
 			},
@@ -540,26 +561,6 @@
 				uni.navigateTo({
 					url: '/pages/wxPayment/wxPayment'
 				});
-			},
-			// 复制电话号码
-			copyPhoneNumber(phoneNumber) {
-				// const phoneNumber = '18216263971';
-				uni.setClipboardData({
-					data: phoneNumber,
-					success: () => {
-						uni.showToast({
-							title: '已复制到剪贴板',
-							icon: 'success',
-							duration: 2000
-						});
-					},
-					fail: () => {
-						uni.showToast({
-							title: '复制失败',
-							icon: 'none'
-						});
-					}
-				});
 			}
 		}
 	};
@@ -628,6 +629,74 @@
 		font-weight: 500;
 		text-align: center;
 		line-height: 1.4;
+	}
+
+	/* 公告模块样式 */
+	.notice-section {
+		width: 100%;
+		padding: 0 30rpx 20rpx;
+		position: relative;
+		z-index: 5;
+	}
+
+	.notice-scroll-bar {
+		display: flex;
+		align-items: center;
+		background: rgba(255, 255, 255, 0.95);
+		/* border-radius: 20rpx; */
+		padding: 24rpx 28rpx;
+		box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
+		/* border-left: 8rpx solid #ffc107; */
+		overflow: hidden;
+	}
+
+	.notice-fixed {
+		display: flex;
+		align-items: center;
+		flex-shrink: 0;
+		margin-right: 20rpx;
+		padding-right: 20rpx;
+		border-right: 2rpx solid #eee;
+	}
+
+	.notice-icon {
+		font-size: 32rpx;
+		margin-right: 8rpx;
+	}
+
+	.notice-title {
+		font-size: 28rpx;
+		font-weight: 700;
+		color: #333;
+		white-space: nowrap;
+	}
+
+	.notice-marquee {
+		flex: 1;
+		overflow: hidden;
+		min-width: 0;
+	}
+
+	.notice-marquee-inner {
+		display: inline-flex;
+		white-space: nowrap;
+		animation: notice-scroll linear infinite;
+	}
+
+	.notice-marquee-text {
+		font-size: 28rpx;
+		color: #555;
+		line-height: 1.5;
+		padding-right: 80rpx;
+	}
+
+	@keyframes notice-scroll {
+		0% {
+			transform: translateX(0);
+		}
+		100% {
+			transform: translateX(-50%);
+		}
 	}
 	
 	/* 头部区域样式 */
@@ -843,83 +912,6 @@
 		font-size: 26rpx;
 		line-height: 1.5;
 		opacity: 0.9;
-	}
-
-	/* 联系方式区域样式 */
-	.contact-section {
-		width: 100%;
-		padding: 40rpx 30rpx;
-		background: rgba(255, 255, 255, 0.95);
-		backdrop-filter: blur(20rpx);
-	}
-	
-	.contact-card {
-		max-width: 600rpx;
-		margin: 0 auto;
-		background: linear-gradient(135deg, #667eea, #764ba2);
-		border-radius: 20rpx;
-		padding: 32rpx;
-		text-align: center;
-		box-shadow: 0 8rpx 32rpx rgba(102, 126, 234, 0.3);
-		position: relative;
-		overflow: hidden;
-	}
-	
-	.contact-card::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-		pointer-events: none;
-	}
-	
-	.contact-title {
-		font-size: 32rpx;
-		font-weight: 600;
-		color: white;
-		display: block;
-		margin-bottom: 12rpx;
-		position: relative;
-		z-index: 1;
-	}
-	
-	.contact-subtitle {
-		font-size: 26rpx;
-		color: rgba(255, 255, 255, 0.9);
-		display: block;
-		margin-bottom: 20rpx;
-		position: relative;
-		z-index: 1;
-	}
-	
-	.contact-info {
-		display: flex;
-		flex-direction: column;
-		gap: 8rpx;
-		position: relative;
-		z-index: 1;
-	}
-	
-	.contact-item {
-		font-size: 28rpx;
-		color: #FFE4B5;
-		font-weight: 500;
-		letter-spacing: 1rpx;
-		background: rgba(255, 255, 255, 0.15);
-		padding: 12rpx 20rpx;
-		border-radius: 12rpx;
-		backdrop-filter: blur(10rpx);
-		border: 1px solid rgba(255, 255, 255, 0.2);
-		cursor: pointer;
-		transition: all 0.3s ease;
-	}
-	
-	.contact-item:active {
-		background: rgba(255, 255, 255, 0.25);
-		transform: scale(0.98);
 	}
 
 	/* 底部区域样式 */

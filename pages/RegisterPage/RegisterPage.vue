@@ -19,11 +19,8 @@
       <view class="form-card">
         <!-- 上传头像 -->
         <view class="avatar-upload" @click="chooseAvatar">
-          <image v-if="avatar" :src="avatar" class="avatar" mode="aspectFill" />
-          <view v-else class="avatar-placeholder">
-            <uni-icons type="camera" size="40" color="#999" />
-            <text>点击上传头像</text>
-          </view>
+          <image :src="avatar" class="avatar" mode="aspectFill" />
+          <text class="avatar-tip">点击更换头像</text>
         </view>
 
         <!-- 用户名称 -->
@@ -107,18 +104,19 @@
 
 <script>
 import { register } from '@/api/index.js'
-import { BASE_URL } from '@/utils/request.js'
+import { uploadImage } from '@/api/conversations.js'
 
-const REGISTER_API_URL = BASE_URL + '/user/register'
+const DEFAULT_AVATAR_URL = 'https://wxchat-tempalet.oss-cn-beijing.aliyuncs.com/images/267a43fa-0df1-4c88-b0ee-cfb0b3850ed0/db92faea-478f-4515-b972-4f103e513475.png'
+const UPLOAD_CONVERSATION_ID = 'register'
 const PHONE_REGEX = /^1[3-9]\d{9}$/
 const ERROR_MESSAGES = {
   nickname: '请填写昵称',
   phone: '请填写手机号',
   phoneFormat: '手机号格式不正确',
-  avatar: '请选择头像',
   network: '网络错误',
   registerSuccess: '注册成功',
-  registerFail: '注册失败'
+  registerFail: '注册失败',
+  avatarUploadFail: '头像上传失败'
 }
 
 export default {
@@ -126,7 +124,9 @@ export default {
   data() {
     return {
 	  statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
-      avatar: '',
+      avatar: DEFAULT_AVATAR_URL,
+      avatarUrl: DEFAULT_AVATAR_URL,
+      isCustomAvatar: false,
       nickname: '',
       phone: '',
       passwordHash: "",
@@ -169,8 +169,37 @@ export default {
         sourceType: ['album', 'camera'],
         success: (res) => {
           this.avatar = res.tempFilePaths[0]
+          this.avatarUrl = ''
+          this.isCustomAvatar = true
         }
       })
+    },
+
+    async uploadAvatarFile(filePath) {
+      const uploadRes = await uploadImage(filePath, UPLOAD_CONVERSATION_ID)
+      if (!uploadRes || uploadRes.code !== 200 || !uploadRes.data) {
+        throw new Error(uploadRes?.message || ERROR_MESSAGES.avatarUploadFail)
+      }
+      return uploadRes.data
+    },
+
+    async submitRegister(userInfo, avatarUrl) {
+      const payload = { ...userInfo }
+      if (avatarUrl) {
+        payload.avatarUrl = avatarUrl
+      }
+      const result = await register(payload)
+
+      if (result.code === 200 || result.code === 0) {
+        this.showToast(ERROR_MESSAGES.registerSuccess)
+        setTimeout(() => {
+          uni.navigateTo({
+            url: '/pages/login/login'
+          })
+        }, 1500)
+      } else {
+        this.showToast(result.message || ERROR_MESSAGES.registerFail)
+      }
     },
     
     async submit() {
@@ -191,69 +220,35 @@ export default {
         return this.showToast('请设置密码')
       }
       
-      if (!this.avatar) {
-        return this.showToast(ERROR_MESSAGES.avatar)
-      }
-      
       // 准备表单数据
       const userInfo = {
         username: this.nickname,
         phone: this.phone,
         passwordHash: this.passwordHash,
-        inviteCode: this.inviteCode,
+        invitedByCode: this.inviteCode,
         tryCount: 30 // 试用次数
       }
       
       console.log('注册信息：', userInfo)
       
-      // 显示加载状态
       uni.showLoading({
         title: '注册中...',
         mask: true
       })
       
-      // 上传文件并注册
-      this.uploadWithAvatar(userInfo, this.avatar)
-    },
-    
-    uploadWithAvatar(data, filePath) {
-      uni.uploadFile({
-        url: REGISTER_API_URL,
-        filePath,
-        name: 'avatar',
-        formData: {
-          ...data
-        },
-        success: (res) => {
-          uni.hideLoading()
-          
-          try {
-            const result = JSON.parse(res.data)
-            console.log('注册结果：', result)
-            
-            if (result.code === 200 || result.code === 0) {
-              this.showToast(ERROR_MESSAGES.registerSuccess)
-              
-              // 延迟跳转，确保提示显示完整
-              setTimeout(() => {
-                uni.navigateTo({
-                  url: "/pages/login/login"
-                })
-              }, 1500)
-            } else {
-              this.showToast(result.message || ERROR_MESSAGES.registerFail)
-            }
-          } catch (error) {
-            this.showToast(ERROR_MESSAGES.registerFail)
-            console.error('解析响应数据失败：', error)
-          }
-        },
-        fail: (err) => {
-          uni.hideLoading()
-          this.showToast(ERROR_MESSAGES.network)
-          console.error('上传文件失败：', err)
+      try {
+        let avatarUrl = DEFAULT_AVATAR_URL
+        if (this.isCustomAvatar) {
+          avatarUrl = await this.uploadAvatarFile(this.avatar)
         }
-      })
+        this.avatarUrl = avatarUrl
+        await this.submitRegister(userInfo, avatarUrl)
+      } catch (error) {
+        this.showToast(error.message || ERROR_MESSAGES.network)
+        console.error('注册失败：', error)
+      } finally {
+        uni.hideLoading()
+      }
     },
     
     showToast(message) {
@@ -363,8 +358,16 @@ export default {
 /* 上传头像 */
 .avatar-upload {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   margin-bottom: 60rpx;
+}
+
+.avatar-tip {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: #999;
 }
 
 .avatar {
