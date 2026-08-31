@@ -134,6 +134,13 @@
         </button>
       </view>
 
+      <view class="privacy-card" @click="openPrivacyPolicy">
+        <view class="privacy-content">
+          <uni-icons type="locked" size="22" color="#7c3aed" />
+          <text class="privacy-text">隐私政策</text>
+        </view>
+        <uni-icons type="right" size="18" color="#c0c0c0" />
+      </view>
       
     </view>
     
@@ -172,6 +179,8 @@ import { deviceInfo } from '@/utils/commonUtils.js'
 import { uploadImage } from '@/api/conversations.js'
 import { versionManager } from '@/utils/versionManager.js'
 
+const PRIVACY_POLICY_URL = 'http://privacy.jijin.icu/'
+
 
 export default {
   components:{
@@ -185,6 +194,7 @@ export default {
       pointsPayShow: false,
       userInfo: {},
       contactWechat: 'xiaoshoumoban01',
+      privacyPolicyUrl: PRIVACY_POLICY_URL,
       currentAppVersion: '--',
       latestVersion: '--',
       packageUrl: ''
@@ -283,6 +293,16 @@ export default {
       }
       // #ifdef H5
       window.open(this.packageUrl, '_blank')
+      // #endif
+    },
+
+    openPrivacyPolicy() {
+      if (typeof plus !== 'undefined') {
+        plus.runtime.openURL(this.privacyPolicyUrl)
+        return
+      }
+      // #ifdef H5
+      window.open(this.privacyPolicyUrl, '_blank')
       // #endif
     },
 
@@ -1102,6 +1122,28 @@ export default {
 .btn-recharge:hover {
   background: linear-gradient(135deg, #6d28d9, #5b21b6);
   transform: translateY(-2rpx);
+}
+
+.privacy-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx 30rpx;
+  margin-bottom: 25rpx;
+  box-shadow: 0 5rpx 15rpx rgba(0, 0, 0, 0.05);
+}
+
+.privacy-content {
+  display: flex;
+  align-items: center;
+}
+
+.privacy-text {
+  margin-left: 16rpx;
+  font-size: 28rpx;
+  color: #333;
 }
 
 /* 退出登录按钮 */
