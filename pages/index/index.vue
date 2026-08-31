@@ -17,7 +17,7 @@
 		</view>
 
 		<!-- 公告模块 -->
-		<view v-if="announcement" class="notice-section">
+		<view v-if="announcementText" class="notice-section">
 			<view class="notice-scroll-bar">
 				<view class="notice-fixed">
 					<text class="notice-icon">📢</text>
@@ -25,8 +25,8 @@
 				</view>
 				<view class="notice-marquee">
 					<view class="notice-marquee-inner" :style="{ animationDuration: noticeScrollDuration }">
-						<text class="notice-marquee-text">{{ announcement }}</text>
-						<text class="notice-marquee-text">{{ announcement }}</text>
+						<text class="notice-marquee-text">{{ announcementText }}</text>
+						<text class="notice-marquee-text">{{ announcementText }}</text>
 					</view>
 				</view>
 			</view>
@@ -250,8 +250,16 @@
 			filteredModules() {
 				return this.modules.filter(item => item.category === this.selectedCategory)
 			},
+			announcementText() {
+				const text = (this.announcement || '').trim()
+				if (!text) return ''
+				return text
+					.replace(/\r?\n/g, ' ')
+					.replace(/\s+/g, ' ')
+					.trim()
+			},
 			noticeScrollDuration() {
-				const len = this.announcement ? this.announcement.length : 1
+				const len = this.announcementText ? this.announcementText.length : 1
 				return Math.max(len * 0.35, 8) + 's'
 			}
 		},
@@ -274,7 +282,7 @@
 					const res = await getAppVersion();
 					const updateLog = res && (res.updateLog || res.update_log);
 					if (updateLog && String(updateLog).trim()) {
-						this.announcement = String(updateLog).trim().replace(/\n/g, ' ');
+						this.announcement = String(updateLog).trim()
 					}
 				} catch (error) {
 					console.error('获取应用配置失败:', error);
@@ -642,11 +650,10 @@
 	.notice-scroll-bar {
 		display: flex;
 		align-items: center;
-		background: rgba(255, 255, 255, 0.95);
-		/* border-radius: 20rpx; */
-		padding: 24rpx 28rpx;
+		height: 72rpx;
+		background: rgba(255, 255, 255, 0.96);
+		padding: 0 28rpx;
 		box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
-		/* border-left: 8rpx solid #ffc107; */
 		overflow: hidden;
 	}
 
@@ -660,7 +667,7 @@
 	}
 
 	.notice-icon {
-		font-size: 32rpx;
+		font-size: 30rpx;
 		margin-right: 8rpx;
 	}
 
@@ -675,18 +682,22 @@
 		flex: 1;
 		overflow: hidden;
 		min-width: 0;
+		height: 72rpx;
+		line-height: 72rpx;
 	}
 
 	.notice-marquee-inner {
 		display: inline-flex;
+		align-items: center;
 		white-space: nowrap;
 		animation: notice-scroll linear infinite;
 	}
 
 	.notice-marquee-text {
-		font-size: 28rpx;
+		font-size: 26rpx;
 		color: #555;
-		line-height: 1.5;
+		line-height: 72rpx;
+		white-space: nowrap;
 		padding-right: 80rpx;
 	}
 
