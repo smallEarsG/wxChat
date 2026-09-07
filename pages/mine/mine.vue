@@ -297,13 +297,20 @@ export default {
     },
 
     openPrivacyPolicy() {
-      if (typeof plus !== 'undefined') {
-        plus.runtime.openURL(this.privacyPolicyUrl)
-        return
-      }
-      // #ifdef H5
-      window.open(this.privacyPolicyUrl, '_blank')
-      // #endif
+      const url = encodeURIComponent(this.privacyPolicyUrl)
+      const title = encodeURIComponent('隐私政策')
+      uni.navigateTo({
+        url: `/pages/webview/webview?url=${url}&title=${title}`,
+        fail: () => {
+          if (typeof plus !== 'undefined') {
+            plus.runtime.openURL(this.privacyPolicyUrl)
+            return
+          }
+          // #ifdef H5
+          window.open(this.privacyPolicyUrl, '_blank')
+          // #endif
+        }
+      })
     },
 
     async loadCurrentAppVersion() {
