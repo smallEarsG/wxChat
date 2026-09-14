@@ -45,6 +45,7 @@
 	import CustomBill from '@/components/bill-preview/CustomBill.vue'
 	import BillTemplateGuide from '@/components/BillTemplateGuide/BillTemplateGuide.vue'
 	import { uploadAvatar, getAvatarList, createAvatar, deleteAvatar, createBill, updateBill, getBillById } from '@/api/index.js'
+	import { parseCustomBillDetail, serializeCustomBillDetail } from '@/utils/customBillHistory.js'
 
 	// 默认的字段标签（参考其他模板组件补充）
 	const DEFAULT_INFO_KEY = {
@@ -91,6 +92,7 @@
 				roleList: [],
 				id: null,
 				templateId: null,
+				templateName: '',
 				templateConfig: {
 					orderInfoFields: [],
 					serviceModules: [{
@@ -138,11 +140,12 @@
 				}
 			}
 		},
-		async onLoad(options) {
+		async onLoad(options = {}) {
+			let shouldBackfillTemplate = false;
 			// 获取模板ID
 			if (options.templateId) {
-				this.templateId = options.templateId;
-				await this.loadTemplateConfig(options.templateId);
+				this.templateId = String(options.templateId);
+				await this.loadTemplateConfig(this.templateId);
 			}
 
 			// 处理账单数据
@@ -153,8 +156,17 @@
 					const res = await getBillById(this.id);
 					const bill = res && res.data ? res.data : res;
 					if (bill && bill.billDetail) {
-						const detail = typeof bill.billDetail === 'string' ? JSON.parse(bill.billDetail) : bill.billDetail;
-						this.info = { ...this.info, ...(detail || {}) };
+						const history = parseCustomBillDetail(bill.billDetail);
+						this.info = { ...this.info, ...history.info };
+
+						const persistedTemplateId = history.templateId || bill.templateId || this.templateId;
+						if (history.templateConfig) {
+							this.templateId = persistedTemplateId ? String(persistedTemplateId) : null;
+							this.applyTemplateConfig(history.templateConfig, history.templateName);
+						} else if (persistedTemplateId) {
+							this.templateId = String(persistedTemplateId);
+							shouldBackfillTemplate = await this.loadTemplateConfig(this.templateId);
+						}
 					}
 				} catch (e) {
 					uni.showToast({ title: '账单不存在', icon: 'none' });
@@ -166,24 +178,37 @@
 				this.info = { ...this.info, ...temp };
 			}
 
+			if (shouldBackfillTemplate) {
+				await this.saveBill();
+			}
+
 			await this.loadAvatarList();
 		},
 		methods: {
+			applyTemplateConfig(config, templateName = '') {
+				const normalizedConfig = JSON.parse(JSON.stringify(config || {}));
+				if (normalizedConfig.showBarcode === undefined) normalizedConfig.showBarcode = false;
+				if (normalizedConfig.showMiniProgram === undefined) normalizedConfig.showMiniProgram = false;
+				this.templateConfig = normalizedConfig;
+				this.templateName = templateName || this.templateName;
+				if (this.templateName) {
+					uni.setNavigationBarTitle({ title: this.templateName });
+				}
+			},
 			async loadTemplateConfig(templateId) {
 				try {
 					const templates = uni.getStorageSync('customTemplates') || [];
-					const template = templates.find(t => t.id === templateId);
+					const normalizedId = String(templateId);
+					const template = templates.find(t => String(t.id) === normalizedId);
 					if (template) {
-						const config = JSON.parse(JSON.stringify(template.config));
-						if (config.showBarcode === undefined) config.showBarcode = false;
-						if (config.showMiniProgram === undefined) config.showMiniProgram = false;
-						this.templateConfig = config;
-						// 更新页面标题
-						uni.setNavigationBarTitle({ title: template.name });
+						this.templateId = normalizedId;
+						this.applyTemplateConfig(template.config, template.name);
+						return true;
 					}
 				} catch (e) {
 					console.error('加载模板配置失败', e);
 				}
+				return false;
 			},
 			async loadAvatarList() {
 				try {
@@ -214,7 +239,11 @@
 						console.warn('用户未登录，跳过保存账单');
 						return;
 					}
-					const billDetail = JSON.stringify(this.info || {});
+					const billDetail = serializeCustomBillDetail(this.info, {
+						id: this.templateId,
+						name: this.templateName,
+						config: this.templateConfig
+					});
 					if (this.id === null || this.id === undefined) {
 						const billData = {
 							platform: 'wechat',
@@ -227,7 +256,7 @@
 						const result = await createBill(billData);
 						if (result && result.data && result.data.id) this.id = result.data.id;
 					} else {
-						await updateBill(this.id, { billDetail });
+						await updateBill(this.id, { billDetail, templateId: this.templateId });
 					}
 				} catch (e) {
 					console.error('保存账单失败:', e);

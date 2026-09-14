@@ -58,6 +58,7 @@
 import { queryBillList, deleteBill } from '@/api/index.js'
 import { getBillTypeLabel } from '@/config/billType.js'
 import { BILL_TYPE_ROUTE_MAP } from '@/config/billTemplates.js'
+import { parseCustomBillDetail } from '@/utils/customBillHistory.js'
 
 export default {
 	data() {
@@ -106,6 +107,7 @@ export default {
 						info.orderNumber,
 						info.shopNumber,
 						info.desc,
+						item.templateName,
 						getBillTypeLabel(item.type)
 					]
 					return fields.some(field => String(field || '').toLowerCase().includes(keyword))
@@ -149,21 +151,31 @@ export default {
 
 				this.list = billList.map(bill => {
 					let info = {}
+					let templateId = bill && bill.templateId ? String(bill.templateId) : ''
+					let templateName = ''
+					const billType = bill && bill.billType !== undefined ? bill.billType : undefined
+					const typeNum = typeof billType === 'number' ? billType : parseInt(String(billType || ''), 10)
 					try {
 						if (bill.billDetail) {
-							info = typeof bill.billDetail === 'string' ? JSON.parse(bill.billDetail) : bill.billDetail
+							if (typeNum === 99) {
+								const history = parseCustomBillDetail(bill.billDetail)
+								info = history.info
+								templateId = history.templateId || templateId
+								templateName = history.templateName
+							} else {
+								info = typeof bill.billDetail === 'string' ? JSON.parse(bill.billDetail) : bill.billDetail
+							}
 						}
 					} catch (e) {
 						info = {}
 					}
 
-					const billType = bill && bill.billType !== undefined ? bill.billType : undefined
-					const typeNum = typeof billType === 'number' ? billType : parseInt(String(billType || ''), 10)
-
 					return {
 						type: Number.isFinite(typeNum) ? typeNum : 1,
 						status: bill.status || 'completed',
 						updateTime: bill.updateTime || bill.createTime || Date.now(),
+						templateId,
+						templateName,
 						info: {
 							...info,
 							id: bill.id,
@@ -193,6 +205,7 @@ export default {
 			return `${date.getMonth() + 1}月${date.getDate()}日`
 		},
 		getRecordTitle(item) {
+			if (Number(item.type) === 99 && item.templateName) return item.templateName
 			return getBillTypeLabel(item.type)
 		},
 		getRecordSubtitle(item) {
@@ -247,8 +260,16 @@ export default {
 
 			const billType = info.billType !== undefined ? info.billType : item.type
 			const typeNum = typeof billType === 'number' ? billType : parseInt(String(billType || ''), 10)
+			if (typeNum === 99 && !item.templateId) {
+				const url = `/pages/custom-templates/custom-templates?mode=history&billId=${encodeURIComponent(String(info.id))}`
+				uni.navigateTo({ url })
+				return
+			}
 			const targetRoute = BILL_TYPE_ROUTE_MAP[typeNum] || BILL_TYPE_ROUTE_MAP[4]
-			const url = `${targetRoute}?billId=${encodeURIComponent(String(info.id))}`
+			const templateQuery = typeNum === 99 && item.templateId
+				? `&templateId=${encodeURIComponent(String(item.templateId))}`
+				: ''
+			const url = `${targetRoute}?billId=${encodeURIComponent(String(info.id))}${templateQuery}`
 			uni.navigateTo({ url })
 		}
 	}

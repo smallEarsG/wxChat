@@ -53,6 +53,13 @@
             }
         },
         {
+            "path" : "pages/webview/webview",
+            "style" : {
+                "navigationBarTitleText" : "隐私政策",
+                "enablePullDownRefresh" : false
+            }
+        },
+        {
             "path" : "pages/wxChat/wxChat",
             "style" : {
                 "navigationStyle" : "custom",
@@ -224,6 +231,14 @@
         },
         {
             "path" : "pages/miniThirdpartyPayment/miniThirdpartyPayment",
+            "style" : {
+                "navigationBarTitleText" : "",
+                "enablePullDownRefresh" : false,
+                "navigationStyle" : "custom"
+            }
+        },
+        {
+            "path" : "pages/profileTransaction/profileTransaction",
             "style" : {
                 "navigationBarTitleText" : "",
                 "enablePullDownRefresh" : false,

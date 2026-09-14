@@ -76,6 +76,16 @@ export const BILL_TEMPLATE_MAP = Object.freeze({
 		previewComponent: 'ThirdpartyMerchantBill',
 		legacyIndex: 9
 	},
+	profileTransaction: {
+		key: 'profileTransaction',
+		route: '/pages/profileTransaction/profileTransaction',
+		billType: BILL_TYPE.PROFILE_TRANSACTION,
+		title: '个人主页交易详情',
+		description: '个人主页与交易详情组合展示',
+		category: 'merchant',
+		previewComponent: 'ProfileTransactionBill',
+		legacyIndex: 11
+	},
 	barcodeBill: {
 		key: 'barcodeBill',
 		route: '/pages/barcodeThirdpartyPayment32/barcodeThirdpartyPayment32',
@@ -152,6 +162,7 @@ export const BILL_TYPE_ROUTE_MAP = Object.freeze(
 		return map
 	}, {
 		[BILL_TYPE.THIRD_PARTY_MERCHANT]: '/pages/ThirdpartyMerchant/ThirdpartyMerchant',
+		[BILL_TYPE.PROFILE_TRANSACTION]: '/pages/profileTransaction/profileTransaction',
 		[BILL_TYPE.MINI_PROGRAM_BARCODE]: '/pages/miniThirdpartyPaymentCode/miniThirdpartyPaymentCode',
 		[BILL_TYPE.CUSTOM]: '/pages/custom-template-page/custom-template-page'
 	})

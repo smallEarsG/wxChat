@@ -6,7 +6,7 @@
 			<view class="back-btn" @click="goBack">
 				<uni-icons type="arrowleft" size="30" color="#333" />
 			</view>
-			<text class="page-title">我的模板</text>
+			<text class="page-title">{{ historyBillId ? '选择记录模板' : '我的模板' }}</text>
 			<view class="add-btn" @click="createTemplate">
 				<uni-icons type="plusempty" size="24" color="#4A90E2" />
 			</view>
@@ -44,7 +44,8 @@ export default {
 	data() {
 		return {
 			searchText: '',
-			customTemplates: []
+			customTemplates: [],
+			historyBillId: ''
 		}
 	},
 	computed: {
@@ -53,6 +54,11 @@ export default {
 			if (!this.searchText.trim()) return sorted
 			const keyword = this.searchText.trim().toLowerCase()
 			return sorted.filter(item => (item.name || '').toLowerCase().includes(keyword))
+		}
+	},
+	onLoad(options = {}) {
+		if (options.mode === 'history' && options.billId) {
+			this.historyBillId = String(options.billId)
 		}
 	},
 	onShow() {
@@ -95,7 +101,12 @@ export default {
 			uni.navigateTo({ url: `/pages/template-config/template-config?id=${templateId}` })
 		},
 		useTemplate(templateId) {
-			uni.navigateTo({ url: `/pages/custom-template-page/custom-template-page?templateId=${templateId}` })
+			const billQuery = this.historyBillId
+				? `&billId=${encodeURIComponent(this.historyBillId)}`
+				: ''
+			uni.navigateTo({
+				url: `/pages/custom-template-page/custom-template-page?templateId=${encodeURIComponent(String(templateId))}${billQuery}`
+			})
 		},
 		copyTemplate(template) {
 			try {

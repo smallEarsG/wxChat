@@ -111,7 +111,12 @@
 							</view>
 							在此商户的交易
 						</view>
-						
+						<view class="se_item" :style="{ fontSize: (26 * fontScale) + 'rpx' }">
+							<view class="se_icon">
+								<image class="startIcon" src="/static/startIcon.png" mode=""></image>
+							</view>
+							申请电子凭证
+						</view>
 					</view>
 				</view>
 			</view>
