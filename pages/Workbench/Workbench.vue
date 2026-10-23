@@ -7,7 +7,7 @@
 		<view class="content"  >
 			<!-- 工作台内容 -->
 			<image src="/static/conelse/a1.png" mode="widthFix"></image>
-			<view style="position: relative;" @click="openEditPopup">
+			<view style="position: relative;" role="button" aria-label="联系客户" @click="goToCurData">
 				<view class="t_content">
 					<view class="txt t1" :style="getWorkbenchTextStyle()">{{workbenchData.t1}}</view>
 					<view class="txt t2" :style="getWorkbenchTextStyle()">{{workbenchData.t2}}</view>
@@ -72,6 +72,7 @@
 
 <script>
 	import EditableFormPopup from '@/components/EditableFormPopup/EditableFormPopup.vue'
+	import { CUSTOMER_STATS_EVENT, getCustomerStats, saveCustomerStats } from '@/utils/customerOverview.js'
 	
 	export default {
 		components: {
@@ -92,15 +93,16 @@
 					fontSize: 48
 				},
 				workbenchLabels: {
-					t1: '第一个数值',
-					t2: '第二个数值',
-					t3: '金额',
+					t1: '客户总数',
+					t2: '今日新增客户数',
+					t3: '今日收款',
 					fontWeight: '字体粗细',
 					fontSize: '字体大小'
 				}
 			}
 		},
 		onLoad() {
+			uni.$on(CUSTOMER_STATS_EVENT, this.applyCustomerStats)
 			this.loadFooterData()
 			this.loadWorkbenchData()
 		},
@@ -109,7 +111,18 @@
 			this.loadFooterData()
 			this.loadWorkbenchData()
 		},
+		onUnload() {
+			uni.$off(CUSTOMER_STATS_EVENT, this.applyCustomerStats)
+		},
 		methods: {
+			goToCurData() {
+				uni.navigateTo({
+					url: '/pages/CurData/CurData',
+					fail: () => {
+						uni.showToast({ title: '跳转失败', icon: 'none' });
+					}
+				});
+			},
 			// 从 storage 加载底部按钮数据
 			loadFooterData() {
 				const footerData = uni.getStorageSync('footerData')
@@ -165,34 +178,50 @@
 			},
 			// 从 storage 加载工作台数据
 			loadWorkbenchData() {
-				const savedData = uni.getStorageSync('workbenchData');
-				if (savedData) {
-					this.workbenchData = {
-						t1: savedData.t1 || '1',
-						t2: savedData.t2 || '0',
-						t3: savedData.t3 || '0.00',
-						fontWeight: this.normalizeFontWeight(
-							savedData.fontWeight || savedData.t1FontWeight || savedData.t2FontWeight || savedData.t3FontWeight
-						),
-						fontSize: savedData.fontSize || 48
-					};
-				}
+				let savedData = {};
+				try {
+					const saved = uni.getStorageSync('workbenchData');
+					if (saved && typeof saved === 'object' && !Array.isArray(saved)) savedData = saved;
+				} catch (error) {}
+				this.workbenchData = {
+					...this.workbenchData,
+					fontWeight: this.normalizeFontWeight(savedData.fontWeight || savedData.t1FontWeight || savedData.t2FontWeight || savedData.t3FontWeight || this.workbenchData.fontWeight),
+					fontSize: this.normalizeFontSize(savedData.fontSize || this.workbenchData.fontSize)
+				};
+				this.applyCustomerStats(getCustomerStats());
+			},
+			applyCustomerStats(stats) {
+				this.workbenchData = {
+					...this.workbenchData,
+					t1: String(stats.totalCustomers),
+					t2: String(stats.todayNewCustomers),
+					t3: stats.todayIncome
+				};
 			},
 			// 保存工作台数据到 storage
-			saveWorkbenchData() {
-				uni.setStorageSync('workbenchData', this.workbenchData);
+			saveWorkbenchData(data = this.workbenchData) {
+				const stats = saveCustomerStats({ totalCustomers: data.t1, todayNewCustomers: data.t2, todayIncome: data.t3 });
+				const saved = { ...data, t1: String(stats.totalCustomers), t2: String(stats.todayNewCustomers), t3: stats.todayIncome };
+				uni.setStorageSync('workbenchData', saved);
+				return saved;
 			},
 			// 工作台数据提交
 			onWorkbenchSubmit(data) {
 				console.log('工作台数据提交:', data);
-				this.workbenchData = {
-					t1: data.t1 || '1',
-					t2: data.t2 || '0',
-					t3: data.t3 || '0.00',
+				const next = {
+					t1: data.t1,
+					t2: data.t2,
+					t3: data.t3,
 					fontWeight: this.normalizeFontWeight(data.fontWeight),
 					fontSize: this.normalizeFontSize(data.fontSize)
 				};
-				this.saveWorkbenchData();
+				try {
+					this.workbenchData = this.saveWorkbenchData(next);
+				} catch (error) {
+					this.loadWorkbenchData();
+					uni.showToast({ title: '保存失败，请重试', icon: 'none' });
+					return;
+				}
 				uni.showToast({
 					title: '保存成功',
 					icon: 'success'

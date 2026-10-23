@@ -1,9 +1,11 @@
 <template>
-	<view class="container">
+	<view class="chat-list-shell" :class="{ 'chat-list-shell--open': sidebarOpen }">
+		<EnterpriseSidebar v-if="sidebarVisible" ref="enterpriseSidebar" :profile="sidebarProfile" :enterprises="sidebarEnterprises" :activeEnterpriseId="activeEnterpriseId" :statusBarHeight="statusBarHeight" @profile="openSidebarProfileEditor" @edit-enterprise="openSidebarEnterpriseEditor" @company="goToSidebarEnterpriseInfo" @select="selectSidebarEnterprise" @join="openSidebarAddEnterprise" @delete-enterprise="confirmDeleteSidebarEnterprise" />
+		<view class="container chat-list-screen">
 		<!-- 全局水印层 -->
 		<WatermarkLayer />
 		<view class="custom-header" :style="{ paddingTop: statusBarHeight + 'px' }">
-			<view class="left" @click="goBack">
+			<view class="left back-button" role="button" aria-label="打开企业侧栏，双击返回首页" @click="handleBackTap">
 				<image class="backimg" src="../../static/listIcon.png" />
 			</view>
 			<view class="title">
@@ -125,6 +127,9 @@
 				</view>
 			</view>
 		</view>
+		<view v-if="sidebarVisible" class="chat-list-screen-shade" role="button" aria-label="收起企业侧栏" @click.stop="closeSidebar" @touchstart.stop="onSidebarTouchStart" @touchend.stop="onSidebarTouchEnd" />
+		</view>
+		<SidebarEditPopup ref="sidebarEditor" :profile="sidebarProfile" :enterprises="sidebarEnterprises" :activeEnterpriseId="activeEnterpriseId" @submit="saveSidebarEdits" />
 		<EditableFormPopup ref="indexPopup" :value="indexInfo" :fieldLabels="indexKey" @submit="onIndexSubmit" />
 		<ProMsgEditPopup ref="wxChatPopup" @submit="onSubmitWx"></ProMsgEditPopup>
 		<AgentConversationPopup ref="agentPopup" @success="onAgentCreateSuccess"></AgentConversationPopup>
@@ -157,6 +162,9 @@
 	import EditableFormPopup from '@/components/EditableFormPopup/EditableFormPopup.vue'
 	import MessageEditPopup from '@/components/MessageEditPopup/MessageEditPopup.vue'
 	import GuideTour from '@/components/GuideTour/GuideTour.vue'
+	import EnterpriseSidebar from '@/components/EnterpriseSidebar/EnterpriseSidebar.vue'
+	import SidebarEditPopup from '@/components/SidebarEditPopup/SidebarEditPopup.vue'
+	import { SIDEBAR_DATA_KEY, ENTERPRISE_INFO_KEY, resolveSidebarCompanyData } from '@/utils/enterpriseCompany.js'
 	export default {
 		components: {
 			ProMsgEditPopup,
@@ -164,10 +172,28 @@
 			AgentBatchConversationPopup,
 			EditableFormPopup,
 			MessageEditPopup,
-			GuideTour
+			GuideTour,
+			EnterpriseSidebar,
+			SidebarEditPopup
 		},
 		data() {
 			return {
+				lastBackTapAt: null,
+				backTapTimer: null,
+				sidebarOpen: false,
+				sidebarVisible: false,
+				sidebarInfoNavigating: false,
+				sidebarKeepOpenOnHide: false,
+				sidebarCloseTimer: null,
+				sidebarTouchStart: null,
+				sidebarDeletePromptOpen: false,
+				sidebarDeleteRequest: 0,
+				sidebarProfile: { name: '张三', position: '', avatar: '/static/enterprise/sidebar-avatar.png', companyName: '小七网络服务', isVerified: false, verificationText: '' },
+				sidebarEnterprises: [
+					{ id: 'shopee', name: 'Shopee卖家', badge: '99+' },
+					{ id: 'xiaoqi', name: '小七网络服务', badge: '' }
+				],
+				activeEnterpriseId: 'xiaoqi',
 				selectItem:-1,
 				indexInfo:{
 					index:0
@@ -236,10 +262,37 @@
 			}
 		},
 		async onShow() {
+			this.sidebarInfoNavigating = false
+			this.sidebarKeepOpenOnHide = false
+			this.clearBackTap()
+			this.loadSidebarData()
 			// 先恢复本地角标，再拉会话列表（列表刷新成功后再同步 storage）
 			this.loadFooterData()
 			await this.getMessageList()
 			this.checkFirstTimeGuide()
+		},
+		onHide() {
+			if (this.sidebarKeepOpenOnHide || this.sidebarDeletePromptOpen || (this.$refs.sidebarEditor && this.$refs.sidebarEditor.visible)) {
+				this.clearBackTap()
+				return
+			}
+			this.clearSidebarInteraction()
+		},
+		onUnload() {
+			this.sidebarDeleteRequest += 1
+			this.sidebarDeletePromptOpen = false
+			this.clearSidebarInteraction()
+		},
+		onBackPress() {
+			if (this.$refs.sidebarEditor && this.$refs.sidebarEditor.visible) {
+				this.$refs.sidebarEditor.close()
+				return true
+			}
+			if (this.sidebarOpen) {
+				this.closeSidebar()
+				return true
+			}
+			return false
 		},
 		computed: {
 			activeGuideSteps() {
@@ -256,12 +309,116 @@
 			}
 		},
 		methods: {
+			loadSidebarData() {
+				try {
+					const next = resolveSidebarCompanyData({ profile: this.sidebarProfile, enterprises: this.sidebarEnterprises, activeEnterpriseId: this.activeEnterpriseId }, uni.getStorageSync(SIDEBAR_DATA_KEY), uni.getStorageSync(ENTERPRISE_INFO_KEY));
+					this.sidebarProfile = next.profile;
+					this.sidebarEnterprises = next.enterprises;
+					this.activeEnterpriseId = next.activeEnterpriseId;
+				} catch (error) {}
+			},
+			persistSidebarData(next) {
+				try {
+					uni.setStorageSync(SIDEBAR_DATA_KEY, next);
+				} catch (error) {
+					uni.showToast({ title: '保存失败，请重试', icon: 'none' });
+					return false;
+				}
+				this.sidebarProfile = next.profile;
+				this.sidebarEnterprises = next.enterprises;
+				this.activeEnterpriseId = next.activeEnterpriseId;
+				return true;
+			},
+			openSidebarProfileEditor() {
+				this.openSidebar();
+				this.$refs.sidebarEditor.open('profile');
+			},
+			openSidebarEnterpriseEditor(enterprise) {
+				this.openSidebar();
+				this.$refs.sidebarEditor.open('enterprise', enterprise.id);
+			},
+			openSidebarAddEnterprise() {
+				this.openSidebar();
+				this.$refs.sidebarEditor.open('create-enterprise');
+			},
+			confirmDeleteSidebarEnterprise(enterprise) {
+				if (this.sidebarDeletePromptOpen) return;
+				const current = this.sidebarEnterprises.find(item => item.id === enterprise.id);
+				if (!current) return;
+				const request = ++this.sidebarDeleteRequest;
+				this.sidebarDeletePromptOpen = true;
+				try {
+					uni.showModal({
+						title: '删除公司',
+						content: '确定删除“' + current.name + '”吗？',
+						confirmText: '删除',
+						cancelText: '取消',
+						confirmColor: '#e54d42',
+						success: result => {
+							if (request === this.sidebarDeleteRequest && result.confirm) this.deleteSidebarEnterprise(current.id);
+						},
+						fail: () => {
+							if (request === this.sidebarDeleteRequest) uni.showToast({ title: '操作未完成，请重试', icon: 'none' });
+						},
+						complete: () => {
+							if (request === this.sidebarDeleteRequest) this.sidebarDeletePromptOpen = false;
+						}
+					});
+				} catch (error) {
+					this.sidebarDeletePromptOpen = false;
+					uni.showToast({ title: '操作未完成，请重试', icon: 'none' });
+				}
+			},
+			deleteSidebarEnterprise(id) {
+				if (!this.sidebarEnterprises.some(item => item.id === id)) return;
+				const enterprises = this.sidebarEnterprises.filter(item => item.id !== id).map(item => ({ ...item }));
+				const active = enterprises.find(item => item.id === this.activeEnterpriseId) || enterprises[0];
+				const profile = { ...this.sidebarProfile };
+				if (!active || active.id !== this.activeEnterpriseId) profile.companyName = active ? active.name : '';
+				if (!this.persistSidebarData({ profile, enterprises, activeEnterpriseId: active ? active.id : '' })) return;
+				uni.showToast({ title: '已删除', icon: 'success' });
+			},
+			selectSidebarEnterprise(enterprise) {
+				const selected = this.sidebarEnterprises.find(item => item.id === enterprise.id);
+				if (!selected) return;
+				if (this.persistSidebarData({ profile: { ...this.sidebarProfile, companyName: selected.name }, enterprises: this.sidebarEnterprises.map(item => ({ ...item })), activeEnterpriseId: selected.id })) this.closeSidebar();
+			},
+			goToSidebarEnterpriseInfo() {
+				if (this.sidebarInfoNavigating) return;
+				if (!this.persistSidebarData({ profile: { ...this.sidebarProfile }, enterprises: this.sidebarEnterprises.map(item => ({ ...item })), activeEnterpriseId: this.activeEnterpriseId })) return;
+				this.clearBackTap();
+				if (this.$refs.enterpriseSidebar) this.$refs.enterpriseSidebar.clearPendingTap();
+				if (this.sidebarCloseTimer !== null) clearTimeout(this.sidebarCloseTimer);
+				this.sidebarCloseTimer = null;
+				this.sidebarInfoNavigating = true;
+				this.sidebarKeepOpenOnHide = true;
+				const onFailure = () => {
+					this.sidebarInfoNavigating = false;
+					this.sidebarKeepOpenOnHide = false;
+					uni.showToast({ title: '页面打开失败，请重试', icon: 'none' });
+				};
+				try {
+					uni.navigateTo({
+						url: '/pages/enterpriseInfoVerified/enterpriseInfoVerified',
+						fail: onFailure,
+						complete: () => { this.sidebarInfoNavigating = false; }
+					});
+				} catch (error) {
+					onFailure();
+				}
+			},
+			saveSidebarEdits(next) {
+				if (!this.persistSidebarData({ profile: { ...next.profile }, enterprises: next.enterprises.map(item => ({ ...item })), activeEnterpriseId: next.activeEnterpriseId })) return;
+				this.$refs.sidebarEditor.close();
+				this.openSidebar();
+				uni.showToast({ title: '已保存', icon: 'success' });
+			},
 			checkFirstTimeGuide() {
 				const hasSeenGuide = uni.getStorageSync('chatList_hasSeenGuide')
 				if (hasSeenGuide) return
 				this.$nextTick(() => {
 					setTimeout(() => {
-						this.showGuide = true
+						if (!this.sidebarVisible) this.showGuide = true
 					}, 400)
 				})
 			},
@@ -782,6 +939,67 @@
 				}
 			},
 			
+		handleBackTap() {
+			const now = Date.now();
+			const interval = now - this.lastBackTapAt;
+			if (this.lastBackTapAt !== null && interval >= 0 && interval <= 350) {
+				this.clearBackTap();
+				this.goBack();
+				return;
+			}
+			this.clearBackTap();
+			this.lastBackTapAt = now;
+			this.backTapTimer = setTimeout(() => {
+				this.backTapTimer = null;
+				this.lastBackTapAt = null;
+				this.openSidebar();
+			}, 350);
+		},
+		clearBackTap() {
+			if (this.backTapTimer !== null) clearTimeout(this.backTapTimer);
+			this.backTapTimer = null;
+			this.lastBackTapAt = null;
+		},
+		clearSidebarInteraction() {
+			this.clearBackTap();
+			this.sidebarInfoNavigating = false;
+			this.sidebarKeepOpenOnHide = false;
+			if (this.$refs.enterpriseSidebar) this.$refs.enterpriseSidebar.clearPendingTap();
+			if (this.sidebarCloseTimer !== null) clearTimeout(this.sidebarCloseTimer);
+			this.sidebarCloseTimer = null;
+			this.sidebarOpen = false;
+			this.sidebarVisible = false;
+			this.sidebarTouchStart = null;
+		},
+		openSidebar() {
+			this.sidebarInfoNavigating = false;
+			this.sidebarKeepOpenOnHide = false;
+			if (this.sidebarCloseTimer !== null) clearTimeout(this.sidebarCloseTimer);
+			this.sidebarCloseTimer = null;
+			this.showGuide = false;
+			this.guideSwipeOpen = false;
+			this.sidebarVisible = true;
+			this.sidebarOpen = true;
+		},
+		closeSidebar() {
+			if (this.$refs.enterpriseSidebar) this.$refs.enterpriseSidebar.clearPendingTap();
+			this.sidebarOpen = false;
+			if (this.sidebarCloseTimer !== null) clearTimeout(this.sidebarCloseTimer);
+			this.sidebarCloseTimer = setTimeout(() => {
+				this.sidebarVisible = false;
+				this.sidebarCloseTimer = null;
+			}, 320);
+		},
+		onSidebarTouchStart(event) {
+			const touch = event.touches && event.touches[0];
+			this.sidebarTouchStart = touch ? { x: touch.clientX, y: touch.clientY } : null;
+		},
+		onSidebarTouchEnd(event) {
+			const touch = event.changedTouches && event.changedTouches[0];
+			const start = this.sidebarTouchStart;
+			this.sidebarTouchStart = null;
+			if (touch && start && start.x - touch.clientX > 40 && Math.abs(touch.clientY - start.y) < 60) this.closeSidebar();
+		},
 		goBack() {
 			uni.switchTab({
 				url: '/pages/index/index',
@@ -809,6 +1027,32 @@
 </script>
 
 <style>
+	.chat-list-shell {
+		position: fixed;
+		inset: 0;
+		overflow: hidden;
+		background: #0b2451;
+	}
+	.chat-list-shell .chat-list-screen {
+		z-index: 1;
+		transform: translateX(0);
+		border-radius: 0;
+		transition: transform 320ms cubic-bezier(.22, .68, .16, 1), border-radius 320ms;
+		will-change: transform;
+	}
+	.chat-list-shell--open .chat-list-screen {
+		transform: translateX(88vw);
+		border-radius: 110rpx 0 0 110rpx;
+		pointer-events: none;
+	}
+	.chat-list-screen-shade {
+		position: absolute;
+		inset: 0;
+		z-index: 10001;
+		background: rgba(8, 31, 57, .22);
+		pointer-events: auto;
+		touch-action: pan-y;
+	}
 	.content {
 		overflow-y: auto;
 		background-color: #fff;
@@ -894,6 +1138,10 @@
 		height: 38rpx;
 	}
 
+	.back-button {
+		touch-action: manipulation;
+		user-select: none;
+	}
 	.backimg {
 		width: 44rpx;
 		height: 44rpx;

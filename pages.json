@@ -423,6 +423,30 @@
             }
         },
         {
+            "path" : "pages/CurData/CurData",
+            "style" : {
+                "navigationBarTitleText" : "",
+                "navigationStyle" : "custom",
+                "enablePullDownRefresh" : false
+            }
+        },
+        {
+            "path" : "pages/enterpriseInfo/enterpriseInfo",
+            "style" : {
+                "navigationBarTitleText" : "企业信息",
+                "navigationStyle" : "custom",
+                "enablePullDownRefresh" : false
+            }
+        },
+        {
+            "path" : "pages/enterpriseInfoVerified/enterpriseInfoVerified",
+            "style" : {
+                "navigationBarTitleText" : "企业信息",
+                "navigationStyle" : "custom",
+                "enablePullDownRefresh" : false
+            }
+        },
+        {
             "path" : "pages/collectionBill/collectionBill",
             "style" : {
                 "navigationBarTitleText" : "收款账单",
